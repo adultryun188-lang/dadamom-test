@@ -1,0 +1,20 @@
+{
+  "name": "다다맘 TEST",
+  "short_name": "다다맘 TEST",
+  "description": "다다맘 테스트 앱 — 운영 데이터와 분리된 검증용 환경입니다.",
+  "id": "/dadamom-test/",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FFFBF5",
+  "theme_color": "#C94318",
+  "lang": "ko",
+  "dir": "ltr",
+  "categories": ["lifestyle", "social"],
+  "icons": [
+    { "src": "./icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "./icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "./icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

@@ -1,0 +1,12 @@
+# 빌드로 생성되는 환경 파일 — 커밋하지 않는다
+/env.js
+
+# 비밀값이 들어갈 수 있는 파일
+.env
+.env.*
+*.pem
+*-service-role*
+*secret*
+
+node_modules/
+.DS_Store

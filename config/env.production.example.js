@@ -6,6 +6,8 @@ window.DADAMOM_ENV = {
   SUPABASE_URL: 'https://<운영-프로젝트-ref>.supabase.co',
   SUPABASE_ANON_KEY: '<운영 anon public key>',
   APP_NAME: '다다맘',
+  // 운영에는 카카오·구글이 연결돼 있다
+  SOCIAL_LOGIN: true,
   SHOW_TEST_BADGE: false,
   BUILD: '__BUILD__'
 };

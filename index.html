@@ -717,6 +717,26 @@
 
   function authModalHtml(){
     var head = '<div class="modal-head"><h3 class="display">로그인</h3><button class="modal-close" data-close-modal aria-label="닫기">✕</button></div>';
+    // 소셜 로그인은 환경마다 제공자 설정이 다르다.
+    // 테스트 프로젝트에는 카카오·구글이 등록돼 있지 않아, 버튼을 누르면
+    // Supabase 가 'provider is not enabled' JSON 을 그대로 띄운다.
+    // 그래서 환경 설정으로 끄고, 왜 없는지 한 줄로 알려준다.
+    if(ENV.SOCIAL_LOGIN === false){
+      var socialOff =
+        '<div class="card col" style="gap:4px; padding:13px 15px; margin-bottom:14px;">' +
+          '<span style="font-size:12.5px; font-weight:700;">이 환경에서는 이메일 로그인만 됩니다</span>' +
+          '<span class="helper">카카오·구글 로그인은 운영 앱에서만 연결돼 있어요.</span>' +
+        '</div>';
+      if(authView === 'magiclink'){
+        return head + socialOff +
+          '<div class="field"><label for="auth-email">이메일</label><input type="email" id="auth-email" placeholder="you@example.com" autocomplete="email"></div>' +
+          '<button class="btn-primary" id="auth-submit" style="width:100%;" disabled>로그인 링크 받기</button>' +
+          '<button type="button" data-auth-view="password" class="link-quiet" style="background:none; border:none; margin-top:10px; padding:2px 0;">비밀번호로 로그인·회원가입</button>' +
+          '<span class="helper" id="auth-hint"></span>';
+      }
+      return head + socialOff + authPasswordFormHtml();
+    }
+
     var social = '<p class="modal-desc">간편하게 로그인하고 다다맘의 모든 기능을 이용해보세요.</p>' +
       '<button type="button" class="btn-kakao" id="kakao-signin-btn">' +
         '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3C6.477 3 2 6.463 2 10.742c0 2.708 1.79 5.09 4.49 6.462l-1.145 4.19a.4.4 0 0 0 .61.44l4.94-3.27c.35.03.7.05 1.05.05 5.523 0 10-3.463 10-7.872C22 6.463 17.523 3 12 3z" fill="#191919"/></svg>' +
@@ -741,8 +761,12 @@
         '<span class="helper" id="auth-hint"></span>';
     }
 
-    return head + social +
-      '<div class="segmented" role="tablist" aria-label="로그인 방식" id="auth-mode-tabs">' +
+    return head + social + authPasswordFormHtml();
+  }
+
+  // 이메일·비밀번호 폼. 소셜 로그인이 있든 없든 같은 폼을 쓴다.
+  function authPasswordFormHtml(){
+    return '<div class="segmented" role="tablist" aria-label="로그인 방식" id="auth-mode-tabs">' +
         '<button data-auth-mode="login" role="tab" aria-selected="' + (authMode === 'login') + '">로그인</button>' +
         '<button data-auth-mode="signup" role="tab" aria-selected="' + (authMode === 'signup') + '">회원가입</button>' +
       '</div>' +

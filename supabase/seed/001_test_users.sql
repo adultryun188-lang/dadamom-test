@@ -19,12 +19,18 @@ begin
     id, instance_id, aud, role, email,
     encrypted_password, email_confirmed_at,
     raw_app_meta_data, raw_user_meta_data,
-    created_at, updated_at
+    created_at, updated_at,
+    -- 아래 토큰 컬럼을 NULL 로 두면 Supabase 인증 서버가 읽다가 실패해 로그인이 안 된다.
+    -- 반드시 빈 문자열로 채운다.
+    confirmation_token, recovery_token, email_change_token_new,
+    email_change_token_current, email_change, phone_change,
+    phone_change_token, reauthentication_token
   ) values (
     uid, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', mail,
     crypt('dadamom-test-1234', gen_salt('bf')), now(),
     '{"provider":"email","providers":["email"]}'::jsonb, '{}'::jsonb,
-    now(), now()
+    now(), now(),
+    '', '', '', '', '', '', '', ''
   ) on conflict (id) do nothing;
 
   insert into auth.identities (id, user_id, provider_id, provider, identity_data, created_at, updated_at)

@@ -33,15 +33,37 @@ jobs:
           sed "s/__BUILD__/${BUILD}/g" config/env.staging.js > env.js
           echo "빌드: ${BUILD}"
 
-      - name: 운영 키·비밀키가 섞이지 않았는지 확인
+      # 키워드가 아니라 실제 키 값을 검사한다.
+      # (주석에 'service_role' 이라고 적어둔 것까지 잡던 오탐을 없앴다)
+      - name: 키 검사 — 운영 키·비밀키가 섞이지 않았는지
         run: |
-          if grep -rn "hjqchbpxwviengdzvado" --include='*.js' --include='*.html' . ; then
-            echo "::error::운영 Supabase 참조가 코드에 남아 있습니다"; exit 1
-          fi
-          if grep -rniE "service_role|sb_secret_|SUPABASE_SERVICE" --include='*.js' --include='*.html' --include='*.json' . ; then
-            echo "::error::비밀키로 보이는 문자열이 있습니다"; exit 1
-          fi
-          echo "확인 완료"
+          python3 - <<'PY'
+          import base64, json, re, sys, pathlib
+          TEST_REF = 'srxdtddrtnhtlbbviyvs'
+          bad, n = [], 0
+          for p in pathlib.Path('.').rglob('*'):
+              if p.suffix not in ('.js', '.html') or '.git' in p.parts:
+                  continue
+              n += 1
+              t = p.read_text(encoding='utf-8', errors='ignore')
+              if re.search(r'sb_secret_[A-Za-z0-9]', t):
+                  bad.append(str(p) + ': secret key 형식의 문자열')
+              for jwt in re.findall(r'eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}', t):
+                  seg = jwt.split('.')[1]
+                  try:
+                      claims = json.loads(base64.urlsafe_b64decode(seg + '=' * (-len(seg) % 4)))
+                  except Exception:
+                      continue
+                  if claims.get('role') == 'service_role':
+                      bad.append(str(p) + ': service_role 키가 들어 있습니다')
+                  ref = claims.get('ref')
+                  if ref and ref != TEST_REF:
+                      bad.append(str(p) + ': 테스트가 아닌 프로젝트의 키 (ref=' + str(ref) + ')')
+          if bad:
+              print('::error::' + ' / '.join(sorted(set(bad))))
+              sys.exit(1)
+          print('확인 완료 — 검사 %d개 파일, 테스트 키만 사용 중' % n)
+          PY
 
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3

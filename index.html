@@ -1154,7 +1154,44 @@
           }).join('')
         : '');
 
-    el.innerHTML = reportAdminHtml() + outingAdminHtml() + noticeAdmin +
+    // 체험단 신청: 연락처·주소는 마스킹해서만 보여준다.
+    // 배송할 때만 사유를 남기고 연다 (pii_access_log 에 기록됨).
+    var apps = [], purgeStats = null;
+    try{
+      var ar = await sb.rpc('admin_applications');
+      if(!ar.error && Array.isArray(ar.data)) apps = ar.data;
+      var ps = await sb.rpc('pii_purge_stats');
+      if(!ps.error && Array.isArray(ps.data) && ps.data[0]) purgeStats = ps.data[0];
+    }catch(e){}
+
+    var applyAdmin = '<h2 class="display" style="font-size:15px; margin-top:6px;">체험단 신청 (' + apps.length + ')</h2>' +
+      '<p class="helper">연락처·주소는 가려져 있어요. 배송할 때만 사유를 적고 여세요. 연 기록이 남습니다.</p>' +
+      (purgeStats
+        ? '<div class="card row" style="align-items:center; gap:10px; padding:12px 15px;">' +
+            '<span style="flex:1; font-size:12.5px;">배송정보 ' + (purgeStats.total || 0) + '건 · 30일 내 파기 예정 ' +
+            (purgeStats.expiring_30d || 0) + '건' + ((purgeStats.expired || 0) > 0 ? ' · <b>기한 지남 ' + purgeStats.expired + '건</b>' : '') + '</span>' +
+            ((purgeStats.expired || 0) > 0
+              ? '<button type="button" class="btn-ghost" style="flex:0 0 auto; height:34px; padding:0 12px; font-size:12px;" data-purge-pii>지금 파기</button>' : '') +
+          '</div>'
+        : '') +
+      (apps.length
+        ? apps.map(function(a){
+            return '<div class="card col" style="gap:7px; padding:14px;" data-app-row="' + a.id + '">' +
+              '<div class="row" style="align-items:center; gap:6px; flex-wrap:wrap;">' +
+                '<span style="font-size:13px; font-weight:700;">' + escapeHtml(a.nickname || '(닉네임 없음)') + '</span>' +
+                '<span class="helper">' + escapeHtml(a.trial_key || '') + ' · ' + escapeHtml(a.region || '') + '</span>' +
+              '</div>' +
+              '<span class="helper" data-app-pii="' + a.id + '">' +
+                escapeHtml(a.contact_masked || '***') + ' · ' + escapeHtml(a.address_masked || '***') + '</span>' +
+              '<div class="row" style="align-items:center; gap:8px;">' +
+                '<span class="helper" style="flex:1;">파기 예정 ' + escapeHtml(String(a.purge_after || '-')) + '</span>' +
+                '<button type="button" class="btn-ghost" style="flex:0 0 auto; height:32px; padding:0 12px; font-size:12px;" data-reveal-pii="' + a.id + '">배송지 열기</button>' +
+              '</div>' +
+            '</div>';
+          }).join('')
+        : '<p class="helper">아직 신청이 없어요.</p>');
+
+    el.innerHTML = reportAdminHtml() + outingAdminHtml() + noticeAdmin + applyAdmin +
       '<h2 class="display" style="font-size:15px; margin-top:6px;">콘텐츠 검수</h2>' +
       ((!pendingEntries.length && !pendingPosts.length)
         ? '<p class="helper">지금은 검수 대기 중인 콘텐츠가 없어요.</p>' : '') +
@@ -1793,6 +1830,23 @@
 
   // 업로드하면 저장할 '경로'를 돌려준다 (URL 이 아니다).
   // 실패 사유를 문자열로 돌려줘야 화면에 알려줄 수 있어 { path, error } 형태다.
+  // ---------- 동의 원장 ----------
+  // 예전에는 동의 결과를 state.consent 객체로 만들어 localStorage 에만 뒀다.
+  // 기기를 바꾸면 사라지고 "언제 무엇에 동의했는지"를 증명할 방법이 없었다.
+  // 이제 서버에 행으로 남긴다. 추가만 되고 수정·삭제 정책이 없어 나중에 바뀌지 않는다.
+  async function recordConsents(items){
+    if(!sb || !authUser || !items || !items.length) return;
+    try{
+      var rows = items.filter(function(x){ return x && x.kind; }).map(function(x){
+        return { kind:x.kind, granted: !!x.granted, doc_version: x.docVersion || 'v1',
+                 scope: x.scope || null, subject_id: x.subjectId || null };
+      });
+      if(!rows.length) return;
+      var res = await sb.from('consent_records').insert(rows);
+      if(res.error) console.error('consent_records insert error', res.error);
+    }catch(e){ console.error('consent_records', e); }
+  }
+
   async function uploadMedia(file){
     if(!sb || !file) return { path:'', error:'' };
     if(!authUser) return { path:'', error:'로그인이 필요해요' };
@@ -3558,6 +3612,8 @@
     '<tr><td>콘텐츠 등록</td><td>게시글·댓글 내용, 첨부한 사진 및 영상</td><td>커뮤니티 글 또는 챌린지 참가작을 올릴 때</td></tr>' +
     '<tr><td>자동 수집</td><td>서비스 이용 기록, 접속 로그</td><td>서비스 이용 과정에서 자동 생성</td></tr></table>' +
     '<div class="note">육아 기록(수유·수면·기저귀 등), 성장곡선, 예방접종, 타임라인 등 개인 기록 기능의 데이터는 서버로 전송되지 않고 <strong>이용자의 기기 내부(브라우저 저장소)에만 저장</strong>됩니다. 회사는 해당 정보를 열람할 수 없습니다.</div>' +
+    '<div class="note"><strong>체험단 배송 정보</strong>(연락처·배송지)는 다른 신청 정보와 <strong>분리된 저장소</strong>에 보관되며, 운영자 화면에서도 기본적으로 가려져 표시됩니다. 배송 등 실제 처리가 필요할 때만 사유를 남기고 열람하며, <strong>열람 기록이 서버에 남습니다.</strong> 신청일로부터 <strong>90일이 지나면 배송 정보는 파기</strong>되고, 신청 이력(닉네임·지역)만 남습니다.</div>' +
+    '<div class="note"><strong>동의 이력</strong>(언제 어떤 항목에 동의·철회했는지)은 별도의 기록으로 서버에 보관됩니다. 이 기록은 추가만 가능하며 사후에 수정·삭제되지 않습니다. 회원 탈퇴 시에는 함께 삭제됩니다.</div>' +
     '<div class="note"><strong>성장 앨범</strong>에 올린 사진은 예외적으로 서버(비공개 저장소)에 보관됩니다. 기기를 바꿔도 사진이 유지되도록 하기 위한 것이며, <strong>본인 계정으로만 열람할 수 있도록 접근이 제한</strong>됩니다. 공개 링크가 생성되지 않고, 다른 이용자는 물론 검색엔진에도 노출되지 않습니다. 회원 탈퇴 시 사진도 함께 삭제됩니다.</div>' +
 
     '<h2>2. 개인정보의 수집 및 이용 목적</h2>' +
@@ -3827,6 +3883,44 @@
     if(e.target.closest('#ot-submit')){ handleOutingSubmit(); return; }
     var otDel = e.target.closest('[data-outing-delete]');
     if(otDel){ handleOutingDelete(otDel.getAttribute('data-outing-delete')); return; }
+
+    // 배송지 열기 — 사유를 받고, 연 기록이 서버에 남는다
+    var reveal = e.target.closest('[data-reveal-pii]');
+    if(reveal){
+      var aid = reveal.getAttribute('data-reveal-pii');
+      var why = window.prompt('열람 사유를 적어주세요 (기록에 남습니다)\n예: 10/5 당첨자 배송');
+      if(!why || !why.trim()) return;
+      reveal.disabled = true; reveal.textContent = '여는 중...';
+      var rr;
+      try{ rr = await sb.rpc('reveal_application_pii', { app_id: aid, why: why.trim() }); }
+      catch(e3){ rr = { error: e3 }; }
+      reveal.disabled = false; reveal.textContent = '배송지 열기';
+      if(rr.error || !Array.isArray(rr.data) || !rr.data.length){
+        showToast('열지 못했어요: ' + ((rr.error && rr.error.message) || '대상이 없어요'));
+        return;
+      }
+      var row = rr.data[0];
+      var box = document.querySelector('[data-app-pii="' + aid + '"]');
+      if(box){
+        box.textContent = (row.contact || '(연락처 없음)') + ' · ' + (row.address || '(주소 없음)');
+        box.style.color = 'var(--text)';
+        box.style.fontWeight = '700';
+      }
+      showToast('열람 기록이 남았어요');
+      return;
+    }
+
+    var purge = e.target.closest('[data-purge-pii]');
+    if(purge){
+      if(!window.confirm('기한이 지난 배송 정보를 지웁니다.\n신청 기록(닉네임·지역)은 남습니다. 되돌릴 수 없어요.')) return;
+      purge.disabled = true; purge.textContent = '파기 중...';
+      var pr;
+      try{ pr = await sb.rpc('purge_expired_pii'); }catch(e4){ pr = { error: e4 }; }
+      if(pr.error){ showToast('파기 실패: ' + (pr.error.message || '다시 시도해주세요')); purge.disabled=false; purge.textContent='지금 파기'; return; }
+      showToast((pr.data || 0) + '건을 파기했어요');
+      renderAdmin();
+      return;
+    }
 
     var del = e.target.closest('[data-notice-delete]');
     if(del){
@@ -4713,6 +4807,10 @@
         return;
       }
       if(rowId) newEntry.id = rowId;
+      await recordConsents([
+        { kind:'entry_photo',     granted:true, subjectId:rowId },
+        { kind:'entry_brand_use', granted: !!(brandConsent2El && brandConsent2El.checked), subjectId:rowId }
+      ]);
       newEntry.createdAt = Date.now();
       state.myEntries.push(newEntry.id);
     } else {
@@ -4762,6 +4860,9 @@
         return;
       }
       if(rowId) newPost.id = rowId;
+      await recordConsents([
+        { kind:'post_visibility', granted:true, scope:visibility, subjectId:rowId }
+      ]);
       newPost.createdAt = Date.now();
       state.myPosts.push(newPost.id);
     } else {
@@ -4789,13 +4890,33 @@
     var addressVal = addressEl ? addressEl.value.trim() : '';
     if(btn){ btn.disabled = true; btn.textContent = '접수 중...'; }
     if(sb){
-      var res = await sb.from('benefit_applications').insert({ trial_key:akey, nickname: state.nickname || '', region: state.region || '', contact: contactVal, address: addressVal });
+      // 연락처·주소는 본문에 넣지 않는다. 배송용 별도 테이블로 분리해 90일 뒤 파기된다.
+      var appId = newUuid();
+      var payload = { trial_key:akey, nickname: state.nickname || '', region: state.region || '' };
+      if(appId) payload.id = appId;
+      var res = await sb.from('benefit_applications').insert(payload);
       if(res.error){
         console.error('benefit_applications insert error', res.error);
         showToast('신청 실패: ' + (res.error && res.error.message ? res.error.message : '다시 시도해주세요'));
         if(btn){ btn.disabled = false; btn.textContent = '신청 완료하기'; }
         return;
       }
+      if(appId){
+        var pii = await sb.from('benefit_applications_pii').insert({ application_id: appId, contact: contactVal, address: addressVal });
+        if(pii.error){
+          // 배송지가 없으면 당첨돼도 보낼 수가 없다. 신청 자체를 되돌린다.
+          console.error('benefit_applications_pii insert error', pii.error);
+          try{ await sb.from('benefit_applications').delete().eq('id', appId); }catch(e2){}
+          showToast('신청 실패: 배송 정보를 저장하지 못했어요');
+          if(btn){ btn.disabled = false; btn.textContent = '신청 완료하기'; }
+          return;
+        }
+      }
+      var brandEl = document.getElementById('apply-consent2');
+      await recordConsents([
+        { kind:'trial_shipping',  granted:true, scope:akey, subjectId:appId },
+        { kind:'trial_brand_use', granted: !!(brandEl && brandEl.checked), scope:akey, subjectId:appId }
+      ]);
     }
     state.applied[akey] = true;
     state.appliedCount[akey] = (state.appliedCount[akey] || 0) + 1;

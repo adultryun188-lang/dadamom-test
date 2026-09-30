@@ -1858,17 +1858,67 @@
     return rows;
   }
 
+  // ---------- 반응(응원·좋아요) ----------
+  // P0-03: 숫자를 직접 증감하는 increment_* RPC 를 쓰지 않는다.
+  // (대상, 사용자) 행을 entry_votes / post_likes 에 넣거나 지우고,
+  // 표시용 합계는 DB 트리거가 유지한 값을 다시 읽어 맞춘다.
+  // 중복은 PK 제약이 DB 에서 막으므로 클라이언트가 지킬 필요가 없다.
+  async function sendReaction(table, keyCol, ownerCol, targetId, on){
+    if(!sb) return { ok:true, offline:true };
+    if(!authUser) return { ok:false, message:'로그인하면 반응할 수 있어요' };
+    try{
+      var res;
+      if(on){
+        var row = {};
+        row[keyCol] = targetId;
+        row[ownerCol] = authUser.id;
+        res = await sb.from(table).insert(row);
+        // 23505 = 유니크 위반. 이미 눌러둔 상태이므로 성공으로 본다.
+        if(res && res.error && res.error.code === '23505') res = { error:null };
+      } else {
+        res = await sb.from(table).delete().eq(keyCol, targetId).eq(ownerCol, authUser.id);
+      }
+      if(res && res.error) return { ok:false, message:'반응을 저장하지 못했어요' };
+      return { ok:true };
+    }catch(e){ return { ok:false, message:'반응을 저장하지 못했어요' }; }
+  }
+
+  // 트리거가 갱신한 합계를 부모 테이블에서 다시 읽는다.
+  async function fetchCount(parentTable, col, id){
+    if(!sb) return null;
+    try{
+      var r = await sb.from(parentTable).select(col).eq('id', id).single();
+      if(r.error || !r.data) return null;
+      var v = r.data[col];
+      return (typeof v === 'number') ? v : null;
+    }catch(e){ return null; }
+  }
+
+  // 내가 누른 반응 목록. RLS 가 내 행만 돌려주므로 필터가 따로 필요 없다.
+  // 기기(localStorage)가 아니라 계정을 따라오게 하는 것이 목적이다.
+  async function fetchMyReactionIds(table, col){
+    if(!sb || !authUser) return null;
+    try{
+      var r = await sb.from(table).select(col);
+      if(r.error || !r.data) return null;
+      return r.data.map(function(x){ return x[col]; });
+    }catch(e){ return null; }
+  }
+
   async function fetchEntries(){
     if(!sb) return null;
     try{
       var res = await sb.from('challenge_entries').select('*').eq('status', 'approved').order('created_at', {ascending:false}).limit(50);
       if(res.error || !res.data) return null;
+      var mineVotes = await fetchMyReactionIds('entry_votes', 'entry_id');
+      if(mineVotes){ state.myVotes = mineVotes; save(); }
+      var votedIds = mineVotes || state.myVotes;
       // media_url 은 DB 값을 그대로 쓰지 않는다. media_path 로 짧은 서명 URL 을 새로 받는다.
       var rows = res.data.map(function(r){
         return {
           id:r.id, name:r.name, age:r.age || '', note:r.note || '',
           media_path: r.media_path || '', media_url: '',
-          votes:r.votes || 0, mine: state.myEntries.indexOf(r.id) > -1, liked: state.myVotes.indexOf(r.id) > -1,
+          votes:r.votes || 0, mine: state.myEntries.indexOf(r.id) > -1, liked: votedIds.indexOf(r.id) > -1,
           status: r.status || 'approved',
           createdAt: new Date(r.created_at).getTime()
         };
@@ -1882,11 +1932,14 @@
     try{
       var res = await sb.from('community_posts').select('*').eq('status', 'approved').order('created_at', {ascending:false}).limit(50);
       if(res.error || !res.data) return null;
+      var mineLikes = await fetchMyReactionIds('post_likes', 'post_id');
+      if(mineLikes){ state.myLikes = mineLikes; save(); }
+      var likedIds = mineLikes || state.myLikes;
       var rows = res.data.map(function(r){
         return {
           id:r.id, author:r.author, owner_id:r.owner_id || null, time: timeAgo(r.created_at), bg:'var(--chip-b)',
           text:r.text, media_path: r.media_path || '', media_url: '', img: false,
-          likes:r.likes || 0, liked: state.myLikes.indexOf(r.id) > -1, comments:r.comments || 0,
+          likes:r.likes || 0, liked: likedIds.indexOf(r.id) > -1, comments:r.comments || 0,
           stage: r.stage || null, age_value: (r.age_value === 0 || r.age_value) ? r.age_value : null,
           mine: state.myPosts.indexOf(r.id) > -1, status: r.status || 'approved', createdAt: new Date(r.created_at).getTime()
         };
@@ -4238,21 +4291,31 @@
       var vid = vote.getAttribute('data-vote');
       var entry = state.entries.filter(function(x){ return x.id === vid; })[0];
       if(entry){
+        if(sb && !authUser){ showToast('로그인하면 응원할 수 있어요'); return; }
+        // 즉시 반응 UI 는 그대로 두고, 서버가 거절하면 아래에서 되돌린다.
+        var wasVoted = entry.liked, wasVotes = entry.votes;
         entry.liked = !entry.liked;
-        entry.votes += entry.liked ? 1 : -1;
+        entry.votes = Math.max(0, entry.votes + (entry.liked ? 1 : -1));
         var vi = state.myVotes.indexOf(vid);
         if(entry.liked){ if(vi === -1) state.myVotes.push(vid); }
         else if(vi > -1){ state.myVotes.splice(vi, 1); }
         save(); renderChallenge();
-        if(sb && typeof sb.rpc === 'function'){
-          try{
-            sb.rpc('increment_votes', { p_id: vid, delta: entry.liked ? 1 : -1 }).then(function(res){
-              if(res && !res.error && typeof res.data === 'number'){
-                entry.votes = res.data; save(); renderChallenge();
-              }
-            }).catch(function(){});
-          }catch(e){}
-        }
+        sendReaction('entry_votes', 'entry_id', 'voter_id', vid, entry.liked).then(function(r){
+          if(!r.ok){
+            entry.liked = wasVoted; entry.votes = wasVotes;
+            var j = state.myVotes.indexOf(vid);
+            if(wasVoted){ if(j === -1) state.myVotes.push(vid); }
+            else if(j > -1){ state.myVotes.splice(j, 1); }
+            save(); renderChallenge();
+            showToast(r.message);
+            return;
+          }
+          if(r.offline) return;
+          fetchCount('challenge_entries', 'votes', vid).then(function(n){
+            if(n === null) return;
+            entry.votes = n; save(); renderChallenge();
+          });
+        });
       }
       return;
     }
@@ -4274,21 +4337,30 @@
       var pid = postlike.getAttribute('data-postlike');
       var post = state.posts.filter(function(x){ return x.id === pid; })[0];
       if(post){
+        if(sb && !authUser){ showToast('로그인하면 좋아요를 누를 수 있어요'); return; }
+        var wasLiked = post.liked, wasLikes = post.likes;
         post.liked = !post.liked;
-        post.likes += post.liked ? 1 : -1;
+        post.likes = Math.max(0, post.likes + (post.liked ? 1 : -1));
         var li = state.myLikes.indexOf(pid);
         if(post.liked){ if(li === -1) state.myLikes.push(pid); }
         else if(li > -1){ state.myLikes.splice(li, 1); }
         save(); renderCommunity();
-        if(sb && typeof sb.rpc === 'function'){
-          try{
-            sb.rpc('increment_likes', { p_id: pid, delta: post.liked ? 1 : -1 }).then(function(res){
-              if(res && !res.error && typeof res.data === 'number'){
-                post.likes = res.data; save(); renderCommunity();
-              }
-            }).catch(function(){});
-          }catch(e){}
-        }
+        sendReaction('post_likes', 'post_id', 'liker_id', pid, post.liked).then(function(r){
+          if(!r.ok){
+            post.liked = wasLiked; post.likes = wasLikes;
+            var j = state.myLikes.indexOf(pid);
+            if(wasLiked){ if(j === -1) state.myLikes.push(pid); }
+            else if(j > -1){ state.myLikes.splice(j, 1); }
+            save(); renderCommunity();
+            showToast(r.message);
+            return;
+          }
+          if(r.offline) return;
+          fetchCount('community_posts', 'likes', pid).then(function(n){
+            if(n === null) return;
+            post.likes = n; save(); renderCommunity();
+          });
+        });
       }
       return;
     }
@@ -4819,15 +4891,16 @@
       return;
     }
     if(post){
+      // 댓글수는 post_comments 행을 세는 트리거가 유지한다. 여기서는 읽어와 맞추기만 한다.
       post.comments = (post.comments || 0) + 1;
       save();
-      if(sb && typeof sb.rpc === 'function'){
-        try{
-          sb.rpc('increment_comments', { p_id: postId }).then(function(res){
-            if(res && !res.error && typeof res.data === 'number'){ post.comments = res.data; save(); }
-          }).catch(function(){});
-        }catch(e){}
-      }
+      fetchCount('community_posts', 'comments', postId).then(function(n){
+        if(n === null) return;
+        post.comments = n; save();
+        var t = document.getElementById('comments-modal-title');
+        if(t) t.textContent = '댓글 ' + post.comments + '개';
+        renderCommunity(); renderHome();
+      });
     }
     textEl.value = '';
     if(btn) btn.disabled = true;

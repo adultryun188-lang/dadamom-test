@@ -1,5 +1,6 @@
 // 테스트(스테이징) 환경. 테스트용 Supabase 프로젝트 dadamom-test 를 바라본다.
-// 운영 프로젝트(hjqchbpxwviengdzvado)와 완전히 분리돼 있다.
+// 운영 프로젝트와는 완전히 별개의 프로젝트다. (운영 ref 는 이 파일에 적지 않는다 —
+// 배포 워크플로가 운영 참조를 발견하면 빌드를 실패시킨다)
 window.DADAMOM_ENV = {
   ENV: 'staging',
   SUPABASE_URL: 'https://srxdtddrtnhtlbbviyvs.supabase.co',

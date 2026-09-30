@@ -65,14 +65,23 @@ node tests/e2e.spec.js      # 320/360/390/430px + 안드로이드/아이폰
   `.select()` 를 빼고 uuid 를 클라이언트에서 만드세요.
 - **파괴적 SQL 은 `begin; ... rollback;`** 으로 먼저 리허설하세요.
 - `index.html` 에 `<meta charset="utf-8">` 이 없으면 GitHub Pages 밖에서는 한글이 전부 깨집니다.
+- **서명 URL 은 버킷을 private 으로 바꿔도 죽지 않습니다.** 토큰이 RLS 를 거치지 않기 때문입니다.
+  토큰 안에 경로가 박혀 있어서 **파일을 옮기거나 지워야만** 무효화됩니다.
+  확인할 때는 반드시 캐시를 무시하세요 — CDN 이 캐싱해서 잠시 200 이 나옵니다.
+- **`storage.objects` 를 SQL 로 직접 지울 수 없습니다.** Supabase 트리거가 막습니다
+  (`42501 Direct deletion from storage tables is not allowed`). security definer 함수 안에서도 막힙니다.
+  파일 삭제는 클라이언트가 Storage API 로 해야 합니다.
+- RLS 정책을 좁힐 때 **검수자(`is_admin()`)를 빼먹지 마세요.** 대기 중인 글의 사진을
+  못 보면 승인/반려를 판단할 수 없습니다.
 
 ## 5. 지금 하는 일
 
 Security Foundation Sprint 1, 순서는 **P0-04 → P0-03 → P0-05**.
 전부 테스트 환경에서 먼저 하고, 검증 후 승인받아 운영에 옮깁니다.
 
-- **P0-04** `media` 버킷 비공개화, 10년짜리 서명 URL → 짧게,
-  `getPublicUrl()` 폴백 제거, DB 에 전체 URL 대신 object_path 저장, 영상 업로드 비활성화
+- ~~**P0-04**~~ **완료 (테스트 환경)** — `media` 비공개, 서명 URL 10분, 공개 URL 폴백 제거,
+  `media_path` 저장, 업로드는 `<uid>/` 폴더로만, 이미지 전용(25MB).
+  운영 이관은 `docs/PROMOTION.md` 의 특별 절차 + `scripts/migrate_media_paths.mjs` 필수.
 - **P0-03** `entry_votes` / `post_likes` 테이블 + 고유제약, `increment_*` RPC 제거
 - **P0-05** `consent_records` 동의 원장, 체험단 PII 분리·마스킹·파기일
 

@@ -127,3 +127,90 @@ node scripts/migrate_media_paths.mjs             # 실제 이동
 `0003_media_private.sql` 맨 아래 주석에 원복 SQL 이 있습니다.
 다만 **2단계에서 옮긴 파일은 자동으로 안 돌아옵니다.** 원복하려면 같은 스크립트를
 반대 방향으로 돌려야 합니다. 2단계 전에 되돌릴지 판단하는 편이 낫습니다.
+
+---
+
+# P0-03 (반응 조작 방지) 운영 이관 — 결정이 필요한 항목
+
+## 먼저: 0002 의 revoke 는 듣지 않습니다
+
+`0002_tighten_anon_grants.sql` 은 승인 대기 중인 운영 변경 목록에 있습니다.
+그 파일의 42~44행
+
+```sql
+revoke execute on function public.increment_votes(uuid,int) from anon;
+```
+
+**는 효과가 없습니다.** PostgreSQL 은 함수 EXECUTE 를 기본으로 `PUBLIC` 에 부여하고,
+`anon` 은 그 PUBLIC 권한을 상속합니다. `anon` 에게서만 회수해도 PUBLIC 경로가 남습니다.
+(baseline 의 `delete_my_account()` 는 `from public, anon` 으로 제대로 막았습니다.)
+
+2026-09-30 테스트 프로젝트 실측 — 0002 가 적용된 상태에서:
+
+| 시도 | 결과 |
+|---|---|
+| anon INSERT `community_posts` | 401 `permission denied for table` ✅ 0002 가 듣는다 |
+| anon RPC `increment_votes(delta=7)` | **204 성공, votes 11 → 18** ❌ 듣지 않는다 |
+| 로그인 사용자 `increment_likes` 50회 | **실패 0건, likes 12 → 62** ❌ |
+| 로그인 사용자 `increment_likes(delta=-5)` | **성공, 남의 글 31 → 26** ❌ |
+| REST PATCH 로 `likes` 컬럼 직접 덮어쓰기 | 값 안 바뀜 ✅ RLS 가 막는다 |
+
+`0005` 는 이 함수들을 revoke 가 아니라 **drop** 하므로 PUBLIC 경로까지 사라집니다.
+따라서 **0002 를 운영에 적용하더라도 0005 를 같이 적용해야** 이 구멍이 닫힙니다.
+0002 만 적용하면 "막았다고 생각하지만 안 막힌" 상태가 됩니다.
+
+## 함께 발견된 것 — 지금까지 좋아요·응원은 서버에 저장된 적이 없습니다
+
+운영·테스트 `index.html` 이 RPC 를 이렇게 불렀습니다.
+
+```js
+sb.rpc('increment_likes', { p_id: pid, delta: ... })
+```
+
+함수의 파라미터 이름은 `post_id` 입니다. `p_id` 로는 함수를 찾지 못해
+**항상 HTTP 404 (PGRST202) 로 실패**했고, 코드가 `.catch(function(){})` 로 삼켜서
+아무 표시도 나지 않았습니다. 즉 화면의 숫자는 기기 `localStorage` 값이고
+DB 의 `likes`/`votes` 는 시드값 그대로였습니다.
+
+이 때문에 **운영의 현재 카운터 값에는 실제 사용자 반응이 반영돼 있지 않습니다.**
+아래 초기화 판단이 그만큼 가벼워집니다.
+
+## 결정이 필요한 것 — 카운터 초기화
+
+`0005` 의 백필은 카운터를 **실제 반응 행 수**로 다시 계산합니다.
+반응 행이 없으므로 `votes`/`likes` 는 **0 이 됩니다**. (`comments` 는 실제 댓글 행 수로
+맞춰지므로 오히려 정확해집니다.)
+
+| 선택지 | 내용 | 비고 |
+|---|---|---|
+| **A) 그대로 0 으로** | 백필을 그대로 적용 | 위 발견대로 지금 숫자에 근거가 없어서 권장 |
+| B) 기존 숫자 보존 | 백필 구간을 지우고 적용 | 카운터와 행 수가 어긋난 채로 시작. 이후 증감만 정확 |
+
+B 를 고르면 `0005_reactions.sql` 의 `6) 백필 (파괴적 구간)` 두 `update` 문을
+주석 처리하고 적용하세요. 그 외 구간은 파괴적이지 않습니다.
+
+## 이관 순서
+
+1. `begin; … rollback;` 리허설 — `tests/0005_rehearsal.sql`
+   (운영에서 돌릴 때는 파일 안의 프로젝트 ref 주석만 참고하고 그대로 실행하면 됩니다)
+2. 결과의 `② 행별 변화` 로 어떤 글의 숫자가 얼마나 깎이는지 확인
+3. `supabase/migrations/0005_reactions.sql` 적용
+4. `index.html` 배포 — **DB 보다 나중에** (새 테이블을 쓰는 코드입니다)
+5. 확인
+   - 로그인해서 응원/좋아요를 누르고 새로고침해도 유지되는지
+   - **다른 기기·다른 브라우저**에서 같은 계정으로 들어가도 눌린 상태가 보이는지
+     (이전에는 기기별 `localStorage` 라 안 따라왔습니다)
+   - 비로그인으로 커뮤니티를 열어 숫자가 보이는지
+   - `tests/reactions.spec.ps1` 로 중복·타인·비로그인 시도가 막히는지
+
+## 되돌리기
+
+`0005_reactions.sql` 맨 아래 주석에 역방향 SQL 이 있습니다.
+**단, 백필로 덮어쓴 카운터 값은 되돌아오지 않습니다.** 3단계 전에 판단하세요.
+보존이 필요하면 미리 남겨두세요.
+
+```sql
+create table _counter_backup_20260930 as
+  select 'entry' as k, id, votes as n from public.challenge_entries
+  union all select 'post', id, likes from public.community_posts;
+```

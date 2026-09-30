@@ -73,6 +73,20 @@ node tests/e2e.spec.js      # 320/360/390/430px + 안드로이드/아이폰
   파일 삭제는 클라이언트가 Storage API 로 해야 합니다.
 - RLS 정책을 좁힐 때 **검수자(`is_admin()`)를 빼먹지 마세요.** 대기 중인 글의 사진을
   못 보면 승인/반려를 판단할 수 없습니다.
+- **함수 권한을 `from anon` 으로만 회수하면 막히지 않습니다.** PostgreSQL 은 함수
+  EXECUTE 를 기본으로 `PUBLIC` 에 주고, `anon` 은 그 PUBLIC 권한을 상속합니다.
+  `revoke execute on function f() from public, anon;` 처럼 **`public` 을 같이** 써야 합니다.
+  0002 가 이 실수를 해서, 적용된 뒤에도 비로그인이 `increment_votes` 를 호출해
+  숫자를 바꿀 수 있었습니다 (2026-09-30 실측: votes 11 → 18). 0005 에서 drop 으로 정리했습니다.
+- **PostgREST 의 PATCH/DELETE 는 RLS 가 0행으로 막아도 HTTP 204 를 줍니다.**
+  응답 코드만 보고 "성공했다/막혔다"를 판단하면 안 됩니다. 값을 다시 읽어 확인하세요.
+- **RPC 파라미터 이름이 틀리면 조용히 실패합니다.** `sb.rpc('increment_likes', {p_id:...})`
+  는 함수가 `post_id` 를 받으므로 404 (PGRST202) 였고, 코드가 `.catch(function(){})` 로
+  삼켜서 아무 표시가 없었습니다. 좋아요·응원이 서버에 저장된 적이 없었습니다.
+  RPC 를 쓰면 실패를 반드시 눈에 보이게 하세요.
+- **살아있는 증감 함수를 테스트에서 호출할 때 `delta` 를 0 으로 두세요.**
+  "함수가 제거됐는지" 확인하려고 `delta=1` 로 부르면, 아직 남아있는 환경에서는
+  실제로 숫자가 올라가 테스트가 DB 를 더럽힙니다.
 
 ## 5. 지금 하는 일
 
@@ -82,10 +96,18 @@ Security Foundation Sprint 1, 순서는 **P0-04 → P0-03 → P0-05**.
 - ~~**P0-04**~~ **완료 (테스트 환경)** — `media` 비공개, 서명 URL 10분, 공개 URL 폴백 제거,
   `media_path` 저장, 업로드는 `<uid>/` 폴더로만, 이미지 전용(25MB).
   운영 이관은 `docs/PROMOTION.md` 의 특별 절차 + `scripts/migrate_media_paths.mjs` 필수.
-- **P0-03** `entry_votes` / `post_likes` 테이블 + 고유제약, `increment_*` RPC 제거
+- **P0-03** 진행 중 — `0005_reactions.sql` 과 `index.html` 수정은 작성 완료.
+  **테스트 DB 에 아직 적용하지 않았습니다.** 다음 순서로 진행합니다.
+  1. `tests/0005_rehearsal.sql` 리허설 (SQL Editor, begin…rollback)
+  2. `supabase/migrations/0005_reactions.sql` 적용
+  3. `node tests/reactions.spec.mjs` 로 중복·타인·비로그인 차단 검증
+  4. `staging` push → 배포된 주소로 `BASE_URL=... STUB=0 node tests/e2e.spec.js`
+  DB 가 먼저입니다. 코드만 배포하면 반응 버튼이 실패합니다.
 - **P0-05** `consent_records` 동의 원장, 체험단 PII 분리·마스킹·파기일
 
 승인 대기 중인 운영 변경: `0002_tighten_anon_grants.sql` 적용, `<meta charset>` 반영.
+단 **0002 만 적용해도 숫자 조작은 막히지 않습니다** — 4번 지뢰 목록의 PUBLIC 권한 항목과
+`docs/PROMOTION.md` 의 P0-03 절을 보세요. 0005 를 같이 적용해야 닫힙니다.
 
 ## 6. 세션이 나뉘어 일할 때
 

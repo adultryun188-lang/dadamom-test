@@ -214,10 +214,11 @@
   .hero-cta{ display:inline-flex; align-items:center; gap:6px; font-size:13.5px; font-weight:700; background:var(--surface); color:var(--accent); padding:10px 16px; border-radius:14px; }
 
   .segmented{ display:flex; gap:6px; background:var(--pill-bg); padding:4px; border-radius:14px; }
-  .segmented button{ flex:1; padding:9px 0; border-radius:10px; border:none; font-size:12.5px; font-weight:700; background:none; color:var(--text2); }
+  .segmented button{ flex:1; padding:9px 0; border-radius:10px; border:none; font-size:12.5px; font-weight:700; background:none; color:var(--text2); white-space:nowrap; }
   .segmented button[aria-selected="true"]{ background:var(--surface); color:var(--text); }
   .segmented.round{ border-radius:999px; width:fit-content; }
-  .segmented.round button{ padding:7px 14px; border-radius:999px; }
+  /* round 형은 글자 길이대로 눕는다. flex:1 이면 '체중'과 '키'가 같은 너비로 눌려 세로로 접힌다. */
+  .segmented.round button{ padding:7px 14px; border-radius:999px; flex:0 0 auto; }
 
   .badge-ad{ font-size:10px; font-weight:700; color:var(--text2); border:1px solid var(--border); padding:1px 6px; border-radius:8px; letter-spacing:.02em; }
   .badge-match{ font-size:10.5px; font-weight:700; color:var(--chip-c-ink); background:var(--chip-c); padding:2px 8px; border-radius:999px; }
@@ -324,6 +325,7 @@
       <div class="col" style="gap:10px;">
         <span style="font-size:13px; font-weight:700; color:var(--text2);">관심 분야 (복수 선택, 선택)</span>
         <div class="row" style="flex-wrap:wrap; gap:8px;" id="interest-group" role="group" aria-label="관심 분야 선택"></div>
+        <span class="helper" id="interest-hint" aria-live="polite"></span>
       </div>
     </div>
     <div class="pad col" style="flex:0 0 auto; gap:8px; padding-block:16px calc(22px + env(safe-area-inset-bottom,0px)); border-top:1px solid var(--border); background:var(--bg);">
@@ -435,7 +437,7 @@
 
   <!-- COMMUNITY -->
   <section class="screen" id="screen-community">
-    <div class="pad row" style="flex:0 0 auto; padding-block-start:28px; align-items:center; justify-content:space-between;">
+    <div class="pad row" style="flex:0 0 auto; padding-block-start:28px; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
       <h1 class="display" style="font-size:22px;">커뮤니티</h1>
       <div class="segmented round" role="tablist" aria-label="커뮤니티 종류" id="community-tabs">
         <button data-community-tab="notice" role="tab">공지</button>
@@ -465,6 +467,14 @@
           </div>
         </div>
         <a href="#onboarding" class="btn-ghost">아이 정보 수정</a>
+      </div>
+
+      <div class="card col" id="my-interest-card" style="gap:10px; padding:18px;">
+        <div class="col" style="gap:3px;">
+          <h2 class="display" style="font-size:16px;">관심 분야</h2>
+          <span class="helper" id="my-interest-hint"></span>
+        </div>
+        <div class="row" style="flex-wrap:wrap; gap:8px;" id="my-interest-group" role="group" aria-label="관심 분야 수정"></div>
       </div>
 
       <div class="card row" id="account-card" style="align-items:center; gap:12px; padding:14px 18px;">
@@ -1341,11 +1351,20 @@
     {id:'my', label:'MY', icon:'<circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4.5 5-6 8-6s6.5 1.5 8 6"/>'}
   ];
 
+  // topics — 관심 분야 키. 고른 분야와 겹치면 위로 올리고 배지를 붙인다.
   var TRIALS = [
-    {key:'a', brand:'순수소', title:'실리콘 이유식 보관팩 3종', deadline:'9/28', total:80, bg:'var(--chip-a)', eligibility:'both'},
-    {key:'b', brand:'베베따뜻', title:'아기 실리콘 식기 세트', deadline:'10/2', total:60, bg:'var(--chip-b)', eligibility:'parenting'},
-    {key:'c', brand:'포근솜', title:'신생아 고보습 크림', deadline:'10/5', total:30, bg:'var(--chip-c)', eligibility:'pregnant'}
+    {key:'a', brand:'순수소', title:'실리콘 이유식 보관팩 3종', deadline:'9/28', total:80, bg:'var(--chip-a)', eligibility:'both', topics:['이유식','육아템 특가']},
+    {key:'b', brand:'베베따뜻', title:'아기 실리콘 식기 세트', deadline:'10/2', total:60, bg:'var(--chip-b)', eligibility:'parenting', topics:['이유식']},
+    {key:'c', brand:'포근솜', title:'신생아 고보습 크림', deadline:'10/5', total:30, bg:'var(--chip-c)', eligibility:'pregnant', topics:['출산준비물','아이 건강']}
   ];
+  // 체험단이 내 관심 분야에 걸리는지. topics 가 없으면 제목·브랜드로 넘겨짚는다.
+  function trialInterest(t){
+    var mine = myInterests();
+    if(!mine.length) return null;
+    var tp = t.topics || [];
+    for(var i=0;i<tp.length;i++){ if(mine.indexOf(tp[i]) > -1) return tp[i]; }
+    return matchedInterest((t.title || '') + ' ' + (t.brand || ''));
+  }
   // TODO: 실제 캠페인 마감일로 교체해주세요 (지금은 플레이스홀더 값입니다)
   var CHALLENGE_DEADLINE = '2026-10-15';
   function daysUntil(dateStr){
@@ -1365,7 +1384,68 @@
     return d ? (Date.now() > d.getTime()) : false;
   }
   var REGIONS = ['서울', '인천', '경기', '기타'];
-  var INTERESTS = ['이유식', '수면교육', '산후관리', '장난감', '안전용품', '외출템'];
+  // 관심 분야.
+  //  stage — 단계에 맞는 것만 보여준다 (임신 중인 분께 어린이집을 물어볼 이유가 없다).
+  //  kw    — 글·체험단 본문과 맞춰보는 키워드. 이걸로 "내 관심" 필터와 추천이 돈다.
+  // 기존 사용자가 고른 6개(이유식·수면교육·산후관리·장난감·안전용품·외출템)는 이름을 그대로 뒀다.
+  // 이름이 바뀌면 이미 저장된 값이 붕 뜨기 때문이다.
+  var INTEREST_DEFS = [
+    // 임신 중
+    {k:'태교',        stage:'pregnant',  kw:['태교','태담','태동','클래식']},
+    {k:'입덧·영양',    stage:'pregnant',  kw:['입덧','엽산','철분','임신 체중','영양제']},
+    {k:'출산준비물',   stage:'pregnant',  kw:['출산준비','출산가방','배냇','신생아 준비','출산용품']},
+    {k:'산부인과·검진', stage:'pregnant',  kw:['산부인과','검진','초음파','기형아','임당','양수']},
+    {k:'산후조리원',   stage:'pregnant',  kw:['조리원','산후조리']},
+    // 육아 중
+    {k:'이유식',      stage:'parenting', kw:['이유식','유아식','간식','식판','보관팩','분유물']},
+    {k:'수유·분유',    stage:'parenting', kw:['수유','모유','분유','젖병','유축','단유']},
+    {k:'수면교육',     stage:'parenting', kw:['수면','밤잠','낮잠','통잠','새벽수유','잠투정']},
+    {k:'기저귀·목욕',  stage:'parenting', kw:['기저귀','목욕','배변','발진','기저귀갈이']},
+    {k:'발달·놀이',    stage:'parenting', kw:['발달','놀이','걸음마','옹알이','말문','뒤집기']},
+    {k:'어린이집',     stage:'parenting', kw:['어린이집','등원','적응기','가정보육','돌봄']},
+    {k:'아이 건강',    stage:'parenting', kw:['소아과','예방접종','아토피','열이','감기','수족구']},
+    // 단계 무관
+    {k:'산후관리',     stage:'both', kw:['산후','회복','골반','산후우울','다이어트']},
+    {k:'장난감',       stage:'both', kw:['장난감','교구','전집','그림책','원목']},
+    {k:'안전용품',     stage:'both', kw:['카시트','안전문','모서리','안전용품','낙상']},
+    {k:'외출템',       stage:'both', kw:['유모차','아기띠','외출','나들이','힙시트']},
+    {k:'육아템 특가',  stage:'both', kw:['특가','공구','할인','세일','직구','최저가']},
+    {k:'아빠 육아',    stage:'both', kw:['아빠','남편','독박','육아휴직','주말 육아']}
+  ];
+
+  // 온보딩과 MY 에서 같은 칩을 쓴다.
+  function interestChipsHtml(){
+    return interestsForStage(state.kidType).map(function(d){
+      var on = myInterests().indexOf(d.k) > -1;
+      return '<button type="button" class="chip' + (on ? ' on' : '') + '" data-interest="' +
+        escapeHtml(d.k) + '" aria-pressed="' + on + '">' + escapeHtml(d.k) + '</button>';
+    }).join('');
+  }
+
+  function interestsForStage(stage){
+    return INTEREST_DEFS.filter(function(d){ return d.stage === 'both' || d.stage === stage; });
+  }
+  function interestDef(k){
+    for(var i=0;i<INTEREST_DEFS.length;i++){ if(INTEREST_DEFS[i].k === k) return INTEREST_DEFS[i]; }
+    return null;
+  }
+  function myInterests(){
+    return Array.isArray(state.interests) ? state.interests : [];
+  }
+  // 글·체험단이 내 관심 분야에 걸리면 그 분야 이름을 돌려준다. 안 걸리면 null.
+  function matchedInterest(text){
+    var mine = myInterests();
+    if(!mine.length) return null;
+    var t = String(text == null ? '' : text);
+    if(!t) return null;
+    for(var i=0;i<mine.length;i++){
+      var d = interestDef(mine[i]);
+      if(t.indexOf(mine[i]) > -1) return mine[i];
+      if(!d) continue;
+      for(var j=0;j<d.kw.length;j++){ if(t.indexOf(d.kw[j]) > -1) return mine[i]; }
+    }
+    return null;
+  }
   var QNAS = [
     {author:'10개월맘', q:'이유식 중기, 하루에 몇 번 먹이시나요?', answers:8, views:214},
     {author:'예비맘 24주', q:'조리원 짐 언제부터 챙기셨어요?', answers:15, views:340},
@@ -1488,6 +1568,7 @@
       appliedCount:{a:0, b:0, c:0},
       myVotes:[], myLikes:[], myEntries:[], myPosts:[],
       peerOnly:false,
+      feedFilter:'all',
       viewMineOnly:null,
       careLog:[],
       growthRecords:[],
@@ -1804,10 +1885,14 @@
     }).join('');
 
     var ig = document.getElementById('interest-group');
-    ig.innerHTML = INTERESTS.map(function(t){
-      var on = state.interests.indexOf(t) > -1;
-      return '<button type="button" class="chip' + (on ? ' on' : '') + '" data-interest="' + t + '" aria-pressed="' + on + '">' + t + '</button>';
-    }).join('');
+    ig.innerHTML = interestChipsHtml();
+    var ih = document.getElementById('interest-hint');
+    if(ih){
+      var n = myInterests().length;
+      ih.textContent = n
+        ? (n + '개 선택 — 홈과 혜택에서 이 분야를 먼저 보여드려요')
+        : '고르면 홈 피드와 체험단을 이 분야 위주로 보여드려요';
+    }
 
     var valid = isProfileValid();
     var needsLogin = !!sb && !authUser;
@@ -2064,11 +2149,15 @@
           (cClosed ? '결과' : (cIneligible ? '대상 아님' : '참여')) + '</span>' +
       '</a>');
 
-    // 2) 체험단
+    // 2) 체험단 — 관심 분야에 걸리는 것부터
     var trials = TRIALS.filter(function(t){ return !trialExpired(t); });
     if(!trials.length) trials = TRIALS.slice(0, 2);
+    trials = trials.slice().sort(function(a, b){
+      return (trialInterest(b) ? 1 : 0) - (trialInterest(a) ? 1 : 0);
+    });
     trials.slice(0, 3).forEach(function(t){
       var fit = (t.eligibility === 'both' || t.eligibility === state.kidType);
+      var hit = trialInterest(t);
       var d = parseMD(t.deadline);
       var dl = d ? Math.ceil((d.getTime() - Date.now()) / 86400000) : null;
       var closed = (dl != null && dl < 0);
@@ -2082,7 +2171,7 @@
               (dday ? '<span class="dday' + (closed ? ' off' : '') + '">' + dday + '</span>' : '') +
             '</div>' +
             '<span class="helper">' + escapeHtml(t.brand) + ' · ' + t.total + '명 모집' +
-              (fit ? '' : ' · 대상 아님') + '</span>' +
+              (hit ? ' · 관심 분야 ' + escapeHtml(hit) : '') + (fit ? '' : ' · 대상 아님') + '</span>' +
           '</div>' +
           '<span class="mission-go' + (closed || !fit ? ' off' : '') + '">' +
             (closed ? '마감' : (fit ? '신청' : '대상 아님')) + '</span>' +
@@ -2096,10 +2185,12 @@
     var av = myAgeValue();
     var chips = [
       { k:'all',   label:'전체' },
-      { k:'peer',  label:(av != null ? (ageLabel() + ' 또래') : '또래') },
-      { k:'photo', label:'사진 있는 글' },
-      { k:'mine',  label:'내 글' }
+      { k:'peer',  label:(av != null ? (ageLabel() + ' 또래') : '또래') }
     ];
+    // 관심 분야를 고른 사람에게만 보여준다. 안 고른 사람에게는 늘 0건이라 의미가 없다.
+    if(myInterests().length) chips.push({ k:'interest', label:'내 관심' });
+    chips.push({ k:'photo', label:'사진 있는 글' });
+    chips.push({ k:'mine',  label:'내 글' });
     return chips.map(function(c){
       return '<button type="button" class="chip-f" data-home-feed="' + c.k + '" aria-pressed="' +
         (state.homeFeed === c.k) + '">' + escapeHtml(c.label) + '</button>';
@@ -2172,12 +2263,15 @@
       posts = posts.filter(function(p){ return !!(p.media_url || p.img); });
     } else if(state.homeFeed === 'mine'){
       posts = posts.filter(function(p){ return !!p.mine; });
+    } else if(state.homeFeed === 'interest'){
+      posts = posts.filter(function(p){ return !!matchedInterest(p.text); });
     }
 
     if(!posts.length){
       var msg = state.homeFeed === 'mine' ? '아직 작성한 글이 없어요'
               : state.homeFeed === 'peer' ? '아직 또래 글이 없어요'
               : state.homeFeed === 'photo' ? '사진이 있는 글이 아직 없어요'
+              : state.homeFeed === 'interest' ? '관심 분야에 걸리는 글이 아직 없어요'
               : '아직 올라온 글이 없어요';
       return '<div class="card col" style="padding:22px; align-items:center; gap:7px;">' +
         '<span style="font-size:13.5px; font-weight:700;">' + msg + '</span>' +
@@ -2283,6 +2377,7 @@
         var full = count >= t.total || expired;
         var pct = Math.round(count / t.total * 100);
         var matches = t.eligibility === 'both' || t.eligibility === state.kidType;
+        var hit = trialInterest(t);
         var eligLabel = t.eligibility === 'both' ? '전체' : (t.eligibility === 'pregnant' ? '임산부' : '10~24개월');
         var btnLabel = done ? '신청 완료' : (full ? '모집 마감' : (!matches ? '대상이 아니에요' : '신청하기'));
         var btnDisabled = done || full || !matches;
@@ -2290,7 +2385,7 @@
           '<div class="row" style="gap:12px;">' +
           '<div style="flex:0 0 auto; width:68px; height:68px; border-radius:14px; background:' + t.bg + ';" role="img" aria-label="' + escapeHtml(t.title) + ' 제품 사진"></div>' +
           '<div class="col" style="gap:4px; flex:1; min-width:0;">' +
-          '<div class="row" style="align-items:center; gap:6px; flex-wrap:wrap;"><span style="font-size:11.5px; color:var(--text2);">' + escapeHtml(t.brand) + '</span><span class="badge-ad">광고</span>' + (matches ? '<span class="badge-match">내 단계에 맞아요</span>' : '') + '</div>' +
+          '<div class="row" style="align-items:center; gap:6px; flex-wrap:wrap;"><span style="font-size:11.5px; color:var(--text2);">' + escapeHtml(t.brand) + '</span><span class="badge-ad">광고</span>' + (matches ? '<span class="badge-match">내 단계에 맞아요</span>' : '') + (hit ? '<span class="badge-match">관심 ' + escapeHtml(hit) + '</span>' : '') + '</div>' +
           '<span style="font-size:14.5px; font-weight:700; line-height:1.4;">' + escapeHtml(t.title) + '</span>' +
           '<span style="font-size:11.5px; color:var(--text2);">마감 ' + t.deadline + ' · 대상 ' + eligLabel + '</span></div></div>' +
           '<div class="col" style="gap:6px;"><div style="height:6px; border-radius:999px; background:var(--track); overflow:hidden;">' +
@@ -2493,19 +2588,29 @@
       var allPosts = state.posts.slice().sort(function(a,b){ return b.createdAt - a.createdAt; });
       var myAgeValue = state.kidType === 'pregnant' ? pregWeeks(state.dueDate) : (state.kidType === 'parenting' ? ageMonths(state.birthMonth) : null);
       var peerThreshold = state.kidType === 'pregnant' ? 4 : 2;
-      var posts = (state.peerOnly && myAgeValue != null)
-        ? allPosts.filter(function(p){ return p.stage === state.kidType && p.age_value != null && Math.abs(p.age_value - myAgeValue) <= peerThreshold; })
-        : allPosts;
+      // peerOnly 는 예전 boolean 이었다. feedFilter 로 옮기면서 값을 넘겨받는다.
+      if(!state.feedFilter) state.feedFilter = state.peerOnly ? 'peer' : 'all';
+      var posts = allPosts;
+      if(state.feedFilter === 'peer' && myAgeValue != null){
+        posts = allPosts.filter(function(p){ return p.stage === state.kidType && p.age_value != null && Math.abs(p.age_value - myAgeValue) <= peerThreshold; });
+      } else if(state.feedFilter === 'interest'){
+        posts = allPosts.filter(function(p){ return !!matchedInterest(p.text); });
+      }
       if(state.viewMineOnly === 'posts'){ posts = posts.filter(function(p){ return p.mine; }); }
 
       var mineBanner = state.viewMineOnly === 'posts'
         ? '<div class="row" style="align-items:center; justify-content:space-between; background:var(--accent-soft); border-radius:12px; padding:10px 14px;"><span style="font-size:12.5px; font-weight:700; color:var(--accent2);">내 게시물만 보는 중</span><button type="button" data-clear-my-filter class="link-quiet" style="background:none; border:none;">전체보기</button></div>'
         : '';
-      var filterBar = mineBanner + '<div class="row" style="align-items:center; justify-content:space-between;">' +
+      var hasInt = myInterests().length > 0;
+      var filterBar = mineBanner + '<div class="row" style="align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">' +
         '<div class="segmented round" role="tablist" aria-label="피드 필터">' +
-        '<button data-peer-toggle="all" role="tab" aria-selected="' + (!state.peerOnly) + '">전체</button>' +
-        '<button data-peer-toggle="peer" role="tab" aria-selected="' + (!!state.peerOnly) + '">또래 공감</button>' +
-        '</div>' + (state.peerOnly && myAgeValue != null ? '<span class="helper">' + escapeHtml(ageLabel()) + ' 또래</span>' : '') + '</div>';
+        '<button data-peer-toggle="all" role="tab" aria-selected="' + (state.feedFilter === 'all') + '">전체</button>' +
+        '<button data-peer-toggle="peer" role="tab" aria-selected="' + (state.feedFilter === 'peer') + '">또래 공감</button>' +
+        (hasInt ? '<button data-peer-toggle="interest" role="tab" aria-selected="' + (state.feedFilter === 'interest') + '">내 관심</button>' : '') +
+        '</div>' +
+        (state.feedFilter === 'peer' && myAgeValue != null ? '<span class="helper">' + escapeHtml(ageLabel()) + ' 또래</span>' : '') +
+        (state.feedFilter === 'interest' ? '<span class="helper">' + escapeHtml(myInterests().join(' · ')) + '</span>' : '') +
+        '</div>';
 
       var listHtml = posts.length ? posts.map(function(p){
         var media = p.media_url
@@ -2543,7 +2648,21 @@
   }
 
   // ---------- MY ----------
+  function renderMyInterests(){
+    var g = document.getElementById('my-interest-group');
+    if(!g) return;
+    g.innerHTML = interestChipsHtml();
+    var h = document.getElementById('my-interest-hint');
+    if(h){
+      var picked = myInterests();
+      h.textContent = picked.length
+        ? ('홈 피드와 체험단에서 ' + picked.join(' · ') + ' 을(를) 먼저 보여드려요')
+        : '고르면 홈 피드와 체험단을 이 분야 위주로 보여드려요';
+    }
+  }
+
   function renderMy(){
+    renderMyInterests();
     var _pb = document.getElementById('my-profile-banner');
     if(_pb){
       _pb.innerHTML = state.onboarded ? '' :
@@ -3951,9 +4070,17 @@
     var interest = e.target.closest('[data-interest]');
     if(interest){
       var t = interest.getAttribute('data-interest');
+      if(!Array.isArray(state.interests)) state.interests = [];
       var idx = state.interests.indexOf(t);
       if(idx > -1) state.interests.splice(idx,1); else state.interests.push(t);
-      save(); renderOnboarding(); return;
+      save();
+      // 온보딩에서 고르든 MY 에서 고치든, 열려 있는 화면만 다시 그린다.
+      if(document.getElementById('interest-group')) renderOnboarding();
+      if(document.getElementById('my-interest-group')) renderMyInterests();
+      var here = (location.hash || '').replace('#','');
+      if(here === 'home'){ renderHome(); }
+      if(here === 'benefit'){ renderBenefit(); }
+      return;
     }
 
     var topicBtn = e.target.closest('[data-post-topic]');
@@ -4072,7 +4199,9 @@
     }
     var peerToggle = e.target.closest('[data-peer-toggle]');
     if(peerToggle){
-      state.peerOnly = peerToggle.getAttribute('data-peer-toggle') === 'peer';
+      var pick = peerToggle.getAttribute('data-peer-toggle');
+      state.feedFilter = pick;
+      state.peerOnly = (pick === 'peer');   // 예전 키도 같이 유지
       save(); renderCommunity();
       return;
     }

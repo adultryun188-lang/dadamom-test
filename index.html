@@ -4338,27 +4338,33 @@
       var post = state.posts.filter(function(x){ return x.id === pid; })[0];
       if(post){
         if(sb && !authUser){ showToast('로그인하면 좋아요를 누를 수 있어요'); return; }
+        // 좋아요 버튼은 커뮤니티와 홈 피드 양쪽에 있다. 커뮤니티만 다시 그리면
+        // 홈에서 누른 경우 숫자가 그대로라 눌리지 않은 것처럼 보인다.
+        var redrawFeeds = function(){
+          renderCommunity();
+          if((location.hash || '').replace('#','') === 'home') renderHome();
+        };
         var wasLiked = post.liked, wasLikes = post.likes;
         post.liked = !post.liked;
         post.likes = Math.max(0, post.likes + (post.liked ? 1 : -1));
         var li = state.myLikes.indexOf(pid);
         if(post.liked){ if(li === -1) state.myLikes.push(pid); }
         else if(li > -1){ state.myLikes.splice(li, 1); }
-        save(); renderCommunity();
+        save(); redrawFeeds();
         sendReaction('post_likes', 'post_id', 'liker_id', pid, post.liked).then(function(r){
           if(!r.ok){
             post.liked = wasLiked; post.likes = wasLikes;
             var j = state.myLikes.indexOf(pid);
             if(wasLiked){ if(j === -1) state.myLikes.push(pid); }
             else if(j > -1){ state.myLikes.splice(j, 1); }
-            save(); renderCommunity();
+            save(); redrawFeeds();
             showToast(r.message);
             return;
           }
           if(r.offline) return;
           fetchCount('community_posts', 'likes', pid).then(function(n){
             if(n === null) return;
-            post.likes = n; save(); renderCommunity();
+            post.likes = n; save(); redrawFeeds();
           });
         });
       }

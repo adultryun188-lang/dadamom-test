@@ -229,13 +229,28 @@ select 'challenge_entries',
 select id, public, file_size_limit, allowed_mime_types
   from storage.buckets where id = 'media';
 
--- [표 3] 정책 — 기대: 아래 3개가 있고, "media public read" 는 **없어야** 합니다.
---        media read published or own (SELECT) / media own upload (INSERT) / media own delete (DELETE)
-select policyname, cmd, roles
+-- [표 3] 정책 — storage.objects 의 **모든** 정책을 봅니다. 이름으로 거르지 않습니다.
+--
+--   ⚠️ 이 표를 'media%' 로 걸러서 보면 안 됩니다 (처음엔 그렇게 적었는데 틀렸습니다).
+--   0003 은 이름이 'media ...' 인 정책만 drop 합니다. 운영에 이름이 다른 넓은
+--   SELECT 정책(예: "Allow public read", "Enable read access for all users")이
+--   남아 있으면 0003 이 못 지웁니다. RLS 정책은 OR 로 묶이므로, 전부 허용하는
+--   정책 하나가 살아남으면 새로 만든 좁은 정책은 아무 의미가 없습니다.
+--   버킷을 private 으로 바꿔도 전부 읽힙니다 — P0-04 가 통째로 무력화됩니다.
+--
+--   기대: SELECT 정책이 "media read published or own" **하나뿐**이어야 합니다.
+--         INSERT 는 "media own upload", DELETE 는 "media own delete".
+--         album 용 정책 3개(album_*)는 그대로 있어야 정상입니다.
+--         그 밖에 bucket_id 조건이 없거나 using (true) 인 SELECT 정책이 보이면
+--         이름과 using_조건 을 그대로 보내주세요.
+select policyname  as 정책이름,
+       cmd         as 동작,
+       roles       as 대상역할,
+       qual        as using_조건,
+       with_check  as withcheck_조건
   from pg_policies
  where schemaname = 'storage' and tablename = 'objects'
-   and policyname like 'media%'
- order by policyname;
+ order by cmd, policyname;
 
 -- [표 4] 함수 — 기대: 네 칸 모두 null 이 아님
 select to_regprocedure('public.media_can_read(text,uuid)') as media_can_read,

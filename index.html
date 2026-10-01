@@ -2002,15 +2002,33 @@
     }catch(e){ return null; }
   }
 
+  // 신청 인원수. 예전에는 benefit_applications 를 직접 세었는데, RLS 가 본인 행만
+  // 보여주기 때문에 누구에게나 0 아니면 1 이 나왔다. 진행 막대가 늘 비어 있었고
+  // "모집 인원이 차면 마감" 도 영영 걸리지 않았다. 합계만 돌려주는 RPC 로 바꾼다.
+  // (RLS 를 열면 누가 신청했는지가 드러나므로 그 길은 쓰지 않는다.)
   async function fetchAppliedCounts(){
     if(!sb) return null;
     try{
+      var res = await sb.rpc('trial_application_counts');
+      if(res.error || !Array.isArray(res.data)) return null;
       var out = {};
-      for(var i=0;i<TRIALS.length;i++){
-        var key = TRIALS[i].key;
-        var res = await sb.from('benefit_applications').select('id', {count:'exact', head:true}).eq('trial_key', key);
-        out[key] = res.count || 0;
-      }
+      for(var i=0;i<TRIALS.length;i++) out[TRIALS[i].key] = 0;
+      res.data.forEach(function(row){ out[row.trial_key] = Number(row.n) || 0; });
+      return out;
+    }catch(e){ return null; }
+  }
+
+  // 내가 이미 신청한 체험단. 예전에는 기기 localStorage 의 state.applied 가 전부라
+  // 다른 기기나 저장소를 지운 뒤에는 "신청하기" 로 보였고, 눌러야 오류가 났다.
+  // 서버가 진실이다.
+  async function fetchMyApplications(){
+    if(!sb || !authUser) return null;
+    try{
+      var res = await sb.from('benefit_applications').select('trial_key').eq('owner_id', authUser.id);
+      if(res.error || !Array.isArray(res.data)) return null;
+      var out = {};
+      for(var i=0;i<TRIALS.length;i++) out[TRIALS[i].key] = false;
+      res.data.forEach(function(row){ out[row.trial_key] = true; });
       return out;
     }catch(e){ return null; }
   }
@@ -2037,8 +2055,8 @@
       if(here === 'community') renderCommunity();
       if(here === 'challenge') renderChallenge();
     });
-    Promise.all([fetchEntries(), fetchPosts(), fetchAppliedCounts()]).then(function(r){
-      var entries = r[0], posts = r[1], counts = r[2];
+    Promise.all([fetchEntries(), fetchPosts(), fetchAppliedCounts(), fetchMyApplications()]).then(function(r){
+      var entries = r[0], posts = r[1], counts = r[2], mine = r[3];
       if(entries){
         var prevMineEntries = state.entries.filter(function(e){
           return state.myEntries.indexOf(e.id) > -1 && !entries.some(function(x){ return x.id === e.id; });
@@ -2052,6 +2070,9 @@
         state.posts = prevMinePosts.concat(posts);
       }
       if(counts) state.appliedCount = Object.assign({}, state.appliedCount, counts);
+      // 서버가 알려준 내 신청 내역으로 '덮어쓴다'. 기기에 남은 값과 합치면
+      // 취소된 신청이 영영 "신청 완료" 로 남는다.
+      if(mine) state.applied = mine;
       save();
       renderAll((location.hash || '').replace('#',''));
     });
@@ -4897,6 +4918,15 @@
       var res = await sb.from('benefit_applications').insert(payload);
       if(res.error){
         console.error('benefit_applications insert error', res.error);
+        // 23505 = 같은 체험단에 이미 신청돼 있다. 다른 기기에서 신청했거나
+        // 이 기기의 저장소가 지워진 경우다. 오류가 아니라 상태를 맞춰주면 된다.
+        if(res.error.code === '23505'){
+          state.applied[akey] = true;
+          save();
+          closeModal(); renderBenefit(); renderHome();
+          showToast('이미 신청하신 체험단이에요');
+          return;
+        }
         showToast('신청 실패: ' + (res.error && res.error.message ? res.error.message : '다시 시도해주세요'));
         if(btn){ btn.disabled = false; btn.textContent = '신청 완료하기'; }
         return;

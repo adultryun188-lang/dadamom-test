@@ -1960,20 +1960,57 @@
     }catch(e){ return null; }
   }
 
+  // 내 글에만 붙는 상태 배지. 반려된 글도 작성자에게는 보여야 지울 수 있다.
+  function myStatusBadge(row){
+    if(!row.mine) return '';
+    if(row.status === 'pending')  return ' <span class="badge-match">검수 중</span>';
+    if(row.status && row.status !== 'approved') return ' <span class="badge-match">게시 안 됨</span>';
+    return '';
+  }
+
+  // 내 글인지는 서버의 owner_id 로 판단한다.
+  // 기기 목록(state.myPosts / state.myEntries)만 보면, 저장소를 지우거나 다른 기기에서
+  // 열었을 때 내 글인데도 '삭제' 대신 '신고' 가 떠서 자기 글을 못 지운다.
+  // 로그인 전에 쓴 글이나 '나만 보기' 항목은 서버에 owner_id 가 없으므로 기기 목록을 함께 본다.
+  function isMineRow(ownerId, id, localList){
+    if(authUser && ownerId && ownerId === authUser.id) return true;
+    return localList.indexOf(id) > -1;
+  }
+
+  // 승인된 것만 가져오면 내가 쓴 검수 대기·반려 글이 다른 기기에서는 아예 안 보인다.
+  // 안 보이면 지울 수도 없다. 내 것은 상태와 상관없이 가져온다.
+  // (RLS 가 '본인 것' 만 내주므로 남의 대기글은 여전히 안 보인다.)
+  async function fetchOwnUnapproved(table){
+    if(!sb || !authUser) return [];
+    try{
+      var res = await sb.from(table).select('*')
+        .eq('owner_id', authUser.id).neq('status', 'approved')
+        .order('created_at', {ascending:false}).limit(50);
+      return (res.error || !Array.isArray(res.data)) ? [] : res.data;
+    }catch(e){ return []; }
+  }
+
+  function newestFirst(rows){
+    return rows.sort(function(a,b){
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    });
+  }
+
   async function fetchEntries(){
     if(!sb) return null;
     try{
       var res = await sb.from('challenge_entries').select('*').eq('status', 'approved').order('created_at', {ascending:false}).limit(50);
       if(res.error || !res.data) return null;
+      var merged = newestFirst(res.data.concat(await fetchOwnUnapproved('challenge_entries')));
       var mineVotes = await fetchMyReactionIds('entry_votes', 'entry_id');
       if(mineVotes){ state.myVotes = mineVotes; save(); }
       var votedIds = mineVotes || state.myVotes;
       // media_url 은 DB 값을 그대로 쓰지 않는다. media_path 로 짧은 서명 URL 을 새로 받는다.
-      var rows = res.data.map(function(r){
+      var rows = merged.map(function(r){
         return {
-          id:r.id, name:r.name, age:r.age || '', note:r.note || '',
+          id:r.id, name:r.name, age:r.age || '', note:r.note || '', owner_id: r.owner_id || null,
           media_path: r.media_path || '', media_url: '',
-          votes:r.votes || 0, mine: state.myEntries.indexOf(r.id) > -1, liked: votedIds.indexOf(r.id) > -1,
+          votes:r.votes || 0, mine: isMineRow(r.owner_id, r.id, state.myEntries), liked: votedIds.indexOf(r.id) > -1,
           status: r.status || 'approved',
           createdAt: new Date(r.created_at).getTime()
         };
@@ -1987,16 +2024,17 @@
     try{
       var res = await sb.from('community_posts').select('*').eq('status', 'approved').order('created_at', {ascending:false}).limit(50);
       if(res.error || !res.data) return null;
+      var merged = newestFirst(res.data.concat(await fetchOwnUnapproved('community_posts')));
       var mineLikes = await fetchMyReactionIds('post_likes', 'post_id');
       if(mineLikes){ state.myLikes = mineLikes; save(); }
       var likedIds = mineLikes || state.myLikes;
-      var rows = res.data.map(function(r){
+      var rows = merged.map(function(r){
         return {
           id:r.id, author:r.author, owner_id:r.owner_id || null, time: timeAgo(r.created_at), bg:'var(--chip-b)',
           text:r.text, media_path: r.media_path || '', media_url: '', img: false,
           likes:r.likes || 0, liked: likedIds.indexOf(r.id) > -1, comments:r.comments || 0,
           stage: r.stage || null, age_value: (r.age_value === 0 || r.age_value) ? r.age_value : null,
-          mine: state.myPosts.indexOf(r.id) > -1, status: r.status || 'approved', createdAt: new Date(r.created_at).getTime()
+          mine: isMineRow(r.owner_id, r.id, state.myPosts), status: r.status || 'approved', createdAt: new Date(r.created_at).getTime()
         };
       });
       return await attachMediaUrls(rows);
@@ -2459,7 +2497,7 @@
       '<div class="row" style="align-items:center; gap:8px;">' +
         '<div style="width:32px; height:32px; border-radius:999px; background:var(--border);" aria-hidden="true"></div>' +
         '<span style="font-size:12.5px; font-weight:700;">' + escapeHtml(p.author) + '</span>' +
-        (p.mine && p.status === 'pending' ? ' <span class="badge-match">검수 중</span>' : '') +
+        myStatusBadge(p) +
         '<span style="font-size:11px; color:var(--text2);">' + escapeHtml(p.time) + '</span></div>' +
       media +
       postTextHtml(p.text) +
@@ -2473,7 +2511,10 @@
       '<button data-share-post="' + p.id + '" aria-label="공유하기" style="display:flex; align-items:center; gap:5px; border:none; background:none; color:var(--text2); min-height:44px; margin-left:auto;">' +
       '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="1.8" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 10.6l6.8-3.8M8.6 13.4l6.8 3.8"/></svg>' +
       '<span style="font-size:12px;">공유</span></button>' +
-      '<button data-report-post="' + p.id + '" data-report-owner="' + (p.owner_id || '') + '" aria-label="신고하기" style="display:flex; align-items:center; gap:4px; border:none; background:none; color:var(--text2); min-height:44px; font-size:11.5px;">신고</button>' +
+      // 내 글에는 신고 대신 삭제. 자기 글을 신고할 일은 없습니다.
+      (p.mine
+        ? '<button data-delete-post="' + p.id + '" aria-label="내 글 삭제" style="display:flex; align-items:center; gap:4px; border:none; background:none; color:var(--text2); min-height:44px; font-size:11.5px;">삭제</button>'
+        : '<button data-report-post="' + p.id + '" data-report-owner="' + (p.owner_id || '') + '" aria-label="신고하기" style="display:flex; align-items:center; gap:4px; border:none; background:none; color:var(--text2); min-height:44px; font-size:11.5px;">신고</button>') +
       '</div></div>';
   }
 
@@ -2586,12 +2627,16 @@
         '<div style="flex:0 0 auto; width:64px; height:64px; border-radius:14px; background:var(--border); overflow:hidden; display:flex; align-items:center; justify-content:center;" role="img" aria-label="' + escapeHtml(e.name) + ' 참가작 썸네일">' +
         thumb + '</div>' +
         '<div class="col" style="flex:1; gap:4px; min-width:0;">' +
-        '<span style="font-size:14px; font-weight:700;">' + escapeHtml(e.name) + (e.mine ? ' <span class="badge-match">내 참가작</span>' : '') + (e.mine && e.status === 'pending' ? ' <span class="badge-match">검수 중</span>' : '') + '</span>' +
+        '<span style="font-size:14px; font-weight:700;">' + escapeHtml(e.name) + (e.mine ? ' <span class="badge-match">내 참가작</span>' : '') + myStatusBadge(e) + '</span>' +
         '<span style="font-size:12px; color:var(--text2);">' + escapeHtml(e.age) + (e.note ? ' · ' + escapeHtml(e.note) : '') + '</span>' +
         '</div>' +
         '<button data-vote="' + e.id + '" aria-pressed="' + e.liked + '" aria-label="응원하기, 현재 ' + e.votes + '표" style="flex:0 0 auto; background:none; border:none; display:flex; flex-direction:column; align-items:center; gap:2px; min-width:44px; min-height:44px; justify-content:center;">' +
         '<svg width="20" height="20" viewBox="0 0 24 24" fill="' + (e.liked ? 'var(--accent)' : 'none') + '" stroke="var(--accent)" stroke-width="1.6" aria-hidden="true"><path d="M12 21s-7.5-4.6-10-9.3C0.4 8.4 2.4 5 6 5c2 0 3.4 1 4 2.3C10.6 6 12 5 14 5c3.6 0 5.6 3.4 4 6.7-2.5 4.7-10 9.3-10 9.3z"/></svg>' +
-        '<span style="font-size:11px; color:var(--text2);">' + e.votes + '</span></button></div>';
+        '<span style="font-size:11px; color:var(--text2);">' + e.votes + '</span></button>' +
+        (e.mine
+          ? '<button data-delete-entry="' + e.id + '" aria-label="내 참가작 삭제" style="flex:0 0 auto; background:none; border:none; color:var(--text2); min-width:44px; min-height:44px; font-size:11.5px;">삭제</button>'
+          : '') +
+        '</div>';
     }).join('');
   }
 
@@ -2860,7 +2905,7 @@
           : (p.img ? '<div style="height:160px; border-radius:16px; background:' + p.bg + ';" role="img" aria-label="게시물 사진"></div>' : '');
         return '<div class="card col" style="gap:12px; padding:16px;">' +
           '<div class="row" style="align-items:center; gap:8px;"><div style="width:32px; height:32px; border-radius:999px; background:var(--border);" aria-hidden="true"></div>' +
-          '<span style="font-size:12.5px; font-weight:700;">' + escapeHtml(p.author) + '</span>' + (p.mine && p.status === 'pending' ? ' <span class="badge-match">검수 중</span>' : '') + '<span style="font-size:11px; color:var(--text2);">' + escapeHtml(p.time) + '</span></div>' +
+          '<span style="font-size:12.5px; font-weight:700;">' + escapeHtml(p.author) + '</span>' + myStatusBadge(p) + '<span style="font-size:11px; color:var(--text2);">' + escapeHtml(p.time) + '</span></div>' +
           media +
           postTextHtml(p.text) +
           '<div class="row" style="align-items:center; gap:16px;">' +
@@ -2873,7 +2918,9 @@
           '<button data-share-post="' + p.id + '" aria-label="공유하기" style="display:flex; align-items:center; gap:5px; border:none; background:none; color:var(--text2); min-height:44px; margin-left:auto;">' +
           '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="1.8" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 10.6l6.8-3.8M8.6 13.4l6.8 3.8"/></svg>' +
           '<span style="font-size:12px;">공유</span></button>' +
-          '<button data-report-post="' + p.id + '" data-report-owner="' + (p.owner_id || '') + '" aria-label="신고하기" style="display:flex; align-items:center; gap:4px; border:none; background:none; color:var(--text2); min-height:44px; font-size:11.5px;">신고</button>' +
+          (p.mine
+            ? '<button data-delete-post="' + p.id + '" aria-label="내 글 삭제" style="display:flex; align-items:center; gap:4px; border:none; background:none; color:var(--text2); min-height:44px; font-size:11.5px;">삭제</button>'
+            : '<button data-report-post="' + p.id + '" data-report-owner="' + (p.owner_id || '') + '" aria-label="신고하기" style="display:flex; align-items:center; gap:4px; border:none; background:none; color:var(--text2); min-height:44px; font-size:11.5px;">신고</button>') +
           '</div></div>';
       }).join('') : '<div class="card col" style="padding:18px; align-items:center; gap:6px;"><span style="font-size:13px; color:var(--text2);">' + (state.viewMineOnly === 'posts' ? '아직 작성한 글이 없어요' : '아직 또래 글이 없어요') + '</span><span class="helper">전체 보기로 다른 글도 둘러보세요</span></div>';
 
@@ -4635,6 +4682,11 @@
       return;
     }
 
+    var delPost = e.target.closest('[data-delete-post]');
+    if(delPost){ handleOwnContentDelete('post', delPost.getAttribute('data-delete-post')); return; }
+    var delEntry = e.target.closest('[data-delete-entry]');
+    if(delEntry){ handleOwnContentDelete('entry', delEntry.getAttribute('data-delete-entry')); return; }
+
     var repPost = e.target.closest('[data-report-post]');
     if(repPost){
       openReport('post', repPost.getAttribute('data-report-post'),
@@ -4895,6 +4947,62 @@
     save();
     closeModal(); renderCommunity(); renderHome();
     showToast(visibility === 'private' ? '나만 보기로 저장했어요' : '등록됐어요! 검수 후 공개됩니다');
+  }
+
+  // ---------- 내가 올린 글·참가작 지우기 ----------
+  // 사진을 올린 사람이 그 사진을 내릴 수단이 없으면, 남는 방법은 계정 삭제뿐입니다.
+  // 사진 파일을 먼저 지우고, 성공했을 때만 행을 지웁니다. 순서를 반대로 하면
+  // 파일 삭제가 실패했을 때 '참조는 사라졌는데 사진은 남은' 상태가 됩니다.
+  async function removeOwnMedia(mediaPath){
+    if(!sb || !mediaPath) return { ok:true };
+    try{
+      var rm = await sb.storage.from('media').remove([mediaPath]);
+      if(rm && rm.error) return { ok:false, msg: rm.error.message || '' };
+      delete mediaUrlCache[mediaPath];
+      return { ok:true };
+    }catch(e){ return { ok:false, msg:'' }; }
+  }
+
+  async function handleOwnContentDelete(kind, id){
+    var isPost = kind === 'post';
+    var list = isPost ? state.posts : state.entries;
+    var row = list.filter(function(x){ return String(x.id) === String(id); })[0];
+    if(!row || !row.mine) return;
+    var what = isPost ? '글' : '참가작';
+    if(!window.confirm(what + '을 지웁니다.' + (row.media_path ? '\n올리신 사진도 함께 삭제됩니다.' : '') + '\n되돌릴 수 없어요.')) return;
+
+    var btn = document.querySelector('[data-delete-' + kind + '="' + id + '"]');
+    if(btn){ btn.disabled = true; btn.textContent = '지우는 중...'; }
+
+    if(sb && row.media_path){
+      var rm = await removeOwnMedia(row.media_path);
+      if(!rm.ok){
+        showToast('사진을 지우지 못했어요. 잠시 후 다시 시도해주세요');
+        if(btn){ btn.disabled = false; btn.textContent = '삭제'; }
+        return;
+      }
+    }
+    // 서버에 올라간 글만 서버에서 지웁니다. '나만 보기'로 이 기기에만 있는 글은 건너뜁니다.
+    if(sb && !String(id).match(/^[pe]\d{10,}$/)){
+      var table = isPost ? 'community_posts' : 'challenge_entries';
+      var res;
+      try{ res = await sb.from(table).delete().eq('id', id); }catch(e2){ res = { error:e2 }; }
+      if(res && res.error){
+        showToast('지우지 못했어요: ' + (res.error.message || '다시 시도해주세요'));
+        if(btn){ btn.disabled = false; btn.textContent = '삭제'; }
+        return;
+      }
+    }
+    if(isPost){
+      state.posts = state.posts.filter(function(x){ return String(x.id) !== String(id); });
+      state.myPosts = state.myPosts.filter(function(x){ return String(x) !== String(id); });
+    }else{
+      state.entries = state.entries.filter(function(x){ return String(x.id) !== String(id); });
+      state.myEntries = state.myEntries.filter(function(x){ return String(x) !== String(id); });
+    }
+    save();
+    renderCommunity(); renderHome(); renderChallenge(); renderMy();
+    showToast(what + '을 지웠어요');
   }
 
   async function handleApplySubmit(akey){

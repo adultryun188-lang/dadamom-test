@@ -482,7 +482,6 @@
         <button type="button" id="account-action-btn" data-open-auth-modal class="btn-ghost" style="height:36px; padding:0 14px; font-size:12.5px; flex:0 0 auto;">로그인</button>
       </div>
       <a href="#admin" id="admin-link" class="link-quiet" hidden style="background:none; border:none; padding:2px 0; font-size:12.5px;">콘텐츠 검수 콘솔</a>
-      <button type="button" id="delete-account-link" hidden class="link-quiet" style="background:none; border:none; padding:2px 0; font-size:12.5px; color:var(--text2); text-align:left;">회원 탈퇴</button>
 
       <div class="card col" id="block-card" hidden style="gap:10px; padding:16px;">
         <h2 class="display" style="font-size:15px;">차단한 사용자</h2>
@@ -530,6 +529,8 @@
       </div>
       <div id="my-profile-banner"></div>
       <div id="my-footer"></div>
+      <!-- 회원 탈퇴는 MY 화면 맨 아래. 실수로 누르는 일이 없게 가장 끝에 둔다. -->
+      <button type="button" id="delete-account-link" hidden class="link-quiet" style="background:none; border:none; padding:2px 0; margin-top:4px; font-size:12.5px; color:var(--text2); text-align:left;">회원 탈퇴</button>
     </div>
     <nav class="navbar" data-nav aria-label="주요 메뉴"></nav>
   </section>

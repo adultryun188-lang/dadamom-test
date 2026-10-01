@@ -2546,7 +2546,8 @@
       '<span style="font-size:12px;">공유</span></button>' +
       // 내 글에는 신고 대신 삭제. 자기 글을 신고할 일은 없습니다.
       (p.mine
-        ? '<button data-delete-post="' + p.id + '" aria-label="내 글 삭제" style="display:flex; align-items:center; gap:4px; border:none; background:none; color:var(--text2); min-height:44px; font-size:11.5px;">삭제</button>'
+        ? '<button data-edit-post="' + p.id + '" aria-label="내 글 수정" style="display:flex; align-items:center; gap:4px; border:none; background:none; color:var(--text2); min-height:44px; font-size:11.5px;">수정</button>' +
+          '<button data-delete-post="' + p.id + '" aria-label="내 글 삭제" style="display:flex; align-items:center; gap:4px; border:none; background:none; color:var(--text2); min-height:44px; font-size:11.5px;">삭제</button>'
         : '<button data-report-post="' + p.id + '" data-report-owner="' + (p.owner_id || '') + '" aria-label="신고하기" style="display:flex; align-items:center; gap:4px; border:none; background:none; color:var(--text2); min-height:44px; font-size:11.5px;">신고</button>') +
       '</div></div>';
   }
@@ -2667,7 +2668,8 @@
         '<svg width="20" height="20" viewBox="0 0 24 24" fill="' + (e.liked ? 'var(--accent)' : 'none') + '" stroke="var(--accent)" stroke-width="1.6" aria-hidden="true"><path d="M12 21s-7.5-4.6-10-9.3C0.4 8.4 2.4 5 6 5c2 0 3.4 1 4 2.3C10.6 6 12 5 14 5c3.6 0 5.6 3.4 4 6.7-2.5 4.7-10 9.3-10 9.3z"/></svg>' +
         '<span style="font-size:11px; color:var(--text2);">' + e.votes + '</span></button>' +
         (e.mine
-          ? '<button data-delete-entry="' + e.id + '" aria-label="내 참가작 삭제" style="flex:0 0 auto; background:none; border:none; color:var(--text2); min-width:44px; min-height:44px; font-size:11.5px;">삭제</button>'
+          ? '<button data-edit-entry="' + e.id + '" aria-label="내 참가작 수정" style="flex:0 0 auto; background:none; border:none; color:var(--text2); min-width:44px; min-height:44px; font-size:11.5px;">수정</button>' +
+            '<button data-delete-entry="' + e.id + '" aria-label="내 참가작 삭제" style="flex:0 0 auto; background:none; border:none; color:var(--text2); min-width:44px; min-height:44px; font-size:11.5px;">삭제</button>'
           : '') +
         '</div>';
     }).join('');
@@ -2952,7 +2954,8 @@
           '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="1.8" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 10.6l6.8-3.8M8.6 13.4l6.8 3.8"/></svg>' +
           '<span style="font-size:12px;">공유</span></button>' +
           (p.mine
-            ? '<button data-delete-post="' + p.id + '" aria-label="내 글 삭제" style="display:flex; align-items:center; gap:4px; border:none; background:none; color:var(--text2); min-height:44px; font-size:11.5px;">삭제</button>'
+            ? '<button data-edit-post="' + p.id + '" aria-label="내 글 수정" style="display:flex; align-items:center; gap:4px; border:none; background:none; color:var(--text2); min-height:44px; font-size:11.5px;">수정</button>' +
+          '<button data-delete-post="' + p.id + '" aria-label="내 글 삭제" style="display:flex; align-items:center; gap:4px; border:none; background:none; color:var(--text2); min-height:44px; font-size:11.5px;">삭제</button>'
             : '<button data-report-post="' + p.id + '" data-report-owner="' + (p.owner_id || '') + '" aria-label="신고하기" style="display:flex; align-items:center; gap:4px; border:none; background:none; color:var(--text2); min-height:44px; font-size:11.5px;">신고</button>') +
           '</div></div>';
       }).join('') : '<div class="card col" style="padding:18px; align-items:center; gap:6px;"><span style="font-size:13px; color:var(--text2);">' + (state.viewMineOnly === 'posts' ? '아직 작성한 글이 없어요' : '아직 또래 글이 없어요') + '</span><span class="helper">전체 보기로 다른 글도 둘러보세요</span></div>';
@@ -4715,6 +4718,11 @@
       return;
     }
 
+    var edPost = e.target.closest('[data-edit-post]');
+    if(edPost){ handleOwnContentEdit('post', edPost.getAttribute('data-edit-post')); return; }
+    var edEntry = e.target.closest('[data-edit-entry]');
+    if(edEntry){ handleOwnContentEdit('entry', edEntry.getAttribute('data-edit-entry')); return; }
+
     var delPost = e.target.closest('[data-delete-post]');
     if(delPost){ handleOwnContentDelete('post', delPost.getAttribute('data-delete-post')); return; }
     var delEntry = e.target.closest('[data-delete-entry]');
@@ -4994,6 +5002,51 @@
       delete mediaUrlCache[mediaPath];
       return { ok:true };
     }catch(e){ return { ok:false, msg:'' }; }
+  }
+
+  // 수정은 edit_my_post / edit_my_entry RPC 로만 합니다.
+  // 이 표에는 status(검수 상태)와 좋아요 수가 같이 있어서, 행 단위 UPDATE 를 열면
+  // 작성자가 자기 글을 스스로 approved 로 바꿀 수 있습니다. 함수는 본문만 바꾸고
+  // status 를 pending 으로 되돌립니다 — 승인받은 글을 나중에 갈아끼우지 못하게.
+  async function handleOwnContentEdit(kind, id){
+    var isPost = kind === 'post';
+    var list = isPost ? state.posts : state.entries;
+    var row = list.filter(function(x){ return String(x.id) === String(id); })[0];
+    if(!row || !row.mine) return;
+
+    var cur = isPost ? (row.text || '') : (row.note || '');
+    var what = isPost ? '글' : '한 줄 기록';
+    var next = window.prompt(what + '을 고칩니다.\n수정하면 다시 검수를 받게 되어, 검수 전까지는 다른 분들에게 보이지 않아요.', cur);
+    if(next === null) return;
+    if(!next.trim()){ showToast('내용을 입력해주세요'); return; }
+    if(next.trim() === cur.trim()) return;
+
+    // 이 기기에만 있는 '나만 보기' 항목은 서버에 없으므로 로컬에서만 고친다
+    if(!sb || String(id).match(/^[pe]\d{10,}$/)){
+      if(isPost) row.text = next.trim(); else row.note = next.trim();
+      save(); renderCommunity(); renderHome(); renderChallenge();
+      showToast('고쳤어요');
+      return;
+    }
+
+    var btn = document.querySelector('[data-edit-' + kind + '="' + id + '"]');
+    if(btn){ btn.disabled = true; btn.textContent = '저장 중...'; }
+    var res;
+    try{
+      res = isPost
+        ? await sb.rpc('edit_my_post',  { post_id: id,  new_text: next.trim() })
+        : await sb.rpc('edit_my_entry', { entry_id: id, new_note: next.trim() });
+    }catch(e2){ res = { error: e2 }; }
+    if(btn){ btn.disabled = false; btn.textContent = '수정'; }
+    if(res && res.error){
+      showToast('고치지 못했어요: ' + (res.error.message || '다시 시도해주세요'));
+      return;
+    }
+    if(isPost) row.text = next.trim(); else row.note = next.trim();
+    row.status = 'pending';
+    save();
+    renderCommunity(); renderHome(); renderChallenge(); renderMy();
+    showToast('고쳤어요. 검수 후 다시 공개됩니다');
   }
 
   async function handleOwnContentDelete(kind, id){

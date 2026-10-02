@@ -280,11 +280,8 @@
 
       <!-- 로그인 전 화면. 아이 정보는 계정에 저장되므로 로그인을 먼저 받는다.
            예전에는 이 설정을 매번 로그인 전에 해야 했고, 기기를 바꾸면 또 해야 했다. -->
-      <div class="col" id="onboarding-welcome" style="display:none; gap:14px;">
-        <div class="card col" style="gap:10px; padding:18px;">
-          <span style="font-size:14px; font-weight:700;">계정 하나로 어디서나</span>
-          <span style="font-size:12.5px; color:var(--text2); line-height:1.7;">아이 정보와 관심 분야는 계정에 저장돼요. 한 번만 입력하시면 휴대폰을 바꾸거나 다시 로그인해도 그대로 이어집니다.</span>
-        </div>
+      <div class="col" id="onboarding-welcome" style="display:none; gap:10px;">
+        <div class="col" id="onboarding-auth" style="gap:10px;"></div>
       </div>
 
       <div id="onboarding-form" style="display:contents;">
@@ -740,6 +737,12 @@
 
   function authModalHtml(){
     var head = '<div class="modal-head"><h3 class="display">로그인</h3><button class="modal-close" data-close-modal aria-label="닫기">✕</button></div>';
+    return head + authBodyHtml();
+  }
+
+  // 로그인 폼 본체. 모달에도 쓰고, 첫 화면에도 그대로 심는다.
+  function authBodyHtml(){
+    var head = '';
     // 소셜 로그인은 환경마다 제공자 설정이 다르다.
     // 테스트 프로젝트에는 카카오·구글이 등록돼 있지 않아, 버튼을 누르면
     // Supabase 가 'provider is not enabled' JSON 을 그대로 띄운다.
@@ -785,6 +788,15 @@
     }
 
     return head + social + authPasswordFormHtml();
+  }
+
+  // 로그인 폼은 모달과 첫 화면 두 군데에 있을 수 있다.
+  // 탭(로그인/회원가입)이나 방식(비밀번호/이메일 링크)을 바꾸면 둘 다 다시 그린다.
+  function refreshAuthForms(){
+    var card = document.getElementById('modal-card');
+    if(card && card.innerHTML) card.innerHTML = authModalHtml();
+    var inline = document.getElementById('onboarding-auth');
+    if(inline && inline.offsetParent !== null) inline.innerHTML = authBodyHtml();
   }
 
   // 이메일·비밀번호 폼. 소셜 로그인이 있든 없든 같은 폼을 쓴다.
@@ -2150,16 +2162,21 @@
     var helper  = document.getElementById('start-helper');
     if(welcome)  welcome.style.display  = needLogin ? 'flex' : 'none';
     if(form)     form.style.display     = needLogin ? 'none' : 'contents';
-    if(loginBtn) loginBtn.style.display = needLogin ? '' : 'none';
+    if(loginBtn) loginBtn.style.display = 'none';   // 폼에 자체 제출 버튼이 있다
     if(startBtn) startBtn.style.display = needLogin ? 'none' : '';
     if(helper)   helper.style.display   = needLogin ? 'none' : '';
     document.getElementById('onboarding-eyebrow').textContent = needLogin ? '다다맘' : '다다맘 시작하기';
     document.getElementById('onboarding-title').textContent =
       needLogin ? '엄마·아빠를 위한 육아 친구' : '지금 어느 단계인가요?';
     document.getElementById('onboarding-sub').textContent =
-      needLogin ? '로그인하고 시작해보세요. 아이 정보는 로그인한 뒤 한 번만 입력하면 돼요.'
+      needLogin ? '로그인하고 시작해보세요.'
                 : '현재 단계에 맞는 정보와 참여할 수 있는 캠페인만 보여드릴게요.';
-    if(needLogin) return;
+    if(needLogin){
+      // 입력 중인 내용을 지우지 않도록, 비어 있을 때만 그린다
+      var inline = document.getElementById('onboarding-auth');
+      if(inline && !inline.innerHTML) inline.innerHTML = authBodyHtml();
+      return;
+    }
 
     document.getElementById('due-block').hidden = state.kidType !== 'pregnant';
     document.getElementById('birth-block').hidden = state.kidType !== 'parenting';
@@ -4867,16 +4884,14 @@
     var authModeTab = e.target.closest('[data-auth-mode]');
     if(authModeTab){
       authMode = authModeTab.getAttribute('data-auth-mode');
-      var authModalCard = document.getElementById('modal-card');
-      if(authModalCard) authModalCard.innerHTML = authModalHtml();
+      refreshAuthForms();
       return;
     }
 
     var authViewToggle = e.target.closest('[data-auth-view]');
     if(authViewToggle){
       authView = authViewToggle.getAttribute('data-auth-view');
-      var authModalCard2 = document.getElementById('modal-card');
-      if(authModalCard2) authModalCard2.innerHTML = authModalHtml();
+      refreshAuthForms();
       return;
     }
 

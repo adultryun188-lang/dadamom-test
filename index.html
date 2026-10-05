@@ -937,7 +937,7 @@
           '<input type="checkbox" id="consent-' + id + '"' + (authDraft[id] ? ' checked' : '') + '> ' +
           '<span>' + label + ' <span style="color:' + (required ? 'var(--accent)' : 'var(--text2)') + '; font-size:12px;">' +
             (required ? '(필수)' : '(선택)') + '</span>' +
-            (link ? ' <a href="' + link + '" target="_blank" rel="noopener" class="link-quiet" style="font-size:12px;">보기</a>' : '') +
+            (link ? ' <a href="' + link + '" class="link-quiet" style="font-size:12px;">보기</a>' : '') +
           '</span>' +
         '</label>';
     };
@@ -2431,7 +2431,7 @@
         // 빈 값을 읽어 제출이 조용히 무시된다. 그래서 화면 밖이면 비워 둔다.
         if(!onScreen) inline.innerHTML = '';
         // 입력 중인 내용을 지우지 않도록, 비어 있을 때만 그린다
-        else if(!inline.innerHTML) inline.innerHTML = authBodyHtml();
+        else if(!inline.innerHTML){ inline.innerHTML = authBodyHtml(); syncAuthButtons(); }
       }
       return;
     }
@@ -4496,6 +4496,7 @@
     document.getElementById('modal-card').innerHTML = html;
     document.getElementById('modal-backdrop').hidden = false;
     var card = document.getElementById('modal-card');
+    syncAuthButtons();   // 로그인·가입 폼이 들어 있다면 버튼 상태를 값에 맞춘다
     var focusable = card.querySelector('button, [href], input, textarea, select, [tabindex]:not([tabindex="-1"])');
     if(focusable) focusable.focus();
   }

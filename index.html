@@ -2196,9 +2196,16 @@
       needLogin ? '로그인하고 시작해보세요.'
                 : '현재 단계에 맞는 정보와 참여할 수 있는 캠페인만 보여드릴게요.';
     if(needLogin){
-      // 입력 중인 내용을 지우지 않도록, 비어 있을 때만 그린다
       var inline = document.getElementById('onboarding-auth');
-      if(inline && !inline.innerHTML) inline.innerHTML = authBodyHtml();
+      var onScreen = welcome && welcome.offsetParent !== null;
+      if(inline){
+        // 첫 화면이 안 보이는데 폼을 남겨두면 모달의 로그인 폼과 id 가 겹친다.
+        // getElementById 는 먼저 나오는 쪽(첫 화면)을 돌려주므로, 모달에 입력해도
+        // 빈 값을 읽어 제출이 조용히 무시된다. 그래서 화면 밖이면 비워 둔다.
+        if(!onScreen) inline.innerHTML = '';
+        // 입력 중인 내용을 지우지 않도록, 비어 있을 때만 그린다
+        else if(!inline.innerHTML) inline.innerHTML = authBodyHtml();
+      }
       return;
     }
 
@@ -4250,6 +4257,9 @@
   var _modalLastFocus = null;
   function openModal(html){
     _modalLastFocus = document.activeElement;
+    // 모달이 열려 있는 동안에는 첫 화면의 로그인 폼을 비운다 (id 중복 방지)
+    var inlineAuth = document.getElementById('onboarding-auth');
+    if(inlineAuth) inlineAuth.innerHTML = '';
     document.getElementById('modal-card').innerHTML = html;
     document.getElementById('modal-backdrop').hidden = false;
     var card = document.getElementById('modal-card');
@@ -4260,6 +4270,7 @@
     document.getElementById('modal-backdrop').hidden = true;
     document.getElementById('modal-card').innerHTML = '';
     clearAuthDraft();   // 모달을 닫으면 치던 비밀번호를 메모리에 남기지 않는다
+    renderOnboarding(); // 첫 화면이 보이는 중이었다면 로그인 폼을 다시 채운다
     if(_modalLastFocus && typeof _modalLastFocus.focus === 'function'){ _modalLastFocus.focus(); }
     _modalLastFocus = null;
   }

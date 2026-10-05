@@ -755,7 +755,7 @@
         '</div>';
       if(authView === 'magiclink'){
         return head + socialOff +
-          '<div class="field"><label for="auth-email">이메일</label><input type="email" id="auth-email" placeholder="you@example.com" autocomplete="email"></div>' +
+          '<div class="field"><label for="auth-email">이메일</label><input type="email" id="auth-email" placeholder="you@example.com" autocomplete="email" value="' + escapeHtml(authDraft.email) + '"></div>' +
           '<button class="btn-primary" id="auth-submit" style="width:100%;" disabled>로그인 링크 받기</button>' +
           '<button type="button" data-auth-view="password" class="link-quiet" style="background:none; border:none; margin-top:10px; padding:2px 0;">비밀번호로 로그인·회원가입</button>' +
           '<span class="helper" id="auth-hint"></span>';
@@ -781,7 +781,7 @@
 
     if(authView === 'magiclink'){
       return head + social +
-        '<div class="field"><label for="auth-email">이메일</label><input type="email" id="auth-email" placeholder="you@example.com" autocomplete="email"></div>' +
+        '<div class="field"><label for="auth-email">이메일</label><input type="email" id="auth-email" placeholder="you@example.com" autocomplete="email" value="' + escapeHtml(authDraft.email) + '"></div>' +
         '<button class="btn-primary" id="auth-submit" style="width:100%;" disabled>로그인 링크 받기</button>' +
         '<button type="button" data-auth-view="password" class="link-quiet" style="background:none; border:none; margin-top:10px; padding:2px 0;">비밀번호로 로그인·회원가입</button>' +
         '<span class="helper" id="auth-hint"></span>';

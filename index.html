@@ -726,7 +726,7 @@
           renderAccount();
           refreshAdminStatus();
           if(prevId !== nextId){ switchStateForAccount(); }
-          if(event === 'SIGNED_IN'){ showToast('로그인됐어요'); }
+          if(event === 'SIGNED_IN'){ clearAuthDraft(); showToast('로그인됐어요'); }
         });
       }
     }catch(e){ /* 인증을 지원하지 않는 클라이언트에서도 앱 초기화는 계속 진행 */ }
@@ -790,13 +790,37 @@
     return head + social + authPasswordFormHtml();
   }
 
+  // 폼을 다시 그리면 input 이 통째로 교체되므로, 치던 값이 사라진다.
+  // 비밀번호 칸은 '이메일 링크' 보기에서는 아예 없어지므로 DOM 이 아니라
+  // 여기에 들고 있어야 왕복해도 살아남는다.
+  var authDraft = { email: '', password: '' };
+
+  function captureAuthDraft(){
+    var e = document.getElementById('auth-email');
+    var p = document.getElementById('auth-password');
+    if(e) authDraft.email = e.value;
+    if(p) authDraft.password = p.value;
+  }
+
+  function restoreAuthDraft(){
+    var e = document.getElementById('auth-email');
+    var p = document.getElementById('auth-password');
+    // input 이벤트를 다시 쏴야 제출 버튼의 disabled 가 맞춰진다.
+    if(e && authDraft.email){ e.value = authDraft.email; e.dispatchEvent(new Event('input', { bubbles:true })); }
+    if(p && authDraft.password){ p.value = authDraft.password; p.dispatchEvent(new Event('input', { bubbles:true })); }
+  }
+
+  function clearAuthDraft(){ authDraft = { email: '', password: '' }; }
+
   // 로그인 폼은 모달과 첫 화면 두 군데에 있을 수 있다.
   // 탭(로그인/회원가입)이나 방식(비밀번호/이메일 링크)을 바꾸면 둘 다 다시 그린다.
   function refreshAuthForms(){
+    captureAuthDraft();
     var card = document.getElementById('modal-card');
     if(card && card.innerHTML) card.innerHTML = authModalHtml();
     var inline = document.getElementById('onboarding-auth');
     if(inline && inline.offsetParent !== null) inline.innerHTML = authBodyHtml();
+    restoreAuthDraft();
   }
 
   // 이메일·비밀번호 폼. 소셜 로그인이 있든 없든 같은 폼을 쓴다.
@@ -4235,6 +4259,7 @@
   function closeModal(){
     document.getElementById('modal-backdrop').hidden = true;
     document.getElementById('modal-card').innerHTML = '';
+    clearAuthDraft();   // 모달을 닫으면 치던 비밀번호를 메모리에 남기지 않는다
     if(_modalLastFocus && typeof _modalLastFocus.focus === 'function'){ _modalLastFocus.focus(); }
     _modalLastFocus = null;
   }

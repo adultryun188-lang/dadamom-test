@@ -1,0 +1,38 @@
+commit 6805fc13eaeb7ed5691e7a38ddcda9b99a160392
+Author: adultryun188-lang <adultryun188@gmail.com>
+Date:   Mon Oct 5 18:04:54 2026 +0900
+
+    이메일 링크로 갔다 오면 이메일이 사라지던 문제
+    
+    회원가입 2단계를 만들며 폼을 authDraft 에서 value= 로 그리게 바꿨는데,
+    authBodyHtml 의 "이메일 링크" 분기 두 곳에 value= 를 안 넣었다.
+    같이 지운 restoreAuthDraft() 가 하던 일을 그 분기만 못 받았다.
+    
+    실측: 로그인 모드에서 이메일을 치고 "이메일 링크로 로그인하기" → 빈 칸,
+    "비밀번호로" 로 되돌아와도 빈 칸.
+    
+    내가 가입 흐름(1단계는 value= 가 있다)만 테스트하고 "탭 전환에도 값이 남는다" 고
+    일반화해서 놓쳤다. 운영본에는 restoreAuthDraft 가 아직 있어 이 문제가 없다.
+
+diff --git a/index.html b/index.html
+index c3001ac..648abb6 100644
+--- a/index.html
++++ b/index.html
+@@ -755,7 +755,7 @@
+         '</div>';
+       if(authView === 'magiclink'){
+         return head + socialOff +
+-          '<div class="field"><label for="auth-email">이메일</label><input type="email" id="auth-email" placeholder="you@example.com" autocomplete="email"></div>' +
++          '<div class="field"><label for="auth-email">이메일</label><input type="email" id="auth-email" placeholder="you@example.com" autocomplete="email" value="' + escapeHtml(authDraft.email) + '"></div>' +
+           '<button class="btn-primary" id="auth-submit" style="width:100%;" disabled>로그인 링크 받기</button>' +
+           '<button type="button" data-auth-view="password" class="link-quiet" style="background:none; border:none; margin-top:10px; padding:2px 0;">비밀번호로 로그인·회원가입</button>' +
+           '<span class="helper" id="auth-hint"></span>';
+@@ -781,7 +781,7 @@
+ 
+     if(authView === 'magiclink'){
+       return head + social +
+-        '<div class="field"><label for="auth-email">이메일</label><input type="email" id="auth-email" placeholder="you@example.com" autocomplete="email"></div>' +
++        '<div class="field"><label for="auth-email">이메일</label><input type="email" id="auth-email" placeholder="you@example.com" autocomplete="email" value="' + escapeHtml(authDraft.email) + '"></div>' +
+         '<button class="btn-primary" id="auth-submit" style="width:100%;" disabled>로그인 링크 받기</button>' +
+         '<button type="button" data-auth-view="password" class="link-quiet" style="background:none; border:none; margin-top:10px; padding:2px 0;">비밀번호로 로그인·회원가입</button>' +
+         '<span class="helper" id="auth-hint"></span>';

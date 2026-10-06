@@ -1,0 +1,196 @@
+  // ---------- 회원가입 (2단계) ----------
+  // 예전에는 한 화면에서 이메일·비밀번호만 받고 바로 계정이 만들어졌다.
+  // 가입 시점 동의(이용약관·개인정보·만14세)를 하나도 받지 않아 법적으로도 비어 있었다.
+  function signupStepBar(){
+    var dot = function(n, label){
+      var on = signupStep === n, done = signupStep > n;
+      var bg = (on || done) ? 'var(--accent)' : 'var(--border)';
+      var fg = (on || done) ? '#fff' : 'var(--text2)';
+      return '<span style="display:flex; align-items:center; gap:6px;">' +
+          '<span aria-hidden="true" style="width:20px; height:20px; border-radius:50%; background:' + bg + '; color:' + fg +
+            '; font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center;">' + (done ? '✓' : n) + '</span>' +
+          '<span style="font-size:12px; font-weight:' + (on ? '700' : '400') + '; color:' + (on ? 'var(--text)' : 'var(--text2)') + ';">' + label + '</span>' +
+        '</span>';
+    };
+    return '<div class="row" role="group" aria-label="가입 단계" style="align-items:center; gap:8px; margin:2px 0 14px;">' +
+        dot(1, '계정 정보') +
+        '<span aria-hidden="true" style="flex:1; height:1px; background:var(--border);"></span>' +
+        dot(2, '약관 동의') +
+      '</div>';
+  }
+
+  function signupHtml(){
+    if(signupDone) return signupDoneHtml();
+    return signupStep === 2 ? signupStep2Html() : signupStep1Html();
+  }
+
+  function pwRulesHtml(){
+    var pw = authDraft.password || '';
+    var rule = function(ok, text){
+      return '<span style="font-size:11.5px; color:' + (ok ? 'var(--accent)' : 'var(--text2)') + ';">' +
+             (ok ? '✓' : '·') + ' ' + text + '</span>';
+    };
+    return rule(pw.length >= 8, '8자 이상') + rule(/[A-Za-z]/.test(pw), '영문') + rule(/[0-9]/.test(pw), '숫자');
+  }
+
+  // 글자를 칠 때마다 폼을 다시 그리면 포커스가 날아간다. 바뀌는 조각만 손본다.
+  function updateSignupStep1Ui(){
+    var rules = document.getElementById('pw-rules');
+    if(rules) rules.innerHTML = pwRulesHtml();
+    var mm = document.getElementById('pw-mismatch');
+    if(mm) mm.style.display = (authDraft.password2 && authDraft.password !== authDraft.password2) ? '' : 'none';
+    syncAuthButtons();
+  }
+
+  function signupStep1Html(){
+    var pw = authDraft.password || '';
+    var mismatch = authDraft.password2 && authDraft.password !== authDraft.password2;
+    return signupStepBar() +
+      '<div class="field"><label for="auth-email">이메일</label>' +
+        '<input type="email" id="auth-email" placeholder="you@example.com" autocomplete="email" value="' + escapeHtml(authDraft.email) + '"></div>' +
+      '<div class="field"><label for="auth-password">비밀번호</label>' +
+        '<input type="password" id="auth-password" placeholder="영문·숫자 포함 8자 이상" autocomplete="new-password" value="' + escapeHtml(pw) + '"></div>' +
+      '<div class="row" id="pw-rules" style="gap:10px; margin:-6px 0 12px; flex-wrap:wrap;">' + pwRulesHtml() + '</div>' +
+      '<div class="field"><label for="auth-password2">비밀번호 확인</label>' +
+        '<input type="password" id="auth-password2" placeholder="한 번 더 입력해주세요" autocomplete="new-password" value="' + escapeHtml(authDraft.password2) + '"' +
+        (mismatch ? ' aria-invalid="true" style="border-color:var(--accent);"' : '') + '></div>' +
+      '<span class="helper" id="pw-mismatch" style="margin-top:-8px; color:var(--accent);' + (mismatch ? '' : ' display:none;') + '">비밀번호가 서로 달라요</span>' +
+      '<div class="field"><label for="auth-nickname">아이 애칭 (선택)</label>' +
+        '<input type="text" id="auth-nickname" maxlength="12" placeholder="예: 콩이, 서윤" value="' + escapeHtml(authDraft.nickname) + '"></div>' +
+      '<span class="helper" style="margin:-8px 0 12px;">커뮤니티에 글을 쓸 때 \'콩이맘\' 처럼 표시돼요. 나중에 바꿀 수 있어요.</span>' +
+      '<button class="btn-primary" id="signup-next" style="width:100%;" disabled>다음</button>' +
+      '<span class="helper" id="auth-hint"></span>';
+  }
+
+  function signupStep2Html(){
+    var row = function(id, label, required, link){
+      return '<label class="check-row">' +
+          '<input type="checkbox" id="consent-' + id + '"' + (authDraft[id] ? ' checked' : '') + '> ' +
+          '<span>' + label + ' <span style="color:' + (required ? 'var(--accent)' : 'var(--text2)') + '; font-size:12px;">' +
+            (required ? '(필수)' : '(선택)') + '</span>' +
+            (link ? ' <a href="' + link + '" class="link-quiet" style="font-size:12px;">보기</a>' : '') +
+          '</span>' +
+        '</label>';
+    };
+    return signupStepBar() +
+      '<div class="card col" style="gap:4px; padding:12px 14px; margin-bottom:12px;">' +
+        '<span class="helper" style="margin:0;">가입할 이메일</span>' +
+        '<span style="font-size:14px; font-weight:700; word-break:break-all;">' + escapeHtml(authDraft.email) + '</span>' +
+      '</div>' +
+      '<label class="check-row" style="font-weight:700; border-bottom:1px solid var(--border); padding-bottom:10px; margin-bottom:4px;">' +
+        '<input type="checkbox" id="consent-all"' + (authDraft.terms && authDraft.privacy && authDraft.age14 && authDraft.marketing ? ' checked' : '') + '> ' +
+        '<span>전체 동의</span></label>' +
+      row('terms',     '서비스 이용약관에 동의해요',          true,  '#terms') +
+      row('privacy',   '개인정보 수집·이용에 동의해요',        true,  '#policy') +
+      row('age14',     '만 14세 이상이에요',                  true,  null) +
+      row('marketing', '체험단·이벤트 소식을 받아볼게요',      false, null) +
+      '<div class="row" style="gap:8px; margin-top:14px;">' +
+        '<button type="button" class="btn-ghost" id="signup-back" style="flex:0 0 90px;">이전</button>' +
+        '<button class="btn-primary" id="signup-submit" style="flex:1;" disabled>가입 완료</button>' +
+      '</div>' +
+      '<span class="helper" id="auth-hint"></span>';
+  }
+
+  function signupDoneHtml(){
+    if(signupDone.needVerify){
+      return '<div class="col" style="gap:10px; text-align:center; padding:10px 0;">' +
+          '<span style="font-size:34px;" aria-hidden="true">📬</span>' +
+          '<h3 class="display" style="font-size:18px;">인증 메일을 보냈어요</h3>' +
+          '<p style="font-size:13.5px; color:var(--text2); line-height:1.7;">' +
+            escapeHtml(signupDone.email) + ' 로 보낸 메일의 링크를 누르면 가입이 끝나요.<br>' +
+            '메일이 안 보이면 스팸함도 확인해주세요.</p>' +
+          '<button type="button" class="btn-ghost" data-auth-mode="login" style="margin-top:6px;">로그인 화면으로</button>' +
+        '</div>';
+    }
+    return '<div class="col" style="gap:10px; text-align:center; padding:10px 0;">' +
+        '<span style="font-size:34px;" aria-hidden="true">🎉</span>' +
+        '<h3 class="display" style="font-size:18px;">가입을 마쳤어요</h3>' +
+        '<p style="font-size:13.5px; color:var(--text2); line-height:1.7;">잠시 후 아이 정보를 한 번만 입력하면 끝이에요.</p>' +
+      '</div>';
+  }
+
+  // 가입 시점 동의는 계정이 생긴 뒤에야 서버에 남길 수 있다(원장이 owner_id 를 요구).
+  // 인증 메일을 거치는 경우 세션이 바로 안 생기므로, 기기에 잠시 들고 있다가
+  // 처음 로그인될 때 올린다.
+  var PENDING_CONSENT_KEY = 'dadamom.pendingConsents';
+
+  function stashSignupConsents(){
+    var items = [
+      { kind:'signup_terms',     granted:true },
+      { kind:'signup_privacy',   granted:true },
+      { kind:'signup_age14',     granted:true },
+      { kind:'signup_marketing', granted: !!authDraft.marketing }
+    ];
+    try{ localStorage.setItem(PENDING_CONSENT_KEY, JSON.stringify(items)); }catch(e){}
+    return items;
+  }
+
+  async function flushPendingConsents(){
+    if(!sb || !authUser) return;
+    var raw = null;
+    try{ raw = localStorage.getItem(PENDING_CONSENT_KEY); }catch(e){ return; }
+    if(!raw) return;
+    var items;
+    try{ items = JSON.parse(raw); }catch(e){ items = null; }
+    if(!Array.isArray(items) || !items.length){
+      try{ localStorage.removeItem(PENDING_CONSENT_KEY); }catch(e){}
+      return;
+    }
+    await recordConsents(items);
+    try{ localStorage.removeItem(PENDING_CONSENT_KEY); }catch(e){}
+  }
+
+  function handleSignupNext(){
+    captureAuthDraft();
+    if(!signupStep1Ok()) return;
+    signupStep = 2;
+    refreshAuthForms();
+  }
+
+  function handleSignupBack(){
+    captureAuthDraft();
+    signupStep = 1;
+    refreshAuthForms();
+  }
+
+  async function handleSignupSubmit(){
+    captureAuthDraft();
+    var hint = document.getElementById('auth-hint');
+    var btn = document.getElementById('signup-submit');
+    if(!(authDraft.terms && authDraft.privacy && authDraft.age14)) return;
+    if(!sb || !sb.auth || typeof sb.auth.signUp !== 'function'){
+      if(hint) hint.textContent = '지금은 가입 기능을 사용할 수 없어요.';
+      return;
+    }
+    if(btn){ btn.disabled = true; btn.textContent = '가입하는 중...'; }
+    var email = (authDraft.email || '').trim();
+    var nickname = (authDraft.nickname || '').trim();
+    stashSignupConsents();
+    try{
+      var res = await sb.auth.signUp({
+        email: email,
+        password: authDraft.password,
+        options: {
+          emailRedirectTo: location.href.split('#')[0],
+          data: nickname ? { nickname: nickname } : {}
+        }
+      });
+      if(res.error){
+        if(hint) hint.textContent = '회원가입 실패: ' + res.error.message;
+        if(btn){ btn.disabled = false; btn.textContent = '가입 완료'; }
+        try{ localStorage.removeItem(PENDING_CONSENT_KEY); }catch(e){}
+        return;
+      }
+      var hasSession = !!(res.data && res.data.session);
+      signupDone = { email: email, needVerify: !hasSession };
+      refreshAuthForms();
+      if(hasSession){
+        await flushPendingConsents();
+        closeModal();
+      }
+    }catch(e){
+      if(hint) hint.textContent = '회원가입 중 문제가 생겼어요. 잠시 후 다시 시도해주세요.';
+      if(btn){ btn.disabled = false; btn.textContent = '가입 완료'; }
+    }
+  }
+

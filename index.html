@@ -3159,6 +3159,23 @@
     }).join('');
   }
 
+  // 커뮤니티 글 목록이 비었을 때. 예전에는 필터와 상관없이 "또래 글이 없어요 · 전체 보기로
+  // 둘러보세요" 가 떠서, 이미 '전체' 를 보고 있는 사람에게 '전체' 를 보라고 했다.
+  function communityEmptyHtml(){
+    var f = state.feedFilter || 'all';
+    var mine = state.viewMineOnly === 'posts';
+    var msg = mine ? '아직 작성한 글이 없어요'
+            : f === 'peer' ? '아직 또래 글이 없어요'
+            : f === 'interest' ? '관심 분야에 걸리는 글이 아직 없어요'
+            : '아직 올라온 글이 없어요';
+    var sub = (!mine && (f === 'peer' || f === 'interest')) ? '전체 보기로 다른 글도 둘러보세요'
+            : (sb && !authUser) ? '로그인하고 첫 글을 남겨보세요'
+            : '첫 글을 남겨보세요';
+    return '<div class="card col" style="padding:18px; align-items:center; gap:6px;">' +
+      '<span style="font-size:13px; color:var(--text2);">' + msg + '</span>' +
+      '<span class="helper">' + sub + '</span></div>';
+  }
+
   function renderCommunity(){
     var _fab = document.getElementById('fab');
     if(_fab){ _fab.hidden = (state.communityTab === 'notice'); }
@@ -3233,7 +3250,7 @@
           '<button data-delete-post="' + p.id + '" aria-label="내 글 삭제" style="display:flex; align-items:center; gap:4px; border:none; background:none; color:var(--text2); min-height:44px; font-size:11.5px;">삭제</button>'
             : '<button data-report-post="' + p.id + '" data-report-owner="' + (p.owner_id || '') + '" aria-label="신고하기" style="display:flex; align-items:center; gap:4px; border:none; background:none; color:var(--text2); min-height:44px; font-size:11.5px;">신고</button>') +
           '</div></div>';
-      }).join('') : '<div class="card col" style="padding:18px; align-items:center; gap:6px;"><span style="font-size:13px; color:var(--text2);">' + (state.viewMineOnly === 'posts' ? '아직 작성한 글이 없어요' : '아직 또래 글이 없어요') + '</span><span class="helper">전체 보기로 다른 글도 둘러보세요</span></div>';
+      }).join('') : communityEmptyHtml();
 
       body.innerHTML = guestBanner + filterBar + listHtml;
     } else {

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ko">
+<meta charset="utf-8">
+<title>페이지를 찾을 수 없어요 — 다다맘</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<style>
+  *{ box-sizing:border-box; }
+  body{ margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px;
+    font-family:'Apple SD Gothic Neo','Malgun Gothic',sans-serif; color:#2B2118; text-align:center;
+    background:radial-gradient(600px 360px at 10% 0%,#FFE2D3 0%,transparent 62%),
+               radial-gradient(520px 320px at 100% 10%,#FFF1C9 0%,transparent 62%), #FFF8F1; }
+  .box{ max-width:420px; display:flex; flex-direction:column; align-items:center; gap:14px; }
+  .em{ font-size:64px; line-height:1; }
+  h1{ margin:0; font-size:22px; }
+  p{ margin:0; color:#6E5F50; line-height:1.7; font-size:15px; }
+  .row{ display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-top:8px; }
+  a{ text-decoration:none; font-weight:700; font-size:14px; padding:11px 18px; border-radius:14px; border:1px solid #F3E3D3; background:#fff; color:#2B2118; }
+  a.primary{ background:linear-gradient(135deg,#D2491C,#B53A12); color:#fff; border-color:transparent; }
+</style>
+<div class="box">
+  <div class="em" aria-hidden="true">🧸</div>
+  <h1>페이지를 찾을 수 없어요</h1>
+  <p>주소가 바뀌었거나 없어진 페이지예요.<br>아래에서 다시 시작해 주세요.</p>
+  <div class="row"><a class="primary" id="go-community" href="./community.html">커뮤니티로</a><a id="go-app" href="./index.html#home">앱 홈으로</a></div>
+</div>
+<script>
+  // 404 는 아무 경로에서나 뜨므로 상대 경로가 틀린다. 첫 경로(/dadamom-app/ 등)를 기준으로 고친다.
+  (function(){
+    var seg = location.pathname.split('/')[1];
+    var base = (seg === 'dadamom-app' || seg === 'dadamom-test') ? '/' + seg + '/' : '/';
+    document.getElementById('go-community').href = base + 'community.html';
+    document.getElementById('go-app').href = base + 'index.html#home';
+  })();
+</script>
+</html>

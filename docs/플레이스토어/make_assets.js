@@ -56,6 +56,13 @@ async function main() {
   await fg.screenshot({ path: path.join(OUT, 'feature-graphic.png') });
   await fg.close();
 
+  // 1-2) 링크 공유 미리보기 이미지 (og:image) 1200x630 — 같은 디자인, 사이트 icons/ 에 둔다
+  const og = await browser.newPage({ viewport: { width: 1200, height: 630 } });
+  await og.setContent(FEATURE_HTML.replace('width:1024px;height:500px', 'width:1200px;height:630px'), { waitUntil: 'networkidle' });
+  await og.evaluate(() => document.fonts.ready);
+  await og.screenshot({ path: path.join(ROOT, 'icons', 'og-image.png') });
+  await og.close();
+
   // 2) 휴대전화 스크린샷 — 360x640 @3배 = 1080x1920
   const ctx = await browser.newContext({ viewport: { width: 360, height: 640 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true });
   const page = await ctx.newPage();

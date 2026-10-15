@@ -6,6 +6,19 @@
 <meta name="description" content="임신·육아 중인 엄마 아빠들의 커뮤니티 — 질문, 자랑, 고민, 정보를 나누고 챌린지·나들이 정보까지.">
 <meta name="theme-color" content="#FFF8F1">
 <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
+<link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+<link rel="manifest" href="./manifest.webmanifest">
+<!-- 공유 미리보기 (카카오톡·페이스북·X 등). 정적 페이지라 글마다 바뀌지는 않는다. -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="다다맘">
+<meta property="og:title" content="다다맘 커뮤니티 — 엄마 아빠 육아 이야기">
+<meta property="og:description" content="임신부터 육아까지, 또래 부모들과 질문하고 자랑하고 정보를 나눠요.">
+<meta property="og:url" content="https://adultryun188-lang.github.io/dadamom-app/community.html">
+<meta property="og:image" content="https://adultryun188-lang.github.io/dadamom-app/icons/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="ko_KR">
+<meta name="twitter:card" content="summary_large_image">
 <!-- 앱(index.html)과 같은 환경설정·같은 DB·같은 로그인 세션을 쓴다. -->
 <script src="./env.js"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Jua&display=swap">
@@ -287,6 +300,21 @@
   .footer{ border-top:1px solid var(--border); padding:24px 0 36px; font-size:12px; color:var(--text2); background:rgba(255,255,255,.5); }
   .footer .wrap{ display:flex; gap:14px; flex-wrap:wrap; align-items:center; }
   .footer .logo-text{ font-size:18px; }
+  .footer .biz{ flex-basis:100%; line-height:1.7; color:var(--text3); }
+
+  mark{ background:#FFE79E; color:inherit; border-radius:4px; padding:0 2px; }
+  .list tr.pin td{ background:#FFFBF0; }
+  .list tr.pin .title a{ color:var(--deep); }
+  .nav-posts{ display:grid; border-top:1px solid var(--line); }
+  .nav-posts a{ display:flex; gap:12px; align-items:center; padding:12px 26px; font-size:13.5px; border-bottom:1px solid var(--line); }
+  .nav-posts a:hover{ background:#FFF8F2; }
+  .nav-posts .k{ flex:0 0 auto; font-size:12px; font-weight:800; color:var(--text3); width:52px; }
+  .post-body img{ cursor:zoom-in; }
+  .lightbox{ max-width:min(92vw,1100px) !important; padding:10px !important; background:#111 !important; }
+  .lightbox img{ display:block; max-width:100%; max-height:84vh; margin:0 auto; border-radius:12px; }
+  .photo-preview{ display:flex; gap:10px; align-items:center; margin-top:10px; }
+  .photo-preview img{ width:96px; height:96px; object-fit:cover; border-radius:14px; border:1px solid var(--border); }
+  .draft-note{ font-size:12px; color:var(--text3); }
 
   @media (max-width:980px){
     .layout{ grid-template-columns:minmax(0,1fr); }
@@ -327,7 +355,7 @@
     .list .c-author .author{ font-size:12px; color:var(--text2); }
     .list .c-date{ grid-area:meta; width:auto; text-align:right; }
     .list .title a{ white-space:normal; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
-    .post-h, .post-body, .c-item, .c-form, .comments h2, .form{ padding-inline:16px; }
+    .post-h, .post-body, .c-item, .c-form, .comments h2, .form, .nav-posts a{ padding-inline:16px; }
     .post-h h1{ font-size:21px; }
   }
   @media (prefers-reduced-motion:reduce){ *{ transition:none !important; scroll-behavior:auto !important; } }
@@ -357,6 +385,7 @@
     <section class="panel" id="side-me"></section>
     <section class="panel"><div class="panel-h"><h2 class="display"><span class="bubble" style="background:#FFE1D6;">🔥</span>주간 인기글</h2></div><ol id="side-hot"><li class="helper" style="padding:10px 20px;">불러오는 중…</li></ol></section>
     <section class="panel"><div class="panel-h"><h2 class="display"><span class="bubble" style="background:#E3EDFF;">💬</span>최신 댓글</h2></div><ul id="side-cmt"></ul></section>
+    <section class="panel" id="side-recent-panel" hidden><div class="panel-h"><h2 class="display"><span class="bubble" style="background:#ECE4FF;">👀</span>최근 본 글</h2><button class="more" style="border:none; background:none; cursor:pointer;" data-clear-recent>지우기</button></div><ul id="side-recent"></ul></section>
     <section class="panel"><div class="panel-h"><h2 class="display"><span class="bubble" style="background:#FFF0C2;">📢</span>공지</h2><a class="more" href="#/b/notice">더보기</a></div><ul id="side-notice"></ul></section>
     <section class="panel app-card">
       <strong class="display" style="font-size:19px;">다다맘 앱과 함께</strong>
@@ -370,8 +399,11 @@
 
 <footer class="footer"><div class="wrap">
   <span class="logo-text display">다다맘</span>
-  <a href="./index.html#policy">개인정보처리방침</a><a href="./index.html#terms">이용약관</a>
-  <span>© 다다맘</span>
+  <a href="./index.html#policy"><b>개인정보처리방침</b></a><a href="./index.html#terms">이용약관</a>
+  <!-- 사업자 정보: 앱 index.html 의 BIZ 와 같은 값. 바꿀 때 둘 다 바꾼다. -->
+  <span class="biz">다다란 · 대표 윤대인 · 사업자등록번호 435-05-02816 · 통신판매업신고 제2024-인천남동구-0274호<br>
+    인천광역시 남동구 구월동 1306-15 3F · ryundaen@gmail.com · 010-4888-9498</span>
+  <span>© 다다란</span>
 </div></footer>
 
 <div class="modal" id="modal" hidden><div class="modal-card" id="modal-card" role="dialog" aria-modal="true"></div></div>
@@ -645,10 +677,32 @@
   }
 
   // ---------- 게시판 ----------
-  function listTableHtml(rows, board, from, total, compact){
+  // 검색어를 <mark> 로 감싼다. 원문에서 위치를 찾고 조각마다 escape 해서 '&amp;' 같은 걸 깨뜨리지 않는다.
+  function hl(text, q){
+    text = String(text || '');
+    if(!q) return esc(text);
+    var lo = text.toLowerCase(), ql = q.toLowerCase(), out = '', i = 0, j;
+    while((j = lo.indexOf(ql, i)) > -1){
+      out += esc(text.slice(i, j)) + '<mark>' + esc(text.slice(j, j + q.length)) + '</mark>';
+      i = j + q.length;
+    }
+    return out + esc(text.slice(i));
+  }
+
+  // opts: { q, scope, pinned:[공지] }
+  function listTableHtml(rows, board, from, total, compact, opts){
+    opts = opts || {};
+    var qt = opts.scope === 'author' ? '' : opts.q, qa = opts.scope === 'author' ? opts.q : '';
     return '<table class="list"><thead><tr>' +
         (compact ? '' : '<th class="c-no">번호</th>') + '<th class="c-tag">말머리</th><th>제목</th><th class="c-author">글쓴이</th><th class="c-date">날짜</th><th class="c-like">추천</th>' +
       '</tr></thead><tbody>' +
+      (opts.pinned || []).map(function(n){
+        return '<tr class="pin">' + (compact ? '' : '<td class="c-no">📌</td>') +
+          '<td class="c-tag"><span class="tag t-공지">공지</span></td>' +
+          '<td class="c-title"><div class="title"><a href="#/b/notice">' + esc(n.title) + '</a></div></td>' +
+          '<td class="c-author"><div class="author">운영자</div></td>' +
+          '<td class="c-date">' + shortDate(n.created_at) + '</td><td class="c-like"></td></tr>';
+      }).join('') +
       rows.map(function(p, i){
         var pp = parsePost(p.text);
         var st = board === 'mine' && p.status !== 'approved' ? ' <span class="st">' + (p.status === 'pending' ? '검수 중' : '게시 안 됨') + '</span>' : '';
@@ -657,11 +711,11 @@
           '<td class="c-tag">' + tagHtml(pp.topic) + '</td>' +
           '<td class="c-title"><div class="title">' +
             (p.likes >= HOT_MIN ? '<span class="ico" title="인기글">🔥</span>' : '') +
-            '<a href="#/p/' + p.id + '">' + esc(pp.title) + '</a>' +
+            '<a href="#/p/' + p.id + '">' + hl(pp.title, qt) + '</a>' +
             (p.media_path ? '<span class="ico" title="사진">📷</span>' : '') +
             (p.comments ? '<span class="cmt">[' + p.comments + ']</span>' : '') + st +
           '</div></td>' +
-          '<td class="c-author"><div class="author">' + esc(p.author || '익명') + (stageText(p) ? ' <span class="stage">· ' + esc(stageText(p)) + '</span>' : '') + '</div></td>' +
+          '<td class="c-author"><div class="author">' + hl(p.author || '익명', qa) + (stageText(p) ? ' <span class="stage">· ' + esc(stageText(p)) + '</span>' : '') + '</div></td>' +
           '<td class="c-date">' + shortDate(p.created_at) + '</td>' +
           '<td class="c-like"><span class="like-n' + (p.likes >= HOT_MIN ? ' hot' : '') + '">' + (p.likes || 0) + '</span></td>' +
         '</tr>';
@@ -711,6 +765,12 @@
     if(sort === 'like') qb = qb.order('likes', { ascending:false });
     if(sort === 'cmt') qb = qb.order('comments', { ascending:false });
     var res = await qb.order('created_at', { ascending:false }).range(from, from + PAGE - 1);
+    // 커뮤니티 사이트처럼 전체글 첫 페이지 맨 위에 고정 공지를 보여준다
+    var pinned = [];
+    if(board === 'all' && page === 1 && !q && !stage){
+      var pn = await sb.from('notices').select('id,title,created_at').eq('pinned', true).order('created_at', { ascending:false }).limit(3);
+      pinned = pn.data || [];
+    }
 
     var body = $('list-body');
     if(!body) return;
@@ -723,7 +783,7 @@
         : emptyHtml('🌱', '아직 글이 없어요. 첫 글을 남겨보세요!', '<a class="btn primary" href="#/write' + (meta.topic ? '?t=' + encodeURIComponent(meta.topic) : '') + '">글쓰기</a>');
       return;
     }
-    body.innerHTML = listTableHtml(rows, board, from, total) +
+    body.innerHTML = listTableHtml(rows, board, from, total, false, { q:q, scope:scope, pinned:pinned }) +
       '<div class="foot"><div class="pager">' + pagerHtml(board, keep, page, Math.ceil(total / PAGE)) + '</div>' +
         '<span class="helper">전체 ' + total.toLocaleString() + '개</span></div>';
   }
@@ -784,14 +844,15 @@
           '<span>' + fullDate(p.created_at) + '</span><span>👍 ' + (p.likes || 0) + '</span><span>💬 ' + (p.comments || 0) + '</span>' +
           (p.status !== 'approved' ? '<span class="st">' + (p.status === 'pending' ? '검수 중 — 나에게만 보여요' : '게시 안 됨') + '</span>' : '') +
         '</div></div>' +
-      '<div class="post-body">' + (img ? '<img src="' + esc(img) + '" alt="첨부 사진">' : '') + esc(pp.body) + '</div>' +
+      '<div class="post-body">' + (img ? '<img src="' + esc(img) + '" alt="첨부 사진 (누르면 크게 보기)" data-zoom>' : '') + esc(pp.body) + '</div>' +
       '<div class="vote"><button id="like-btn" aria-pressed="' + liked + '" aria-label="추천"><span>👍 추천</span><b id="like-n">' + (p.likes || 0) + '</b></button></div>' +
       '<div class="post-act">' +
-        '<button class="link-btn" data-copy-link>🔗 링크 복사</button>' +
-        (mine ? '<button class="link-btn" data-del-post>🗑 삭제</button>'
+        '<button class="link-btn" data-share>📤 공유</button>' +
+        (mine ? '<button class="link-btn" data-edit-post>✏️ 수정</button><button class="link-btn" data-del-post>🗑 삭제</button>'
               : '<button class="link-btn" data-report="post" data-id="' + p.id + '" data-owner="' + (p.owner_id || '') + '">🚨 신고</button>') +
         '<a class="link-btn" href="#/b/' + b.id + '">☰ 목록</a>' +
       '</div>' +
+      '<nav class="nav-posts" id="nav-posts" aria-label="이전글 다음글"></nav>' +
       '<section class="comments"><h2 class="display">댓글 <span id="cmt-n">' + (p.comments || 0) + '</span></h2><div id="cmt-list"><div class="c-item helper">불러오는 중…</div></div>' +
         (user
           ? '<form class="c-form" id="cmt-form"><label class="sr" for="cmt-text">댓글</label><textarea id="cmt-text" maxlength="1000" placeholder="따뜻한 한마디가 큰 힘이 돼요 💛" required></textarea>' +
@@ -800,7 +861,76 @@
       '</section></article>' +
       '<div id="below"></div>';
     loadComments(p);
+    if(p.status === 'approved'){ saveRecent(p.id, pp.title); loadNeighbors(p); }
     renderBoard($('below'), b.id, new URLSearchParams());
+  }
+
+  // 같은 게시판 안에서 바로 앞뒤 글 (이전글 = 더 오래된 글)
+  async function loadNeighbors(p){
+    var topic = parsePost(p.text).topic;
+    var base = function(){ var q = sb.from('community_posts').select('id,text').eq('status', 'approved'); return topic ? q.like('text', '[' + topic + ']%') : q; };
+    var r = await Promise.all([
+      base().lt('created_at', p.created_at).order('created_at', { ascending:false }).limit(1),
+      base().gt('created_at', p.created_at).order('created_at', { ascending:true }).limit(1)
+    ]);
+    var el = $('nav-posts'); if(!el || current !== p) return;
+    var row = function(k, d){ return d ? '<a href="#/p/' + d.id + '"><span class="k">' + k + '</span><span class="one">' + esc(parsePost(d.text).title) + '</span></a>' : ''; };
+    el.innerHTML = row('▲ 다음글', (r[1].data || [])[0]) + row('▼ 이전글', (r[0].data || [])[0]);
+  }
+
+  // ---------- 최근 본 글 (이 기기에만) ----------
+  var RECENT_KEY = 'dadamom_recent';
+  function readRecent(){ try{ return JSON.parse(localStorage.getItem(RECENT_KEY) || '[]'); }catch(e){ return []; } }
+  function saveRecent(id, title){
+    var list = readRecent().filter(function(x){ return x.id !== id; });
+    list.unshift({ id:id, t:title });
+    try{ localStorage.setItem(RECENT_KEY, JSON.stringify(list.slice(0, 8))); }catch(e){}
+    renderRecent();
+  }
+  function renderRecent(){
+    var list = readRecent();
+    $('side-recent-panel').hidden = !list.length;
+    $('side-recent').innerHTML = list.map(function(x){
+      return '<li><a href="#/p/' + esc(x.id) + '"><span class="one">' + esc(x.t) + '</span></a></li>';
+    }).join('');
+  }
+
+  // ---------- 내 글 수정 (edit_my_post: 본문만 바꾸고 다시 검수 대기로) ----------
+  function openEdit(){
+    if(!current) return;
+    var pp = parsePost(current.text);
+    var raw = String(current.text || '').replace(/^\[[^\]]{1,6}\]\s*/, pp.topic ? '' : '$&');
+    openModal('<h3 class="display">✏️ 글 수정</h3>' +
+      '<form id="edit-form" style="display:flex; flex-direction:column; gap:10px;">' +
+        '<label class="sr" for="e-text">내용</label><textarea id="e-text" maxlength="1900" style="min-height:260px; line-height:1.7;" required>' + esc(raw) + '</textarea>' +
+        '<span class="helper">첫 줄이 제목이 돼요. 수정하면 다시 검수를 받고, 검수 전까지는 나에게만 보여요.</span>' +
+        '<span class="helper" id="e-hint" role="alert"></span>' +
+        '<div style="display:flex; gap:8px; justify-content:flex-end;"><button type="button" class="btn" data-close>취소</button><button class="btn primary" type="submit" id="e-submit">저장</button></div>' +
+      '</form>');
+  }
+  async function submitEdit(e){
+    e.preventDefault();
+    var val = $('e-text').value.trim();
+    if(!val || !current) return;
+    var topic = parsePost(current.text).topic;
+    $('e-submit').disabled = true;
+    var res = await sb.rpc('edit_my_post', { post_id: current.id, new_text: (topic ? '[' + topic + '] ' : '') + val });
+    if(res.error){ $('e-hint').textContent = '저장하지 못했어요: ' + (res.error.message || ''); $('e-submit').disabled = false; return; }
+    closeModal(); toast('고쳤어요. 검수 후 다시 공개됩니다');
+    render();
+  }
+
+  function zoomImage(src){
+    openModal('<img src="' + esc(src) + '" alt="첨부 사진 크게 보기"><button class="btn" data-close style="margin-top:10px;">닫기</button>');
+    $('modal-card').classList.add('lightbox');
+  }
+
+  async function sharePost(){
+    var url = location.href, title = document.title;
+    if(navigator.share){
+      try{ await navigator.share({ title:title, url:url }); return; }catch(e){ if(e && e.name === 'AbortError') return; }
+    }
+    navigator.clipboard.writeText(url).then(function(){ toast('링크를 복사했어요'); }, function(){ toast(url); });
   }
 
   async function loadComments(p){
@@ -887,11 +1017,51 @@
           }).join('') +
         '</div></div>' +
         '<div><label for="w-title">제목</label><input type="text" id="w-title" maxlength="60" required placeholder="제목을 입력하세요"></div>' +
-        '<div><label for="w-body">내용</label><textarea id="w-body" maxlength="5000" required placeholder="아이 개월 수나 상황을 함께 적으면 더 좋은 답을 받을 수 있어요."></textarea></div>' +
-        '<div><label for="w-photo">사진 (선택, 1장)</label><input type="file" id="w-photo" accept="image/jpeg,image/png,image/webp"></div>' +
+        // 1800자: 수정 함수(edit_my_post)가 2000자까지 받는다. 제목·말머리를 더해도 넘지 않게.
+        '<div><label for="w-body">내용</label><textarea id="w-body" maxlength="1800" required placeholder="아이 개월 수나 상황을 함께 적으면 더 좋은 답을 받을 수 있어요."></textarea>' +
+          '<span class="draft-note" id="draft-note" aria-live="polite"></span></div>' +
+        '<div><label for="w-photo">사진 (선택, 1장)</label><input type="file" id="w-photo" accept="image/jpeg,image/png,image/webp"><div class="photo-preview" id="w-preview"></div></div>' +
         '<div class="note">🛡️ 글은 운영자 검수 후 공개돼요. 아이 얼굴·이름·주소 같은 개인정보가 드러나지 않게 주의해주세요.<br>글쓴이에는 <b>' + esc(myName()) + '</b> 와 ' + esc(profileStageText() || '아이 단계') + ' 가 함께 표시돼요.</div>' +
         '<div style="display:flex; gap:8px; justify-content:flex-end;"><a class="btn" href="#/b/all">취소</a><button class="btn primary" type="submit" id="w-submit">등록</button></div>' +
       '</form></section>';
+    restoreDraft(pre);
+  }
+
+  // ---------- 임시저장 (이 기기에만, 계정별) ----------
+  function draftKey(){ return user ? 'dadamom_draft::' + user.id : ''; }
+  var draftTimer;
+  function saveDraft(){
+    clearTimeout(draftTimer);
+    draftTimer = setTimeout(function(){
+      var t = $('w-title'), b = $('w-body'); if(!t || !b || !draftKey()) return;
+      var tb = document.querySelector('#topics [aria-pressed="true"]');
+      var d = { topic: tb ? tb.getAttribute('data-topic') : '', title: t.value, body: b.value, at: Date.now() };
+      try{
+        if(!d.title.trim() && !d.body.trim()) localStorage.removeItem(draftKey());
+        else localStorage.setItem(draftKey(), JSON.stringify(d));
+        $('draft-note').textContent = '임시저장됨 ' + pad2(new Date().getHours()) + ':' + pad2(new Date().getMinutes());
+      }catch(e){}
+    }, 600);
+  }
+  function restoreDraft(preTopic){
+    var d = null;
+    try{ d = JSON.parse(localStorage.getItem(draftKey()) || 'null'); }catch(e){}
+    if(!d || (!d.title && !d.body)) return;
+    $('w-title').value = d.title || '';
+    $('w-body').value = d.body || '';
+    if(!preTopic && d.topic){
+      document.querySelectorAll('#topics [data-topic]').forEach(function(b){ var on = b.getAttribute('data-topic') === d.topic; b.setAttribute('aria-pressed', String(on)); b.classList.toggle('on', on); });
+    }
+    $('draft-note').innerHTML = '📝 ' + timeAgo(new Date(d.at).toISOString()) + ' 임시저장한 글을 불러왔어요 · <button type="button" class="link-btn" data-clear-draft style="padding:0;">지우기</button>';
+  }
+  function clearDraft(){ try{ localStorage.removeItem(draftKey()); }catch(e){} }
+
+  function previewPhoto(input){
+    var box = $('w-preview'); if(!box) return;
+    var f = input.files && input.files[0];
+    if(!f){ box.innerHTML = ''; return; }
+    if(MEDIA_ALLOWED.indexOf(f.type) === -1){ box.innerHTML = '<span class="helper">사진만 올릴 수 있어요 (JPG · PNG · WEBP)</span>'; return; }
+    box.innerHTML = '<img src="' + URL.createObjectURL(f) + '" alt="올릴 사진 미리보기"><button type="button" class="link-btn" data-clear-photo>사진 빼기</button>';
   }
 
   async function uploadMedia(file){
@@ -946,6 +1116,7 @@
       btn.disabled = false; btn.textContent = '등록'; return;
     }
     await sb.from('consent_records').insert({ kind:'post_visibility', granted:true, doc_version:'v1', scope:'public', subject_id:id });
+    clearTimeout(draftTimer); clearDraft();
     toast('등록했어요. 검수 후 공개됩니다');
     location.hash = '#/p/' + id;
   }
@@ -1106,7 +1277,7 @@
   // ---------- 로그인 · 신고 모달 ----------
   var lastFocus = null;
   function openModal(html){ lastFocus = document.activeElement; $('modal-card').innerHTML = html; $('modal').hidden = false; var f = $('modal-card').querySelector('input,textarea,button'); if(f) f.focus(); }
-  function closeModal(){ $('modal').hidden = true; $('modal-card').innerHTML = ''; if(lastFocus && lastFocus.focus) lastFocus.focus(); }
+  function closeModal(){ $('modal').hidden = true; $('modal-card').innerHTML = ''; $('modal-card').classList.remove('lightbox'); if(lastFocus && lastFocus.focus) lastFocus.focus(); }
 
   function openLogin(){
     openModal('<h3 class="display">👋 다시 만나서 반가워요</h3>' +
@@ -1163,9 +1334,15 @@
 
   // ---------- 이벤트 ----------
   document.addEventListener('click', function(e){
+    if(e.target.matches && e.target.matches('img[data-zoom]')){ zoomImage(e.target.src); return; }
     var t = e.target.closest('button, a');
     if(!t){ if(e.target === $('modal')) closeModal(); return; }
     if(t.hasAttribute('data-login')){ e.preventDefault(); openLogin(); }
+    else if(t.hasAttribute('data-share')){ sharePost(); }
+    else if(t.hasAttribute('data-edit-post')){ openEdit(); }
+    else if(t.hasAttribute('data-clear-recent')){ try{ localStorage.removeItem(RECENT_KEY); }catch(err){} renderRecent(); }
+    else if(t.hasAttribute('data-clear-draft')){ clearDraft(); $('w-title').value = ''; $('w-body').value = ''; $('draft-note').textContent = ''; }
+    else if(t.hasAttribute('data-clear-photo')){ $('w-photo').value = ''; $('w-preview').innerHTML = ''; }
     else if(t.hasAttribute('data-logout')){ sb.auth.signOut(); }
     else if(t.hasAttribute('data-close')){ closeModal(); }
     else if(t.id === 'like-btn'){ toggleLike(); }
@@ -1176,17 +1353,17 @@
     else if(t.hasAttribute('data-report')){ openReport(t.getAttribute('data-report'), t.getAttribute('data-id'), t.getAttribute('data-owner')); }
     else if(t.hasAttribute('data-block')){ blockUser(t.getAttribute('data-block')); }
     else if(t.id === 'r-submit'){ submitReport(); }
-    else if(t.hasAttribute('data-copy-link')){
-      navigator.clipboard.writeText(location.href).then(function(){ toast('링크를 복사했어요'); }, function(){ toast(location.href); });
-    }
     else if(t.hasAttribute('data-reason')){
       document.querySelectorAll('#reasons [data-reason]').forEach(function(b){ b.setAttribute('aria-pressed', String(b === t)); b.classList.toggle('on', b === t); });
       $('r-submit').disabled = false;
     }
     else if(t.hasAttribute('data-topic')){
       document.querySelectorAll('#topics [data-topic]').forEach(function(b){ b.setAttribute('aria-pressed', String(b === t)); b.classList.toggle('on', b === t); });
+      saveDraft();
     }
   });
+  document.addEventListener('input', function(e){ if(e.target.id === 'w-title' || e.target.id === 'w-body') saveDraft(); });
+  document.addEventListener('change', function(e){ if(e.target.id === 'w-photo') previewPhoto(e.target); });
   document.addEventListener('submit', function(e){
     if(e.target.id === 'search'){
       e.preventDefault();
@@ -1196,6 +1373,7 @@
     else if(e.target.id === 'cmt-form') submitComment(e);
     else if(e.target.id === 'write-form') submitWrite(e);
     else if(e.target.id === 'login-form') submitLogin(e);
+    else if(e.target.id === 'edit-form') submitEdit(e);
   });
   document.addEventListener('keydown', function(e){ if(e.key === 'Escape' && !$('modal').hidden) closeModal(); });
   window.addEventListener('hashchange', function(){ document.title = '다다맘 커뮤니티'; render(); });
@@ -1220,7 +1398,7 @@
     if(ev === 'TOKEN_REFRESHED') return;
     setTimeout(async function(){
       await loadUser(session);
-      if(!booted || ev === 'SIGNED_IN' || ev === 'SIGNED_OUT'){ booted = true; render(); renderSide(); }
+      if(!booted || ev === 'SIGNED_IN' || ev === 'SIGNED_OUT'){ booted = true; render(); renderSide(); renderRecent(); }
     }, 0);
   });
 })();

@@ -2825,6 +2825,8 @@
     var list = pool.filter(function(o){ return !state.region || o.region === state.region; });
     if(!list.length) list = pool;
     var o = list[0];
+    // 나들이가 0건이면 카드를 빼야 한다. 그대로 두면 o.emoji 에서 홈 피드 렌더링이 통째로 멈춘다.
+    if(!o) return '';
     return '<a href="#outing" class="card row" style="align-items:center; gap:13px; padding:15px 16px; text-decoration:none; color:var(--text);">' +
       '<div style="width:44px; height:44px; border-radius:14px; background:var(--chip-c); display:flex; align-items:center; justify-content:center; font-size:21px; flex:0 0 auto;" aria-hidden="true">' + o.emoji + '</div>' +
       '<div class="col" style="gap:3px; min-width:0; flex:1;">' +

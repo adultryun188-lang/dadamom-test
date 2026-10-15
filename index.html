@@ -263,6 +263,28 @@
   /* 320px 이하 화면에서도 가로 스크롤 카드열의 스크롤바가 보이지 않도록 */
   [style*="overflow-x:auto"]{ scrollbar-width:none; -ms-overflow-style:none; }
   [style*="overflow-x:auto"]::-webkit-scrollbar{ display:none; height:0; }
+
+  /* PC 화면: 하단 탭바를 왼쪽 메뉴로 옮기고 본문은 가운데 읽기 폭으로 둔다. 모바일은 위 규칙 그대로. */
+  @media (min-width:960px){
+    .app{ max-width:1200px; }
+    .screen{ position:relative; }
+    .screen:has(> .navbar){ padding-left:220px; }
+    .navbar{
+      position:absolute; left:0; top:0; bottom:0; width:220px;
+      flex-direction:column; align-items:stretch; justify-content:flex-start; gap:4px;
+      border-top:none; border-right:1px solid var(--border); padding:28px 14px;
+    }
+    .navbar::before{ content:'다다맘'; font-family:'Jua',sans-serif; font-size:24px; color:var(--accent-strong); padding:0 14px 18px; }
+    .navbar button{ flex:0 0 auto; flex-direction:row; gap:12px; font-size:15px; padding:12px 14px; border-radius:14px; }
+    .navbar button.active{ background:var(--accent-soft); }
+    .navbar button:hover{ background:var(--accent-soft); }
+    .pad{ padding-inline:max(32px, calc((100% - 720px) / 2)); }
+    .hscroll, .home-feedbar{ margin-inline:0; padding-inline:0; }
+    #home-fab, #fab{ right:40px !important; bottom:40px !important; }
+    .modal-backdrop{ align-items:center; }
+    .modal-card{ max-width:520px; border-radius:24px; padding-bottom:24px; }
+    .toast{ bottom:40px; }
+  }
 </style>
 
 <div class="app" id="app">

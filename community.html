@@ -221,6 +221,7 @@
   .my-head{ padding:24px; display:flex; gap:18px; align-items:center; background:linear-gradient(120deg,#FFE7D9,#FFF4D6); flex-wrap:wrap; }
   .my-head .avatar{ width:68px; height:68px; font-size:34px; background:#fff; box-shadow:0 6px 18px rgba(201,67,24,.15); }
   .my-head h1{ margin:0 0 6px; font-size:24px; }
+  .my-head > div{ flex:1 1 200px; }
   .pills{ display:flex; gap:6px; flex-wrap:wrap; }
   .pill{ background:rgba(255,255,255,.8); border-radius:999px; padding:4px 11px; font-size:12px; font-weight:700; color:var(--text2); }
   .kid-grid{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; padding:0 20px 20px; }
@@ -302,6 +303,12 @@
     .hero h1{ font-size:23px; }
     .hero-deco{ display:none; }
     .stats{ gap:8px; flex-wrap:nowrap; }
+    /* 필터 칩은 한 줄로 두고 옆으로 넘긴다 (세 줄로 쌓이면 목록이 화면 밖으로 밀린다) */
+    .sub{ flex-wrap:nowrap; overflow-x:auto; scrollbar-width:none; }
+    .sub::-webkit-scrollbar{ display:none; }
+    .sub .chip{ flex:0 0 auto; white-space:nowrap; }
+    .my-head{ padding:20px; gap:14px; }
+    .my-head .avatar{ width:56px; height:56px; font-size:28px; }
     .stat{ flex:1; min-width:0; padding:10px 12px; }
     .post-cards, .out-list{ grid-template-columns:minmax(0,1fr); }
     .kid-grid{ grid-template-columns:minmax(0,1fr); }
@@ -1025,7 +1032,7 @@
     var nick = myName() || user.email;
     var st = appLocalState();
     main.innerHTML = '<section class="panel"><div class="my-head"><span class="avatar" aria-hidden="true">' + stageEmoji(profile && profile.kid_type) + '</span>' +
-        '<div style="flex:1; min-width:0;"><h1 class="display">' + esc(nick) + '</h1><div class="pills">' +
+        '<div style="min-width:0;"><h1 class="display">' + esc(nick) + '</h1><div class="pills">' +
           (profileStageText() ? '<span class="pill">' + esc(profileStageText()) + '</span>' : '') +
           (profile && profile.region ? '<span class="pill">📍 ' + esc(profile.region) + '</span>' : '') +
           ((profile && profile.interests) || []).slice(0, 4).map(function(t){ return '<span class="pill">#' + esc(t) + '</span>'; }).join('') +

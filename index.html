@@ -271,6 +271,39 @@
   [style*="overflow-x:auto"]{ scrollbar-width:none; -ms-overflow-style:none; }
   [style*="overflow-x:auto"]::-webkit-scrollbar{ display:none; height:0; }
 
+  /* ── 웹 커뮤니티(community.html)와 같은 톤 ──
+     배치는 건드리지 않고 색·그림자·버튼·메뉴 표현만 바꾼다. */
+  :root{
+    --btn-grad: linear-gradient(135deg,#D2491C 0%,#B53A12 100%);
+    --card-shadow: 0 1px 2px rgba(120,60,20,.04), 0 8px 24px rgba(201,67,24,.07);
+  }
+  :root:not([data-theme="dark"]) body,
+  :root:not([data-theme="dark"]) .app{
+    background:
+      radial-gradient(520px 300px at 0% -6%, #FFE2D3 0%, transparent 62%),
+      radial-gradient(460px 280px at 100% 2%, #FFF1C9 0%, transparent 62%),
+      radial-gradient(560px 360px at 50% 106%, #FDE6EE 0%, transparent 62%),
+      var(--bg);
+  }
+  :root:not([data-theme="dark"]) .card{ border-color:#F3E3D3; box-shadow:var(--card-shadow); }
+  :root:not([data-theme="dark"]) #home-status > .card:first-child,
+  :root:not([data-theme="dark"]) #screen-my > .scroll > .card:first-child{
+    background:linear-gradient(120deg,#FFE0D0 0%,#FFEBD8 45%,#FFF4CC 100%); border-color:#FBDCC7;
+  }
+  .btn-primary{ background:var(--btn-grad); box-shadow:0 6px 16px rgba(201,67,24,.25); transition:transform .12s, box-shadow .12s; }
+  .btn-primary:not(:disabled):hover{ transform:translateY(-1px); box-shadow:0 10px 22px rgba(201,67,24,.3); }
+  .btn-ghost{ transition:box-shadow .12s, background .12s; }
+  .btn-ghost:hover{ background:#FFFBF7; box-shadow:0 4px 12px rgba(201,67,24,.08); }
+  .chip.on, .chip-f[aria-pressed="true"]{ border:1px solid var(--text); background:var(--text); color:var(--bg); }
+  .segmented button[aria-selected="true"]{ box-shadow:0 2px 8px rgba(120,60,20,.10); }
+  .mission-go{ background:var(--accent-soft); color:var(--accent-strong); }
+  #home-fab, #fab{ background:var(--btn-grad) !important; box-shadow:0 10px 24px rgba(201,67,24,.32) !important; }
+  .navbar{ background:rgba(255,255,255,.88); backdrop-filter:saturate(1.4) blur(14px); -webkit-backdrop-filter:saturate(1.4) blur(14px); }
+  .navbar button.active{ color:var(--accent-strong); }
+  .nav-site{ display:none; }
+  .modal-card{ box-shadow:0 -10px 40px rgba(43,33,24,.12); }
+  .field input:focus, .field select:focus, .field textarea:focus{ outline:none; border-color:var(--accent); box-shadow:0 0 0 4px rgba(255,122,89,.14); }
+
   /* PC 화면: 하단 탭바를 왼쪽 메뉴로 옮기고 본문은 가운데 읽기 폭으로 둔다. 모바일은 위 규칙 그대로. */
   @media (min-width:960px){
     .app{ max-width:1200px; }
@@ -281,10 +314,14 @@
       flex-direction:column; align-items:stretch; justify-content:flex-start; gap:4px;
       border-top:none; border-right:1px solid var(--border); padding:28px 14px;
     }
-    .navbar::before{ content:'다다맘'; font-family:'Jua',sans-serif; font-size:24px; color:var(--accent-strong); padding:0 14px 18px; }
+    .navbar::before{ content:'다다맘'; font-family:'Jua',sans-serif; font-size:26px; color:var(--accent-strong); padding:0 14px 18px; }
     .navbar button{ flex:0 0 auto; flex-direction:row; gap:12px; font-size:15px; padding:12px 14px; border-radius:14px; }
-    .navbar button.active{ background:var(--accent-soft); }
-    .navbar button:hover{ background:var(--accent-soft); }
+    .navbar button:hover{ background:rgba(255,122,89,.08); color:var(--text); }
+    .navbar button.active{ background:var(--text); color:var(--bg); }
+    .nav-site{ display:flex; align-items:center; gap:10px; margin-top:auto; padding:14px; border-radius:16px;
+      background:linear-gradient(150deg,#FFF1E8,#FFF8E6); border:1px solid #F6DCCB; color:var(--accent-strong);
+      font-size:14px; font-weight:700; text-decoration:none; }
+    .nav-site:hover{ box-shadow:0 6px 16px rgba(201,67,24,.12); }
     .pad{ padding-inline:max(32px, calc((100% - 720px) / 2)); }
     .hscroll, .home-feedbar{ margin-inline:0; padding-inline:0; }
     #home-fab, #fab{ right:40px !important; bottom:40px !important; }
@@ -2395,7 +2432,9 @@
       return '<button data-goto="' + n.id + '" class="' + (isActive ? 'active' : '') + '"' + (isActive ? ' aria-current="page"' : '') + '>' +
         '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + n.icon + '</svg>' +
         '<span>' + n.label + '</span></button>';
-    }).join('');
+    }).join('') +
+      // PC 왼쪽 메뉴에만 보인다 (모바일은 CSS 로 숨김)
+      '<a class="nav-site" href="./community.html">💬 커뮤니티 사이트</a>';
   }
 
   // ---------- ONBOARDING ----------

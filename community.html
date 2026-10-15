@@ -3,200 +3,366 @@
 <meta charset="utf-8">
 <title>다다맘 커뮤니티</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="임신·육아 중인 엄마 아빠들의 커뮤니티 — 질문, 자랑, 고민, 정보를 나눠요.">
-<meta name="theme-color" content="#C94318">
+<meta name="description" content="임신·육아 중인 엄마 아빠들의 커뮤니티 — 질문, 자랑, 고민, 정보를 나누고 챌린지·나들이 정보까지.">
+<meta name="theme-color" content="#FFF8F1">
 <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
 <!-- 앱(index.html)과 같은 환경설정·같은 DB·같은 로그인 세션을 쓴다. -->
 <script src="./env.js"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Jua&display=swap">
 <style>
   :root{
-    --bg:#FFFBF5; --surface:#FFFFFF; --border:#F0E4D6; --line:#F6EDE2;
-    --text:#2B2118; --text2:#6E5F50; --text3:#9A8A79;
-    --accent:#FF7A59; --accent-soft:#FFF3EE; --accent-strong:#C94318; --accent2:#8A6512;
-    --hot:#E5482D; --link:#2B2118;
+    --bg:#FFF8F1; --surface:#FFFFFF; --border:#F3E3D3; --line:#F8EEE4;
+    --text:#2B2118; --text2:#6E5F50; --text3:#998878;
+    --coral:#FF7A59; --coral-soft:#FFEDE5; --deep:#C94318; --brown:#8A6512;
+    --peach:#FFD9C7; --butter:#FFE9A8; --mint:#CDEBDD; --lav:#E4DAFB; --sky:#D7E8FF; --rose:#FFDDE6;
+    --btn: linear-gradient(135deg,#D2491C 0%,#B53A12 100%);
+    --shadow: 0 1px 2px rgba(120,60,20,.04), 0 8px 24px rgba(201,67,24,.07);
+    --shadow-lg: 0 14px 40px rgba(201,67,24,.14);
+    --r:20px;
   }
   *{ box-sizing:border-box; }
   [hidden]{ display:none !important; }
-  body{ margin:0; background:var(--bg); color:var(--text); font-family:'Gowun Dodum','Apple SD Gothic Neo',sans-serif; font-size:14px; }
+  html{ scroll-behavior:smooth; }
+  body{
+    margin:0; color:var(--text); font-family:'Gowun Dodum','Apple SD Gothic Neo',sans-serif; font-size:14px;
+    background:
+      radial-gradient(900px 420px at 8% -8%, #FFE2D3 0%, transparent 60%),
+      radial-gradient(700px 380px at 96% 4%, #FFF1C9 0%, transparent 60%),
+      radial-gradient(800px 500px at 50% 110%, #FDE6EE 0%, transparent 60%),
+      var(--bg);
+    background-attachment:fixed; min-height:100vh;
+  }
   a{ color:inherit; text-decoration:none; }
   button{ font-family:inherit; cursor:pointer; }
   input,select,textarea{ font-family:inherit; font-size:15px; color:var(--text); }
-  .display{ font-family:'Jua','Gowun Dodum',sans-serif; }
-  *:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; border-radius:6px; }
-  .wrap{ max-width:1180px; margin:0 auto; padding:0 16px; }
-
-  /* 상단 */
-  .top{ background:var(--surface); border-bottom:1px solid var(--border); }
-  .top .wrap{ display:flex; align-items:center; gap:16px; height:64px; }
-  .logo{ font-size:26px; color:var(--accent-strong); white-space:nowrap; }
-  .logo small{ font-size:13px; color:var(--text2); margin-left:6px; font-family:'Gowun Dodum',sans-serif; }
-  .search{ flex:1; display:flex; max-width:520px; border:2px solid var(--accent-strong); border-radius:999px; overflow:hidden; background:#fff; }
-  .search select{ border:none; background:var(--accent-soft); padding:0 10px; font-size:13px; }
-  .search input{ flex:1; border:none; padding:9px 12px; min-width:0; outline:none; }
-  .search button{ border:none; background:var(--accent-strong); color:#fff; padding:0 18px; font-weight:700; }
-  .me{ display:flex; align-items:center; gap:10px; margin-left:auto; white-space:nowrap; font-size:13px; }
-  .btn{ border:1px solid var(--border); background:var(--surface); border-radius:10px; padding:8px 14px; font-size:13px; font-weight:700; color:var(--text); display:inline-flex; align-items:center; gap:6px; }
-  .btn.primary{ background:var(--accent-strong); border-color:var(--accent-strong); color:#fff; }
-  .btn:disabled{ opacity:.5; cursor:not-allowed; }
-
-  /* 게시판 탭 */
-  .boards{ background:var(--accent-strong); }
-  .boards .wrap{ display:flex; gap:2px; overflow-x:auto; scrollbar-width:none; }
-  .boards a{ color:#fff; padding:12px 16px; font-weight:700; white-space:nowrap; opacity:.85; border-bottom:3px solid transparent; }
-  .boards a.on, .boards a:hover{ opacity:1; border-bottom-color:#fff; }
-  .boards a.app{ margin-left:auto; font-weight:400; opacity:.9; }
-
-  .layout{ display:grid; grid-template-columns:minmax(0,1fr) 300px; gap:20px; padding:20px 0 40px; }
-  .panel{ background:var(--surface); border:1px solid var(--border); border-radius:14px; }
-  .panel-h{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding:14px 16px; border-bottom:1px solid var(--border); flex-wrap:wrap; }
-  .panel-h h1, .panel-h h2{ margin:0; font-size:20px; }
-  .panel-h h2{ font-size:16px; }
-  .sub{ display:flex; gap:6px; flex-wrap:wrap; padding:10px 16px; border-bottom:1px solid var(--line); align-items:center; }
-  .chip{ border:1px solid var(--border); background:var(--surface); border-radius:999px; padding:5px 12px; font-size:12.5px; color:var(--text2); font-weight:700; }
-  .chip.on{ background:var(--accent-soft); border-color:var(--accent); color:var(--accent-strong); }
-  .sub .sep{ width:1px; height:18px; background:var(--border); margin:0 4px; }
-
-  /* 목록 (게시판 표) */
-  table.list{ width:100%; border-collapse:collapse; table-layout:fixed; }
-  .list th{ font-size:12px; color:var(--text3); font-weight:700; padding:9px 8px; border-bottom:1px solid var(--border); background:#FFFDF9; }
-  .list td{ padding:10px 8px; border-bottom:1px solid var(--line); font-size:13.5px; vertical-align:middle; }
-  .list tr:hover td{ background:#FFFAF4; }
-  .list .c-no, .list .c-date, .list .c-like{ text-align:center; color:var(--text2); font-size:12.5px; }
-  .list .c-no{ width:64px; } .list .c-tag{ width:64px; text-align:center; } .list .c-author{ width:130px; }
-  .list .c-date{ width:76px; } .list .c-like{ width:56px; }
-  .list .title{ display:flex; align-items:center; gap:6px; min-width:0; }
-  .list .title a{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .list .title a:visited{ color:#7B6A5A; }
-  .cmt{ color:var(--hot); font-weight:700; font-size:12.5px; flex:0 0 auto; }
-  .ico{ flex:0 0 auto; font-size:12px; }
-  .tag{ display:inline-block; font-size:11.5px; font-weight:700; padding:2px 8px; border-radius:6px; background:var(--accent-soft); color:var(--accent2); }
-  .tag.t-질문{ background:#E8F0FF; color:#2C5BB8; } .tag.t-자랑{ background:#FFE8DE; color:#B84B2E; }
-  .tag.t-고민{ background:#F1E9FF; color:#6B45B0; } .tag.t-정보{ background:#EAF2E9; color:#3F6B49; }
-  .tag.t-공지{ background:var(--accent-strong); color:#fff; }
-  .hot{ color:var(--hot); font-weight:800; }
-  .author{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--text); font-size:13px; }
-  .st{ font-size:11px; font-weight:700; color:#3F6B49; background:#EAF2E9; border-radius:6px; padding:1px 6px; }
-  .empty{ padding:48px 16px; text-align:center; color:var(--text2); }
-
-  .foot{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding:14px 16px; flex-wrap:wrap; }
-  .pager{ display:flex; gap:4px; flex-wrap:wrap; }
-  .pager a, .pager span{ min-width:32px; height:32px; display:inline-flex; align-items:center; justify-content:center; border-radius:8px; font-size:13px; padding:0 6px; }
-  .pager a:hover{ background:var(--accent-soft); }
-  .pager .on{ background:var(--accent-strong); color:#fff; font-weight:700; }
-
-  /* 사이드 */
-  .side{ display:flex; flex-direction:column; gap:16px; }
-  .side ol, .side ul{ list-style:none; margin:0; padding:6px 0; }
-  .side li a{ display:flex; gap:8px; padding:7px 16px; font-size:13px; align-items:baseline; }
-  .side li a:hover{ background:#FFFAF4; }
-  .rank{ width:18px; flex:0 0 auto; font-weight:800; color:var(--text3); text-align:center; }
-  .side li:nth-child(-n+3) .rank{ color:var(--hot); }
-  .one{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .side .meta{ font-size:11.5px; color:var(--text3); flex:0 0 auto; }
-  .app-card{ padding:18px 16px; background:var(--accent-strong); color:#fff; border:none; }
-  .app-card p{ margin:6px 0 12px; font-size:13px; line-height:1.6; opacity:.95; }
-  .app-card a{ display:inline-block; background:#fff; color:var(--accent-strong); font-weight:700; padding:8px 14px; border-radius:10px; font-size:13px; }
-
-  /* 글 보기 */
-  .post-h{ padding:18px 20px 14px; border-bottom:1px solid var(--border); }
-  .post-h h1{ margin:8px 0 10px; font-size:22px; line-height:1.4; word-break:break-word; }
-  .post-meta{ display:flex; gap:12px; flex-wrap:wrap; font-size:12.5px; color:var(--text2); }
-  .post-body{ padding:22px 20px; font-size:15px; line-height:1.85; white-space:pre-wrap; word-break:break-word; min-height:120px; }
-  .post-body img{ display:block; max-width:100%; max-height:640px; border-radius:12px; margin:0 0 16px; }
-  .vote{ display:flex; justify-content:center; padding:8px 0 24px; }
-  .vote button{ border:2px solid var(--accent-strong); background:#fff; color:var(--accent-strong); border-radius:16px; padding:12px 26px; font-size:15px; font-weight:800; display:flex; flex-direction:column; align-items:center; gap:2px; min-width:110px; }
-  .vote button[aria-pressed="true"]{ background:var(--accent-strong); color:#fff; }
-  .vote b{ font-size:20px; }
-  .post-act{ display:flex; gap:8px; justify-content:flex-end; padding:10px 20px; border-top:1px solid var(--line); flex-wrap:wrap; }
-  .link-btn{ border:none; background:none; color:var(--text2); font-size:12.5px; padding:4px 6px; }
-  .link-btn:hover{ color:var(--text); text-decoration:underline; }
-
-  .comments{ border-top:1px solid var(--border); }
-  .comments h2{ font-size:15px; margin:0; padding:14px 20px; border-bottom:1px solid var(--line); }
-  .c-item{ padding:12px 20px; border-bottom:1px solid var(--line); }
-  .c-item .who{ display:flex; gap:8px; align-items:center; font-size:12.5px; }
-  .c-item .who b{ font-size:13px; }
-  .c-item .who .op{ font-size:10.5px; color:#fff; background:var(--accent); border-radius:4px; padding:0 5px; }
-  .c-item p{ margin:6px 0 0; font-size:14px; line-height:1.65; white-space:pre-wrap; word-break:break-word; }
-  .c-item .who .r{ margin-left:auto; }
-  .c-form{ padding:14px 20px; display:flex; flex-direction:column; gap:8px; background:#FFFDF9; border-radius:0 0 14px 14px; }
-  .c-form textarea{ width:100%; min-height:84px; border:1px solid var(--border); border-radius:10px; padding:10px 12px; resize:vertical; }
-  .c-form .row{ display:flex; justify-content:space-between; align-items:center; gap:10px; }
+  .display{ font-family:'Jua','Gowun Dodum',sans-serif; font-weight:400; letter-spacing:-.01em; }
+  *:focus-visible{ outline:2px solid var(--coral); outline-offset:2px; border-radius:8px; }
+  .wrap{ max-width:1200px; margin:0 auto; padding:0 20px; }
+  .sr{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); }
   .helper{ font-size:12px; color:var(--text2); }
 
-  /* 글쓰기 */
-  .form{ padding:18px 20px; display:flex; flex-direction:column; gap:14px; }
-  .form label{ font-size:13px; font-weight:700; color:var(--text2); display:block; margin-bottom:6px; }
-  .form input[type=text], .form textarea, .form select{ width:100%; border:1px solid var(--border); border-radius:10px; padding:10px 12px; background:#fff; }
-  .form textarea{ min-height:280px; resize:vertical; line-height:1.7; }
-  .topics{ display:flex; gap:6px; flex-wrap:wrap; }
-  .note{ background:var(--accent-soft); border-radius:10px; padding:10px 12px; font-size:12.5px; color:var(--text2); line-height:1.6; }
+  /* ── 상단 ── */
+  .top{ position:sticky; top:0; z-index:30; background:rgba(255,250,245,.82); backdrop-filter:saturate(1.4) blur(14px); -webkit-backdrop-filter:saturate(1.4) blur(14px); border-bottom:1px solid rgba(243,227,211,.8); }
+  .top-row{ display:flex; align-items:center; gap:18px; height:68px; }
+  .logo{ display:flex; align-items:center; gap:10px; white-space:nowrap; }
+  .logo-mark{ width:38px; height:38px; border-radius:13px; background:linear-gradient(140deg,#FF9A76,#FF7A59 55%,#F2A93B); display:flex; align-items:center; justify-content:center; color:#fff; font-size:20px; box-shadow:0 6px 16px rgba(255,122,89,.35); }
+  .logo-text{ font-size:24px; color:var(--deep); line-height:1; }
+  .logo-text small{ display:block; font-family:'Gowun Dodum',sans-serif; font-size:11px; color:var(--text3); margin-top:3px; letter-spacing:0; }
+  .search{ flex:1; display:flex; align-items:center; max-width:480px; background:#fff; border:1px solid var(--border); border-radius:999px; padding:4px 4px 4px 6px; box-shadow:0 2px 10px rgba(201,67,24,.05); transition:border-color .15s, box-shadow .15s; }
+  .search:focus-within{ border-color:var(--coral); box-shadow:0 0 0 4px rgba(255,122,89,.15); }
+  .search select{ border:none; background:var(--coral-soft); border-radius:999px; padding:7px 10px; font-size:12.5px; color:var(--deep); font-weight:700; }
+  .search input{ flex:1; border:none; padding:8px 12px; min-width:0; outline:none; background:transparent; }
+  .search button{ border:none; background:var(--btn); color:#fff; border-radius:999px; padding:8px 18px; font-weight:700; font-size:13.5px; }
+  .me{ display:flex; align-items:center; gap:8px; margin-left:auto; white-space:nowrap; font-size:13px; }
+  .avatar{ width:34px; height:34px; border-radius:50%; background:linear-gradient(140deg,var(--peach),var(--butter)); display:inline-flex; align-items:center; justify-content:center; font-size:17px; }
+  .btn{ border:1px solid var(--border); background:#fff; border-radius:12px; padding:8px 14px; font-size:13px; font-weight:700; color:var(--text); display:inline-flex; align-items:center; justify-content:center; gap:6px; transition:transform .12s, box-shadow .12s, background .12s; }
+  .btn:hover{ background:#FFFBF7; box-shadow:0 4px 12px rgba(201,67,24,.08); }
+  .btn.primary{ background:var(--btn); border-color:transparent; color:#fff; box-shadow:0 6px 16px rgba(201,67,24,.25); }
+  .btn.primary:hover{ transform:translateY(-1px); box-shadow:0 10px 22px rgba(201,67,24,.3); }
+  .btn.soft{ background:var(--coral-soft); border-color:transparent; color:var(--deep); }
+  .btn:disabled{ opacity:.5; cursor:not-allowed; transform:none; }
 
-  .modal{ position:fixed; inset:0; background:rgba(28,20,14,.45); display:flex; align-items:center; justify-content:center; z-index:50; padding:16px; }
-  .modal-card{ background:#fff; border-radius:16px; padding:22px; width:100%; max-width:400px; display:flex; flex-direction:column; gap:12px; }
-  .modal-card h3{ margin:0; font-size:18px; }
-  .modal-card input, .modal-card textarea{ width:100%; border:1px solid var(--border); border-radius:10px; padding:10px 12px; }
+  .nav-row{ display:flex; align-items:center; gap:4px; height:50px; overflow-x:auto; scrollbar-width:none; }
+  .nav-row::-webkit-scrollbar{ display:none; }
+  .nav-row a{ display:inline-flex; align-items:center; gap:6px; padding:8px 14px; border-radius:999px; font-weight:700; font-size:14px; color:var(--text2); white-space:nowrap; transition:background .15s, color .15s; }
+  .nav-row a:hover{ background:rgba(255,122,89,.08); color:var(--text); }
+  .nav-row a.on{ background:var(--text); color:#fff; }
+  .nav-row .app-link{ margin-left:auto; color:var(--deep); background:var(--coral-soft); }
+
+  /* ── 레이아웃 ── */
+  .layout{ display:grid; grid-template-columns:minmax(0,1fr) 312px; gap:22px; padding-top:24px; padding-bottom:48px; }
+  .stack{ display:flex; flex-direction:column; gap:20px; min-width:0; }
+  .panel{ background:var(--surface); border:1px solid var(--border); border-radius:var(--r); box-shadow:var(--shadow); overflow:hidden; }
+  .panel-h{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding:16px 20px; flex-wrap:wrap; }
+  .panel-h.line{ border-bottom:1px solid var(--line); }
+  .panel-h h1{ margin:0; font-size:22px; }
+  .panel-h h2{ margin:0; font-size:17px; display:flex; align-items:center; gap:8px; }
+  .bubble{ width:30px; height:30px; border-radius:10px; display:inline-flex; align-items:center; justify-content:center; font-size:15px; flex:0 0 auto; }
+  .more{ font-size:12.5px; color:var(--text3); font-weight:700; }
+  .more:hover{ color:var(--deep); }
+
+  /* ── 히어로 ── */
+  .hero{ position:relative; overflow:hidden; border-radius:26px; padding:30px 32px; background:linear-gradient(120deg,#FFE0D0 0%,#FFEBD8 45%,#FFF4CC 100%); border:1px solid #FBDCC7; box-shadow:var(--shadow); }
+  .hero::before, .hero::after{ content:''; position:absolute; border-radius:50%; pointer-events:none; }
+  .hero::before{ width:260px; height:260px; right:-60px; top:-90px; background:radial-gradient(circle,rgba(255,154,118,.45),transparent 70%); }
+  .hero::after{ width:220px; height:220px; right:180px; bottom:-140px; background:radial-gradient(circle,rgba(242,169,59,.35),transparent 70%); }
+  .hero-deco{ position:absolute; right:28px; top:50%; transform:translateY(-50%); font-size:64px; line-height:1; display:grid; grid-template-columns:repeat(2,auto); gap:6px 14px; opacity:.95; }
+  .hero-deco span:nth-child(2){ transform:translateY(18px) rotate(8deg); }
+  .hero-deco span:nth-child(3){ transform:rotate(-10deg); font-size:52px; }
+  .hero-deco span:nth-child(4){ transform:translateY(12px); font-size:46px; }
+  .hero-in{ position:relative; z-index:1; max-width:560px; }
+  .hero .eyebrow{ display:inline-flex; align-items:center; gap:6px; background:rgba(255,255,255,.75); border-radius:999px; padding:5px 12px; font-size:12px; font-weight:800; color:var(--deep); }
+  .hero h1{ margin:12px 0 8px; font-size:30px; line-height:1.3; }
+  .hero h1 em{ font-style:normal; color:var(--deep); }
+  .hero p{ margin:0 0 18px; color:var(--text2); line-height:1.65; font-size:14.5px; }
+  .hero-cta{ display:flex; gap:8px; flex-wrap:wrap; }
+  .stats{ display:flex; gap:10px; margin-top:20px; flex-wrap:wrap; }
+  .stat{ background:rgba(255,255,255,.72); border:1px solid rgba(255,255,255,.9); border-radius:16px; padding:10px 16px; min-width:110px; }
+  .stat b{ display:block; font-size:22px; font-family:'Jua',sans-serif; color:var(--deep); font-weight:400; }
+  .stat span{ font-size:12px; color:var(--text2); }
+
+  /* ── 게시판 바로가기 카드 ── */
+  .topic-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+  .topic-card{ border-radius:18px; padding:16px; display:flex; flex-direction:column; gap:6px; border:1px solid rgba(0,0,0,.03); transition:transform .15s, box-shadow .15s; }
+  .topic-card:hover{ transform:translateY(-3px); box-shadow:var(--shadow-lg); }
+  .topic-card .em{ font-size:26px; }
+  .topic-card b{ font-family:'Jua',sans-serif; font-weight:400; font-size:17px; }
+  .topic-card span{ font-size:12px; color:var(--text2); line-height:1.5; }
+  .c-qna{ background:linear-gradient(160deg,#E6F0FF,#F3F8FF); } .c-brag{ background:linear-gradient(160deg,#FFE3D8,#FFF2EC); }
+  .c-worry{ background:linear-gradient(160deg,#EEE6FF,#F7F3FF); } .c-info{ background:linear-gradient(160deg,#DFF2E8,#F1FAF5); }
+
+  /* ── 게시판 탭 ── */
+  .board-tabs{ display:flex; gap:6px; padding:12px 20px 0; overflow-x:auto; scrollbar-width:none; }
+  .board-tabs::-webkit-scrollbar{ display:none; }
+  .board-tabs a{ display:inline-flex; align-items:center; gap:5px; padding:8px 14px; border-radius:12px 12px 0 0; font-weight:700; font-size:13.5px; color:var(--text2); white-space:nowrap; border-bottom:3px solid transparent; }
+  .board-tabs a:hover{ color:var(--text); }
+  .board-tabs a.on{ color:var(--deep); border-bottom-color:var(--coral); background:linear-gradient(180deg,transparent,var(--coral-soft)); }
+  .sub{ display:flex; gap:6px; flex-wrap:wrap; padding:12px 20px; border-top:1px solid var(--line); border-bottom:1px solid var(--line); background:#FFFCF9; align-items:center; }
+  .chip{ border:1px solid var(--border); background:#fff; border-radius:999px; padding:5px 12px; font-size:12.5px; color:var(--text2); font-weight:700; transition:all .12s; }
+  .chip:hover{ border-color:var(--coral); color:var(--deep); }
+  .chip.on{ background:var(--text); border-color:var(--text); color:#fff; }
+  .sub .sep{ width:1px; height:18px; background:var(--border); margin:0 4px; }
+
+  /* ── 목록 표 ── */
+  table.list{ width:100%; border-collapse:collapse; table-layout:fixed; }
+  .list th{ font-size:12px; color:var(--text3); font-weight:700; padding:10px 8px; border-bottom:1px solid var(--line); }
+  .list td{ padding:12px 8px; border-bottom:1px solid var(--line); font-size:14px; vertical-align:middle; }
+  .list tbody tr{ transition:background .12s; }
+  .list tbody tr:hover{ background:#FFF8F2; }
+  .list tbody tr:last-child td{ border-bottom:none; }
+  .list .c-no, .list .c-date, .list .c-like{ text-align:center; color:var(--text3); font-size:12.5px; }
+  .list .c-no{ width:62px; } .list .c-tag{ width:74px; text-align:center; } .list .c-author{ width:150px; }
+  .list .c-date{ width:70px; } .list .c-like{ width:56px; }
+  .list .title{ display:flex; align-items:center; gap:6px; min-width:0; }
+  .list .title a{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-weight:700; }
+  .list .title a:hover{ color:var(--deep); }
+  .list .title a:visited{ color:#8A7766; }
+  .cmt{ color:var(--coral); font-weight:800; font-size:12.5px; flex:0 0 auto; }
+  .ico{ flex:0 0 auto; font-size:12.5px; }
+  .tag{ display:inline-flex; align-items:center; gap:3px; font-size:11.5px; font-weight:800; padding:3px 9px; border-radius:999px; background:#F6EEE6; color:var(--text2); white-space:nowrap; }
+  .tag.t-질문{ background:#E3EDFF; color:#2C5BB8; } .tag.t-자랑{ background:#FFE1D6; color:#B84B2E; }
+  .tag.t-고민{ background:#ECE4FF; color:#6B45B0; } .tag.t-정보{ background:#DDF1E6; color:#2F6B47; }
+  .tag.t-공지{ background:var(--text); color:#fff; }
+  .like-n{ font-weight:800; }
+  .hot{ color:var(--coral); }
+  .author{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:13px; }
+  .author .stage{ color:var(--text3); font-size:12px; }
+  .st{ font-size:11px; font-weight:800; color:#2F6B47; background:#DDF1E6; border-radius:999px; padding:2px 8px; }
+  .empty{ padding:48px 20px; text-align:center; color:var(--text2); line-height:1.7; }
+  .empty .em{ font-size:40px; display:block; margin-bottom:8px; }
+  .foot{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding:14px 20px; border-top:1px solid var(--line); flex-wrap:wrap; }
+  .pager{ display:flex; gap:4px; flex-wrap:wrap; }
+  .pager a, .pager span{ min-width:34px; height:34px; display:inline-flex; align-items:center; justify-content:center; border-radius:10px; font-size:13px; padding:0 6px; font-weight:700; color:var(--text2); }
+  .pager a:hover{ background:var(--coral-soft); color:var(--deep); }
+  .pager .on{ background:var(--btn); color:#fff; }
+
+  /* ── 카드형 글 (홈) ── */
+  .post-cards{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; padding:0 20px 20px; }
+  .pcard{ border:1px solid var(--line); border-radius:16px; padding:14px 16px; display:flex; flex-direction:column; gap:8px; background:linear-gradient(180deg,#fff,#FFFCF9); transition:transform .15s, box-shadow .15s, border-color .15s; min-width:0; }
+  .pcard:hover{ transform:translateY(-2px); box-shadow:var(--shadow-lg); border-color:#F6D7C4; }
+  .pcard .t{ font-weight:800; font-size:15px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .pcard .b{ font-size:13px; color:var(--text2); line-height:1.6; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; min-height:41px; }
+  .pcard .m{ display:flex; gap:10px; align-items:center; font-size:12px; color:var(--text3); }
+  .pcard .m .r{ margin-left:auto; display:flex; gap:10px; }
+
+  /* ── 사이드 ── */
+  .side{ display:flex; flex-direction:column; gap:18px; }
+  .side ol, .side ul{ list-style:none; margin:0; padding:4px 0 10px; }
+  .side li a{ display:flex; gap:10px; padding:8px 20px; font-size:13.5px; align-items:center; transition:background .12s; }
+  .side li a:hover{ background:#FFF8F2; }
+  .rank{ width:22px; height:22px; border-radius:7px; flex:0 0 auto; font-weight:800; font-size:12px; color:var(--text3); background:#F6EEE6; display:inline-flex; align-items:center; justify-content:center; }
+  .side li:nth-child(1) .rank{ background:linear-gradient(140deg,#FF8A65,#E8572F); color:#fff; }
+  .side li:nth-child(2) .rank{ background:linear-gradient(140deg,#FFB27A,#F08A3E); color:#fff; }
+  .side li:nth-child(3) .rank{ background:linear-gradient(140deg,#FFD27A,#E9A93A); color:#fff; }
+  .one{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .side .meta{ font-size:11.5px; color:var(--text3); flex:0 0 auto; }
+  .me-card{ padding:20px; background:linear-gradient(150deg,#FFF1E8,#FFF8E6); }
+  .me-card .who{ display:flex; gap:12px; align-items:center; }
+  .me-card .avatar{ width:48px; height:48px; font-size:24px; background:#fff; box-shadow:0 4px 12px rgba(201,67,24,.12); }
+  .me-card b{ font-size:16px; }
+  .me-card .row{ display:flex; gap:8px; margin-top:14px; }
+  .me-card .row .btn{ flex:1; }
+  .app-card{ padding:20px; background:linear-gradient(150deg,#2B2118,#4A3426); color:#fff; border:none; position:relative; }
+  .app-card::after{ content:'📱'; position:absolute; right:16px; top:14px; font-size:34px; opacity:.9; }
+  .app-card p{ margin:8px 0 14px; font-size:13px; line-height:1.65; color:#F3E6D8; }
+  .app-card .links{ display:flex; flex-wrap:wrap; gap:6px; }
+  .app-card .links a{ background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.18); color:#fff; font-weight:700; padding:6px 11px; border-radius:999px; font-size:12.5px; }
+  .app-card .links a:hover{ background:rgba(255,255,255,.22); }
+
+  /* ── 챌린지 ── */
+  .ch-hero{ background:linear-gradient(120deg,#FFE7D6,#FFF3D1); padding:22px 24px; display:flex; gap:16px; align-items:center; justify-content:space-between; flex-wrap:wrap; }
+  .ch-hero h1{ margin:6px 0 4px; font-size:24px; }
+  .dday{ display:inline-flex; font-size:12px; font-weight:800; color:#fff; background:var(--btn); padding:4px 11px; border-radius:999px; }
+  .dday.off{ background:#B9A999; }
+  .gallery{ display:grid; grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); gap:14px; padding:20px; }
+  .gcard{ border:1px solid var(--line); border-radius:18px; overflow:hidden; background:#fff; display:flex; flex-direction:column; transition:transform .15s, box-shadow .15s; }
+  .gcard:hover{ transform:translateY(-3px); box-shadow:var(--shadow-lg); }
+  .gcard .ph{ aspect-ratio:1/1; background:linear-gradient(140deg,var(--peach),var(--butter)); display:flex; align-items:center; justify-content:center; font-size:46px; overflow:hidden; }
+  .gcard .ph img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .gcard .in{ padding:12px 14px; display:flex; flex-direction:column; gap:6px; flex:1; }
+  .gcard .nm{ font-weight:800; font-size:14.5px; }
+  .gcard .nt{ font-size:12.5px; color:var(--text2); line-height:1.55; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+  .cheer{ margin-top:auto; border:1px solid var(--border); background:#fff; border-radius:12px; padding:7px 10px; font-size:13px; font-weight:800; color:var(--deep); display:flex; align-items:center; justify-content:center; gap:6px; }
+  .cheer[aria-pressed="true"]{ background:var(--btn); color:#fff; border-color:transparent; }
+  .strip{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; padding:0 20px 20px; }
+  .strip a{ border-radius:14px; overflow:hidden; aspect-ratio:1/1; background:linear-gradient(140deg,var(--peach),var(--butter)); display:flex; align-items:center; justify-content:center; font-size:30px; position:relative; }
+  .strip img{ width:100%; height:100%; object-fit:cover; }
+  .strip .v{ position:absolute; left:6px; bottom:6px; background:rgba(43,33,24,.7); color:#fff; font-size:11px; font-weight:800; border-radius:999px; padding:2px 8px; }
+
+  /* ── 나들이 ── */
+  .out-list{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; padding:20px; }
+  .ocard{ border:1px solid var(--line); border-radius:18px; padding:16px; display:flex; gap:14px; background:#fff; }
+  .ocard .em{ width:52px; height:52px; border-radius:16px; background:linear-gradient(140deg,var(--mint),#EEF8F2); display:flex; align-items:center; justify-content:center; font-size:26px; flex:0 0 auto; }
+  .ocard .in{ display:flex; flex-direction:column; gap:4px; min-width:0; }
+  .ocard b{ font-size:15px; }
+  .ocard .d{ font-size:12.5px; color:var(--text2); line-height:1.55; }
+
+  /* ── 마이 ── */
+  .my-head{ padding:24px; display:flex; gap:18px; align-items:center; background:linear-gradient(120deg,#FFE7D9,#FFF4D6); flex-wrap:wrap; }
+  .my-head .avatar{ width:68px; height:68px; font-size:34px; background:#fff; box-shadow:0 6px 18px rgba(201,67,24,.15); }
+  .my-head h1{ margin:0 0 6px; font-size:24px; }
+  .pills{ display:flex; gap:6px; flex-wrap:wrap; }
+  .pill{ background:rgba(255,255,255,.8); border-radius:999px; padding:4px 11px; font-size:12px; font-weight:700; color:var(--text2); }
+  .kid-grid{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; padding:0 20px 20px; }
+  .kid{ border-radius:18px; padding:16px; display:flex; flex-direction:column; gap:4px; }
+  .kid .k{ font-size:12px; font-weight:800; color:var(--text2); }
+  .kid .v{ font-family:'Jua',sans-serif; font-size:26px; color:var(--text); }
+  .kid .s{ font-size:12px; color:var(--text2); }
+  .kid svg{ margin-top:6px; }
+  .k1{ background:linear-gradient(160deg,#FFE3D8,#FFF3EE); } .k2{ background:linear-gradient(160deg,#DFF2E8,#F2FAF6); } .k3{ background:linear-gradient(160deg,#E6F0FF,#F4F8FF); }
+  .act-list li{ list-style:none; }
+  .act-list a{ display:flex; gap:10px; padding:11px 20px; border-top:1px solid var(--line); align-items:center; font-size:13.5px; }
+  .act-list a:hover{ background:#FFF8F2; }
+
+  /* ── 글 보기 ── */
+  .post-h{ padding:22px 26px 18px; border-bottom:1px solid var(--line); background:linear-gradient(180deg,#FFFAF6,#fff); }
+  .crumb{ font-size:12.5px; color:var(--text3); font-weight:700; }
+  .crumb:hover{ color:var(--deep); }
+  .post-h h1{ margin:10px 0 12px; font-size:25px; line-height:1.4; word-break:break-word; }
+  .post-meta{ display:flex; gap:14px; flex-wrap:wrap; font-size:12.5px; color:var(--text2); align-items:center; }
+  .post-meta .who{ display:flex; gap:8px; align-items:center; color:var(--text); font-weight:800; font-size:13.5px; }
+  .post-meta .who .avatar{ width:30px; height:30px; font-size:15px; }
+  .post-body{ padding:26px; font-size:15.5px; line-height:1.9; white-space:pre-wrap; word-break:break-word; }
+  .post-body:empty{ padding:6px; }
+  .post-body img{ display:block; max-width:100%; max-height:680px; border-radius:16px; margin:0 0 18px; box-shadow:var(--shadow); }
+  .vote{ display:flex; justify-content:center; padding:4px 0 28px; }
+  .vote button{ border:2px solid #F6CDB9; background:#fff; color:var(--deep); border-radius:20px; padding:12px 30px; font-size:14px; font-weight:800; display:flex; flex-direction:column; align-items:center; gap:2px; min-width:120px; transition:transform .12s, box-shadow .12s; }
+  .vote button:hover{ transform:translateY(-2px); box-shadow:var(--shadow-lg); }
+  .vote button[aria-pressed="true"]{ background:var(--btn); color:#fff; border-color:transparent; box-shadow:0 10px 24px rgba(201,67,24,.3); }
+  .vote b{ font-size:22px; font-family:'Jua',sans-serif; font-weight:400; }
+  .post-act{ display:flex; gap:6px; justify-content:flex-end; padding:10px 22px; border-top:1px solid var(--line); flex-wrap:wrap; }
+  .link-btn{ border:none; background:none; color:var(--text2); font-size:12.5px; padding:6px 8px; border-radius:8px; font-weight:700; }
+  .link-btn:hover{ background:#FFF3EC; color:var(--deep); }
+  .comments{ border-top:1px solid var(--line); background:#FFFCF9; }
+  .comments h2{ font-size:16px; margin:0; padding:16px 26px; }
+  .comments h2 span{ color:var(--coral); }
+  .c-item{ padding:14px 26px; border-top:1px solid var(--line); background:#fff; }
+  .c-item .who{ display:flex; gap:8px; align-items:center; font-size:12.5px; }
+  .c-item .who b{ font-size:13.5px; }
+  .c-item .who .op{ font-size:10.5px; font-weight:800; color:#fff; background:var(--coral); border-radius:999px; padding:1px 7px; }
+  .c-item .who .r{ margin-left:auto; }
+  .c-item p{ margin:6px 0 0; font-size:14.5px; line-height:1.7; white-space:pre-wrap; word-break:break-word; }
+  .c-form{ padding:16px 26px 20px; display:flex; flex-direction:column; gap:10px; border-top:1px solid var(--line); }
+  .c-form textarea{ width:100%; min-height:88px; border:1px solid var(--border); border-radius:14px; padding:12px 14px; resize:vertical; background:#fff; }
+  .c-form textarea:focus{ outline:none; border-color:var(--coral); box-shadow:0 0 0 4px rgba(255,122,89,.12); }
+  .c-form .row{ display:flex; justify-content:space-between; align-items:center; gap:10px; }
+
+  /* ── 글쓰기 ── */
+  .form{ padding:22px 26px; display:flex; flex-direction:column; gap:16px; }
+  .form label{ font-size:13px; font-weight:800; color:var(--text2); display:block; margin-bottom:7px; }
+  .form input[type=text], .form textarea{ width:100%; border:1px solid var(--border); border-radius:14px; padding:12px 14px; background:#fff; }
+  .form input[type=text]:focus, .form textarea:focus{ outline:none; border-color:var(--coral); box-shadow:0 0 0 4px rgba(255,122,89,.12); }
+  .form textarea{ min-height:300px; resize:vertical; line-height:1.75; }
+  .topics{ display:flex; gap:8px; flex-wrap:wrap; }
+  .note{ background:linear-gradient(120deg,#FFF1E8,#FFF8E6); border-radius:14px; padding:12px 14px; font-size:12.5px; color:var(--text2); line-height:1.65; }
+
+  .modal{ position:fixed; inset:0; background:rgba(43,33,24,.42); backdrop-filter:blur(3px); display:flex; align-items:center; justify-content:center; z-index:50; padding:16px; }
+  .modal-card{ background:#fff; border-radius:24px; padding:26px; width:100%; max-width:410px; display:flex; flex-direction:column; gap:12px; box-shadow:0 30px 80px rgba(43,33,24,.25); }
+  .modal-card h3{ margin:0; font-size:20px; }
+  .modal-card input, .modal-card textarea{ width:100%; border:1px solid var(--border); border-radius:12px; padding:11px 13px; }
   .reasons{ display:flex; flex-wrap:wrap; gap:6px; }
-  .toast{ position:fixed; left:50%; bottom:28px; transform:translateX(-50%); background:var(--text); color:#fff; padding:10px 18px; border-radius:999px; font-size:13px; opacity:0; pointer-events:none; transition:opacity .2s; z-index:60; max-width:90%; text-align:center; }
-  .toast.show{ opacity:1; }
-  .footer{ border-top:1px solid var(--border); padding:20px 0 32px; font-size:12px; color:var(--text2); }
-  .footer a{ margin-right:12px; }
-  .sr{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); }
+  .toast{ position:fixed; left:50%; bottom:28px; transform:translateX(-50%) translateY(8px); background:var(--text); color:#fff; padding:11px 20px; border-radius:999px; font-size:13px; opacity:0; pointer-events:none; transition:opacity .2s, transform .2s; z-index:60; max-width:90%; text-align:center; box-shadow:var(--shadow-lg); }
+  .toast.show{ opacity:1; transform:translateX(-50%); }
+  .footer{ border-top:1px solid var(--border); padding:24px 0 36px; font-size:12px; color:var(--text2); background:rgba(255,255,255,.5); }
+  .footer .wrap{ display:flex; gap:14px; flex-wrap:wrap; align-items:center; }
+  .footer .logo-text{ font-size:18px; }
 
-  @media (max-width:900px){
+  @media (max-width:980px){
     .layout{ grid-template-columns:minmax(0,1fr); }
-    .top .wrap{ flex-wrap:wrap; height:auto; padding-block:10px; gap:10px; }
+    .topic-grid{ grid-template-columns:repeat(2,1fr); }
+  }
+  @media (max-width:720px){
+    .wrap{ padding:0 14px; }
+    .top-row{ flex-wrap:wrap; height:auto; padding-block:10px; gap:10px; }
     .search{ order:3; max-width:none; flex-basis:100%; }
-    .logo small{ display:none; }
-    .boards a.app{ margin-left:0; }
+    .logo-text small{ display:none; }
+    .me .nick{ display:none; }
+    .nav-row .app-link{ margin-left:0; }
+    .hero{ padding:22px 20px; border-radius:22px; }
+    .hero h1{ font-size:23px; }
+    .hero-deco{ display:none; }
+    .stats{ gap:8px; flex-wrap:nowrap; }
+    .stat{ flex:1; min-width:0; padding:10px 12px; }
+    .post-cards, .out-list{ grid-template-columns:minmax(0,1fr); }
+    .kid-grid{ grid-template-columns:minmax(0,1fr); }
+    .strip{ grid-template-columns:repeat(3,minmax(0,1fr)); }
+    .strip a:nth-child(4){ display:none; }
+    .gallery{ grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; padding:14px; }
     /* 표 → 두 줄 목록 */
     .list thead{ display:none; }
     .list, .list tbody, .list tr, .list td{ display:block; width:auto; }
-    .list tr{ display:grid; grid-template-columns:auto 1fr auto; grid-template-areas:"tag title title" "author author meta"; gap:4px 8px; padding:11px 14px; border-bottom:1px solid var(--line); }
-    .list td{ border:none; padding:0; }
-    .list .c-no{ display:none; }
+    .list tbody tr{ display:grid; grid-template-columns:auto 1fr auto; grid-template-areas:"tag title title" "author author meta"; gap:5px 8px; padding:12px 16px; border-bottom:1px solid var(--line); }
+    .list td{ border:none !important; padding:0; }
+    .list .c-no, .list .c-like{ display:none; }
     .list .c-tag{ grid-area:tag; width:auto; text-align:left; }
     .list .c-title{ grid-area:title; }
-    .list .c-author{ grid-area:author; width:auto; color:var(--text2); }
+    .list .c-author{ grid-area:author; width:auto; }
     .list .c-author .author{ font-size:12px; color:var(--text2); }
     .list .c-date{ grid-area:meta; width:auto; text-align:right; }
-    .list .c-like{ display:none; }
     .list .title a{ white-space:normal; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
-    .post-h, .post-body, .c-item, .c-form, .comments h2, .form{ padding-inline:14px; }
+    .post-h, .post-body, .c-item, .c-form, .comments h2, .form{ padding-inline:16px; }
+    .post-h h1{ font-size:21px; }
   }
+  @media (prefers-reduced-motion:reduce){ *{ transition:none !important; scroll-behavior:auto !important; } }
 </style>
 
 <header class="top">
-  <div class="wrap">
-    <a href="#/" class="logo display">다다맘<small>엄마 아빠 커뮤니티</small></a>
+  <div class="wrap top-row">
+    <a href="#/" class="logo" aria-label="다다맘 커뮤니티 홈">
+      <span class="logo-mark display" aria-hidden="true">다</span>
+      <span class="logo-text display">다다맘<small>엄마 아빠 육아 커뮤니티</small></span>
+    </a>
     <form class="search" id="search" role="search">
       <label class="sr" for="q-scope">검색 범위</label>
       <select id="q-scope"><option value="text">제목+내용</option><option value="author">글쓴이</option></select>
       <label class="sr" for="q">검색어</label>
-      <input id="q" type="search" placeholder="육아 고민, 이유식, 어린이집…" maxlength="40">
+      <input id="q" type="search" placeholder="이유식, 수면교육, 어린이집…" maxlength="40">
       <button type="submit">검색</button>
     </form>
     <div class="me" id="me"></div>
   </div>
+  <nav class="wrap nav-row" id="nav" aria-label="주요 메뉴"></nav>
 </header>
-<nav class="boards" aria-label="게시판"><div class="wrap" id="boards"></div></nav>
 
 <div class="wrap layout">
-  <main id="main" class="col"></main>
+  <main id="main" class="stack"></main>
   <aside class="side" id="side">
-    <section class="panel"><div class="panel-h"><h2 class="display">🔥 주간 인기글</h2></div><ol id="side-hot"><li class="empty" style="padding:20px;">불러오는 중…</li></ol></section>
-    <section class="panel"><div class="panel-h"><h2 class="display">💬 최신 댓글</h2></div><ul id="side-cmt"></ul></section>
-    <section class="panel"><div class="panel-h"><h2 class="display">📢 공지</h2><a class="helper" href="#/b/notice">더보기</a></div><ul id="side-notice"></ul></section>
+    <section class="panel" id="side-me"></section>
+    <section class="panel"><div class="panel-h"><h2 class="display"><span class="bubble" style="background:#FFE1D6;">🔥</span>주간 인기글</h2></div><ol id="side-hot"><li class="helper" style="padding:10px 20px;">불러오는 중…</li></ol></section>
+    <section class="panel"><div class="panel-h"><h2 class="display"><span class="bubble" style="background:#E3EDFF;">💬</span>최신 댓글</h2></div><ul id="side-cmt"></ul></section>
+    <section class="panel"><div class="panel-h"><h2 class="display"><span class="bubble" style="background:#FFF0C2;">📢</span>공지</h2><a class="more" href="#/b/notice">더보기</a></div><ul id="side-notice"></ul></section>
     <section class="panel app-card">
-      <strong class="display" style="font-size:18px;">다다맘 앱도 함께 써보세요</strong>
-      <p>성장 기록, 챌린지, 체험단 신청, 나들이 정보는 앱에서 이용할 수 있어요. 휴대폰 홈 화면에 추가하면 앱처럼 열려요.</p>
-      <a href="./index.html#home">앱 열기</a>
+      <strong class="display" style="font-size:19px;">다다맘 앱과 함께</strong>
+      <p>같은 계정으로 앱과 사이트가 이어져요. 육아 기록·체험단 신청은 앱에서, 이야기는 여기서 크게 나눠요.</p>
+      <div class="links">
+        <a href="./index.html#growth">📈 성장 기록</a><a href="./index.html#benefit">🎁 체험단</a><a href="./index.html#home">🏠 앱 홈</a>
+      </div>
     </section>
   </aside>
 </div>
 
 <footer class="footer"><div class="wrap">
+  <span class="logo-text display">다다맘</span>
   <a href="./index.html#policy">개인정보처리방침</a><a href="./index.html#terms">이용약관</a>
   <span>© 다다맘</span>
 </div></footer>
@@ -213,28 +379,37 @@
   try{ sb = window.supabase.createClient(ENV.SUPABASE_URL, ENV.SUPABASE_ANON_KEY); }catch(e){}
 
   var PAGE = 20;
-  var HOT_MIN = 3;          // 추천 이 수 이상이면 인기글(개념글)
+  var HOT_MIN = 3;          // 추천 이 수 이상이면 인기글
   var MEDIA_ALLOWED = ['image/jpeg','image/png','image/webp'];
   var MEDIA_MAX_BYTES = 25 * 1024 * 1024;
   var MEDIA_TTL = 600;
+  // 앱 index.html 의 CHALLENGE_DEADLINE 과 같은 값. 바꿀 때 둘 다 바꾼다.
+  var CHALLENGE_DEADLINE = '2026-10-15';
   var REPORT_REASONS = ['욕설·비방', '음란물·선정성', '광고·스팸', '허위정보', '개인정보 노출', '기타'];
+  var NAV = [
+    { id:'home',      name:'홈',        href:'#/' },
+    { id:'community', name:'커뮤니티',   href:'#/b/all' },
+    { id:'challenge', name:'챌린지',     href:'#/challenge' },
+    { id:'outing',    name:'나들이',     href:'#/outing' },
+    { id:'my',        name:'마이페이지', href:'#/my' }
+  ];
   // 앱의 POST_TOPICS 와 같은 말머리. 글 본문 앞에 '[질문] ' 형태로 저장된다.
   var BOARDS = [
-    { id:'all',    name:'전체글' },
-    { id:'best',   name:'인기글' },
-    { id:'qna',    name:'질문',  topic:'질문' },
-    { id:'brag',   name:'자랑',  topic:'자랑' },
-    { id:'worry',  name:'고민',  topic:'고민' },
-    { id:'info',   name:'정보',  topic:'정보' },
-    { id:'notice', name:'공지' }
+    { id:'all',    name:'전체',  em:'🗂️' },
+    { id:'best',   name:'인기글', em:'🔥' },
+    { id:'qna',    name:'질문',  em:'🙋', topic:'질문', cls:'c-qna',   desc:'궁금한 건 먼저 키운 선배 엄마 아빠에게' },
+    { id:'brag',   name:'자랑',  em:'🌟', topic:'자랑', cls:'c-brag',  desc:'첫 걸음, 첫 마디, 오늘의 귀여움' },
+    { id:'worry',  name:'고민',  em:'💭', topic:'고민', cls:'c-worry', desc:'혼자 끙끙 앓지 말고 같이 나눠요' },
+    { id:'info',   name:'정보',  em:'📚', topic:'정보', cls:'c-info',  desc:'육아템, 병원, 지원금 꿀정보' },
+    { id:'notice', name:'공지',  em:'📢' }
   ];
   var TOPICS = ['질문','자랑','고민','정보'];
   var STAGES = [
     { id:'',    name:'전체' },
-    { id:'preg', name:'임신 중' },
-    { id:'m12', name:'0~12개월' },
-    { id:'m24', name:'13~24개월' },
-    { id:'m25', name:'25개월+' }
+    { id:'preg', name:'🤰 임신 중' },
+    { id:'m12', name:'👶 0~12개월' },
+    { id:'m24', name:'🧒 13~24개월' },
+    { id:'m25', name:'🎒 25개월+' }
   ];
   var SORTS = [ { id:'new', name:'최신순' }, { id:'like', name:'추천순' }, { id:'cmt', name:'댓글순' } ];
   var COLS = 'id,author,text,likes,comments,created_at,stage,age_value,media_path,owner_id,status';
@@ -259,6 +434,15 @@
     var d = new Date(iso);
     return d.getFullYear() + '.' + pad2(d.getMonth()+1) + '.' + pad2(d.getDate()) + ' ' + pad2(d.getHours()) + ':' + pad2(d.getMinutes());
   }
+  function timeAgo(iso){
+    var min = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
+    if(min < 1) return '방금 전';
+    if(min < 60) return min + '분 전';
+    if(min < 1440) return Math.floor(min / 60) + '시간 전';
+    if(min < 10080) return Math.floor(min / 1440) + '일 전';
+    return shortDate(iso);
+  }
+  function todayISO(){ var d = new Date(); return d.getFullYear() + '-' + pad2(d.getMonth()+1) + '-' + pad2(d.getDate()); }
   var toastTimer;
   function toast(msg){
     var t = $('toast'); t.textContent = msg; t.classList.add('show');
@@ -271,6 +455,7 @@
     var h = Array.prototype.map.call(b, function(x){ return ('0'+x.toString(16)).slice(-2); }).join('');
     return h.slice(0,8)+'-'+h.slice(8,12)+'-'+h.slice(12,16)+'-'+h.slice(16,20)+'-'+h.slice(20);
   }
+  function safeUrl(u){ return /^https?:\/\//i.test(String(u || '')) ? u : ''; }
 
   // '[질문] 제목\n본문' → { topic, title, body }. 앱에서 쓴 한 덩어리 글은 첫 줄을 제목으로 쓴다.
   function parsePost(text){
@@ -280,7 +465,7 @@
     var nl = s.indexOf('\n');
     var first = (nl > -1 ? s.slice(0, nl) : s).trim();
     var title = first.length > 60 ? first.slice(0, 60) + '…' : first;
-    var body = (nl > -1 && first.length <= 60) ? s.slice(nl + 1).replace(/^\n+/, '') : s;
+    var body = (nl > -1 && first.length <= 60) ? s.slice(nl + 1).replace(/^\n+/, '') : (first.length > 60 ? s : '');
     return { topic:topic, title: title || '(제목 없음)', body: body };
   }
   function stageText(p){
@@ -288,25 +473,57 @@
     if(p.stage === 'parenting') return p.age_value != null ? p.age_value + '개월' : '육아 중';
     return '';
   }
+  function stageEmoji(stage){ return stage === 'pregnant' ? '🤰' : stage === 'parenting' ? '👶' : '🙂'; }
   function roleLabel(r){ return r === 'mom' ? '맘' : r === 'dad' ? '아빠' : r === 'guardian' ? '보호자' : '맘·아빠'; }
+  function myName(){ return profile && profile.nickname ? profile.nickname + roleLabel(profile.parent_role) : ''; }
+  function tagHtml(topic){ return topic ? '<span class="tag t-' + topic + '">' + topic + '</span>' : '<span class="tag">이야기</span>'; }
 
-  async function signedUrl(path){
-    if(!path) return '';
+  // 앱과 같은 계산 (index.html 의 pregWeeksAt / ageMonthsAt)
+  function profileAge(){
+    if(!profile) return null;
+    if(profile.kid_type === 'pregnant' && profile.due_date){
+      var today = new Date(); today.setHours(0,0,0,0);
+      var days = Math.round((new Date(profile.due_date + 'T00:00:00') - today) / 86400000);
+      return Math.max(1, Math.min(42, 40 - Math.floor(days / 7)));
+    }
+    if(profile.kid_type === 'parenting' && profile.birth_month){
+      var bm = profile.birth_month.split('-'), now = new Date();
+      return Math.max(0, (now.getFullYear() - Number(bm[0])) * 12 + (now.getMonth() + 1 - Number(bm[1])));
+    }
+    return null;
+  }
+  function profileStageText(){
+    var a = profileAge();
+    if(!profile) return '';
+    if(profile.kid_type === 'pregnant') return a != null ? '임신 ' + a + '주차' : '임신 중';
+    if(profile.kid_type === 'parenting') return a != null ? a + '개월 아이' : '육아 중';
+    return '';
+  }
+
+  async function signUrls(paths){
+    var out = {};
+    paths = paths.filter(Boolean);
+    if(!paths.length) return out;
     try{
-      var r = await sb.storage.from('media').createSignedUrl(path, MEDIA_TTL);
-      return (r && r.data && r.data.signedUrl) || '';
-    }catch(e){ return ''; }
+      var r = await sb.storage.from('media').createSignedUrls(paths, MEDIA_TTL);
+      (r.data || []).forEach(function(d){ if(d && d.signedUrl) out[d.path] = d.signedUrl; });
+    }catch(e){}
+    return out;
+  }
+
+  // 앱이 이 기기에 저장한 내 기록 (같은 사이트 주소라 localStorage 를 같이 쓴다). 읽기만 한다.
+  function appLocalState(){
+    if(!user) return null;
+    try{ return JSON.parse(localStorage.getItem('dadamom_v2::' + user.id) || 'null'); }catch(e){ return null; }
   }
 
   // ---------- 라우팅 ----------
-  // #/b/<board>?p=&s=&o=&q=&f=   #/p/<id>   #/write   #/mine
+  // #/  #/b/<board>?p=&s=&o=&q=&f=  #/p/<id>  #/write  #/challenge  #/outing  #/my  #/mine
   function route(){
     var h = location.hash.replace(/^#/, '') || '/';
     var qi = h.indexOf('?');
     var path = qi > -1 ? h.slice(0, qi) : h;
-    var params = new URLSearchParams(qi > -1 ? h.slice(qi + 1) : '');
-    var seg = path.split('/').filter(Boolean);
-    return { seg: seg, params: params };
+    return { seg: path.split('/').filter(Boolean), params: new URLSearchParams(qi > -1 ? h.slice(qi + 1) : '') };
   }
   function boardHref(board, extra){
     var p = new URLSearchParams();
@@ -316,56 +533,157 @@
   }
 
   async function render(){
-    var r = route();
-    var main = $('main');
-    var board = 'all';
-    if(r.seg[0] === 'b' && r.seg[1]) board = r.seg[1];
+    var r = route(), s0 = r.seg[0] || '', main = $('main');
     $('q').value = r.params.get('q') || '';
     $('q-scope').value = r.params.get('f') === 'author' ? 'author' : 'text';
-    renderBoards(r.seg[0] === 'p' || r.seg[0] === 'write' || r.seg[0] === 'mine' ? '' : board);
+    var section = s0 === '' ? 'home' : (s0 === 'b' || s0 === 'p' || s0 === 'write') ? 'community'
+                : s0 === 'mine' ? 'my' : s0;
+    renderNav(section);
     window.scrollTo(0, 0);
-    if(r.seg[0] === 'p' && r.seg[1]) return renderPost(main, r.seg[1]);
-    if(r.seg[0] === 'write') return renderWrite(main);
-    if(r.seg[0] === 'mine') return renderList(main, 'mine', r.params);
+    if(s0 === '') return renderHome(main);
+    if(s0 === 'p' && r.seg[1]) return renderPost(main, r.seg[1]);
+    if(s0 === 'write') return renderWrite(main);
+    if(s0 === 'challenge') return renderChallenge(main);
+    if(s0 === 'outing') return renderOuting(main, r.params);
+    if(s0 === 'my') return renderMy(main);
+    if(s0 === 'mine') return renderBoard(main, 'mine', r.params);
+    var board = s0 === 'b' && r.seg[1] ? r.seg[1] : 'all';
     if(board === 'notice') return renderNotices(main);
-    return renderList(main, board, r.params);
+    return renderBoard(main, board, r.params);
   }
 
-  function renderBoards(active){
-    $('boards').innerHTML = BOARDS.map(function(b){
-      return '<a href="#/b/' + b.id + '"' + (b.id === active ? ' class="on" aria-current="page"' : '') + '>' + esc(b.name) + '</a>';
-    }).join('') + '<a class="app" href="./index.html#home">📱 앱 기능 (성장·챌린지·혜택)</a>';
+  function renderNav(active){
+    $('nav').innerHTML = NAV.map(function(n){
+      return '<a href="' + n.href + '"' + (n.id === active ? ' class="on" aria-current="page"' : '') + '>' + esc(n.name) + '</a>';
+    }).join('') + '<a class="app-link" href="./index.html#home">📱 앱으로 열기</a>';
   }
 
   function renderMe(){
-    var el = $('me');
+    var el = $('me'), side = $('side-me');
     if(!user){
       el.innerHTML = '<button class="btn" data-login>로그인</button><a class="btn primary" href="./index.html#onboarding">회원가입</a>';
+      side.className = 'panel me-card';
+      side.innerHTML = '<div class="who"><span class="avatar" aria-hidden="true">👋</span><div><b class="display">반가워요!</b><div class="helper">로그인하면 글쓰기·댓글·추천을 할 수 있어요</div></div></div>' +
+        '<div class="row"><button class="btn primary" data-login>로그인</button><a class="btn" href="./index.html#onboarding">회원가입</a></div>';
       return;
     }
-    var nick = profile && profile.nickname ? profile.nickname + roleLabel(profile.parent_role) : user.email;
-    el.innerHTML = '<span><b>' + esc(nick) + '</b>님</span><a class="btn" href="#/mine">내 글</a><button class="btn" data-logout>로그아웃</button>';
+    var nick = myName() || user.email;
+    el.innerHTML = '<a href="#/my" class="avatar" aria-label="마이페이지">' + stageEmoji(profile && profile.kid_type) + '</a>' +
+      '<a href="#/my" class="nick"><b>' + esc(nick) + '</b>님</a><button class="btn" data-logout>로그아웃</button>';
+    side.className = 'panel me-card';
+    side.innerHTML = '<div class="who"><span class="avatar" aria-hidden="true">' + stageEmoji(profile && profile.kid_type) + '</span><div><b class="display">' + esc(nick) + '</b>' +
+        '<div class="helper">' + esc(profileStageText() || '프로필을 완성해 주세요') + (profile && profile.region ? ' · ' + esc(profile.region) : '') + '</div></div></div>' +
+      '<div class="row"><a class="btn primary" href="#/write">✏️ 글쓰기</a><a class="btn" href="#/my">마이페이지</a></div>';
   }
 
-  // ---------- 목록 ----------
-  async function renderList(main, board, params){
+  // ---------- 홈 ----------
+  async function renderHome(main){
+    var greet = user && myName() ? '<em>' + esc(myName()) + '</em>님, 오늘 하루는 어땠나요?' : '육아는 함께할 때 <em>덜 힘들고 더 즐거워요</em>';
+    main.innerHTML =
+      '<section class="hero">' +
+        '<div class="hero-deco" aria-hidden="true"><span>🍼</span><span>🧸</span><span>🌱</span><span>💛</span></div>' +
+        '<div class="hero-in">' +
+          '<span class="eyebrow">🌼 엄마 아빠들의 수다방</span>' +
+          '<h1 class="display">' + greet + '</h1>' +
+          '<p>' + (user && profileStageText() ? esc(profileStageText()) + ' 또래 부모님들의 이야기를 모아봤어요.' : '임신부터 육아까지, 같은 고민을 하는 부모들과 질문하고 자랑하고 정보를 나눠요.') + '</p>' +
+          '<div class="hero-cta"><a class="btn primary" href="#/write">✏️ 글쓰기</a><a class="btn" href="#/b/best">🔥 인기글 보기</a></div>' +
+          '<div class="stats"><div class="stat"><b id="st-today">–</b><span>오늘 새 글</span></div><div class="stat"><b id="st-week">–</b><span>이번 주 댓글</span></div><div class="stat"><b id="st-all">–</b><span>전체 이야기</span></div></div>' +
+        '</div>' +
+      '</section>' +
+      '<div class="topic-grid">' + BOARDS.filter(function(b){ return b.topic; }).map(function(b){
+        return '<a class="topic-card ' + b.cls + '" href="#/b/' + b.id + '"><span class="em" aria-hidden="true">' + b.em + '</span><b>' + b.name + '</b><span>' + esc(b.desc) + '</span></a>';
+      }).join('') + '</div>' +
+      '<section class="panel"><div class="panel-h"><h2 class="display"><span class="bubble" style="background:#FFE1D6;">🔥</span>지금 뜨는 이야기</h2><a class="more" href="#/b/best">더보기 ›</a></div><div class="post-cards" id="home-hot"><div class="helper">불러오는 중…</div></div></section>' +
+      '<section class="panel"><div class="panel-h line"><h2 class="display"><span class="bubble" style="background:#DDF1E6;">🆕</span>새로 올라온 글</h2><a class="more" href="#/b/all">전체보기 ›</a></div><div id="home-new"></div></section>' +
+      '<section class="panel"><div class="panel-h"><h2 class="display"><span class="bubble" style="background:#FFF0C2;">🏆</span>챌린지 참가작</h2><a class="more" href="#/challenge">응원하러 가기 ›</a></div><div class="strip" id="home-ch"></div></section>';
+
+    var start = new Date(); start.setHours(0,0,0,0);
+    var week = new Date(Date.now() - 7 * 86400000).toISOString();
+    Promise.all([
+      sb.from('community_posts').select('id', { count:'exact', head:true }).eq('status','approved').gte('created_at', start.toISOString()),
+      sb.from('post_comments').select('id', { count:'exact', head:true }).gte('created_at', week),
+      sb.from('community_posts').select('id', { count:'exact', head:true }).eq('status','approved')
+    ]).then(function(r){
+      if($('st-today')) $('st-today').textContent = (r[0].count || 0).toLocaleString();
+      if($('st-week')) $('st-week').textContent = (r[1].count || 0).toLocaleString();
+      if($('st-all')) $('st-all').textContent = (r[2].count || 0).toLocaleString();
+    });
+
+    var hot = await sb.from('community_posts').select(COLS).eq('status','approved').order('likes', { ascending:false }).order('comments', { ascending:false }).order('created_at', { ascending:false }).limit(4);
+    if($('home-hot')) $('home-hot').innerHTML = (hot.data || []).length ? hot.data.map(postCardHtml).join('') : emptyHtml('🌱', '아직 글이 없어요. 첫 이야기를 들려주세요!');
+    var rows = await sb.from('community_posts').select(COLS).eq('status','approved').order('created_at', { ascending:false }).limit(8);
+    if($('home-new')) $('home-new').innerHTML = (rows.data || []).length ? listTableHtml(rows.data, 'all', 0, rows.data.length, true) : emptyHtml('📝', '아직 글이 없어요.');
+    var ch = await sb.from('challenge_entries').select('id,name,media_path,votes').eq('status','approved').order('votes', { ascending:false }).order('created_at', { ascending:false }).limit(4);
+    var urls = await signUrls((ch.data || []).map(function(e){ return e.media_path; }));
+    if($('home-ch')) $('home-ch').innerHTML = (ch.data || []).length ? ch.data.map(function(e){
+      return '<a href="#/challenge" aria-label="' + esc(e.name || '참가작') + ' 응원 ' + (e.votes || 0) + '">' + (urls[e.media_path] ? '<img src="' + esc(urls[e.media_path]) + '" alt="" loading="lazy">' : '👣') + '<span class="v">💛 ' + (e.votes || 0) + '</span></a>';
+    }).join('') : '<div class="helper" style="grid-column:1/-1; padding:10px 0;">아직 공개된 참가작이 없어요. 앱에서 첫 번째로 참여해 보세요!</div>';
+  }
+
+  function postCardHtml(p){
+    var pp = parsePost(p.text);
+    return '<a class="pcard" href="#/p/' + p.id + '">' +
+      '<div style="display:flex; gap:6px; align-items:center;">' + tagHtml(pp.topic) + (p.media_path ? '<span class="ico">📷</span>' : '') + '</div>' +
+      '<span class="t">' + esc(pp.title) + '</span>' +
+      '<span class="b">' + esc(pp.body || ' ') + '</span>' +
+      '<span class="m"><span>' + esc(p.author || '익명') + '</span>' + (stageText(p) ? '<span>' + esc(stageText(p)) + '</span>' : '') +
+        '<span class="r"><span class="hot">👍 ' + (p.likes || 0) + '</span><span>💬 ' + (p.comments || 0) + '</span></span></span>' +
+    '</a>';
+  }
+  function emptyHtml(em, msg, action){
+    return '<div class="empty" style="grid-column:1/-1;"><span class="em" aria-hidden="true">' + em + '</span>' + esc(msg) + (action ? '<div style="margin-top:14px;">' + action + '</div>' : '') + '</div>';
+  }
+  function panelMsg(title, em, msg, action){
+    return '<section class="panel"><div class="panel-h line"><h1 class="display">' + esc(title) + '</h1></div>' + emptyHtml(em, msg, action) + '</section>';
+  }
+
+  // ---------- 게시판 ----------
+  function listTableHtml(rows, board, from, total, compact){
+    return '<table class="list"><thead><tr>' +
+        (compact ? '' : '<th class="c-no">번호</th>') + '<th class="c-tag">말머리</th><th>제목</th><th class="c-author">글쓴이</th><th class="c-date">날짜</th><th class="c-like">추천</th>' +
+      '</tr></thead><tbody>' +
+      rows.map(function(p, i){
+        var pp = parsePost(p.text);
+        var st = board === 'mine' && p.status !== 'approved' ? ' <span class="st">' + (p.status === 'pending' ? '검수 중' : '게시 안 됨') + '</span>' : '';
+        return '<tr>' +
+          (compact ? '' : '<td class="c-no">' + (total - from - i) + '</td>') +
+          '<td class="c-tag">' + tagHtml(pp.topic) + '</td>' +
+          '<td class="c-title"><div class="title">' +
+            (p.likes >= HOT_MIN ? '<span class="ico" title="인기글">🔥</span>' : '') +
+            '<a href="#/p/' + p.id + '">' + esc(pp.title) + '</a>' +
+            (p.media_path ? '<span class="ico" title="사진">📷</span>' : '') +
+            (p.comments ? '<span class="cmt">[' + p.comments + ']</span>' : '') + st +
+          '</div></td>' +
+          '<td class="c-author"><div class="author">' + esc(p.author || '익명') + (stageText(p) ? ' <span class="stage">· ' + esc(stageText(p)) + '</span>' : '') + '</div></td>' +
+          '<td class="c-date">' + shortDate(p.created_at) + '</td>' +
+          '<td class="c-like"><span class="like-n' + (p.likes >= HOT_MIN ? ' hot' : '') + '">' + (p.likes || 0) + '</span></td>' +
+        '</tr>';
+      }).join('') + '</tbody></table>';
+  }
+
+  function boardTabsHtml(active){
+    return '<div class="board-tabs" role="navigation" aria-label="게시판">' + BOARDS.map(function(b){
+      return '<a href="#/b/' + b.id + '"' + (b.id === active ? ' class="on" aria-current="page"' : '') + '><span aria-hidden="true">' + b.em + '</span>' + b.name + '</a>';
+    }).join('') + '</div>';
+  }
+
+  async function renderBoard(main, board, params){
     var page = Math.max(1, parseInt(params.get('p') || '1', 10) || 1);
     var stage = params.get('s') || '';
     var sort = params.get('o') || 'new';
     var q = (params.get('q') || '').trim();
     var scope = params.get('f') === 'author' ? 'author' : 'text';
-    var meta = BOARDS.filter(function(b){ return b.id === board; })[0] || { id:'mine', name:'내가 쓴 글' };
+    var meta = BOARDS.filter(function(b){ return b.id === board; })[0] || { id:'mine', name:'내가 쓴 글', em:'🗒️' };
     var keep = { s:stage, o:sort === 'new' ? '' : sort, q:q, f: q && scope === 'author' ? 'author' : '' };
 
     if(board === 'mine' && !user){
-      main.innerHTML = panelMsg('내 글', '로그인하면 내가 쓴 글과 검수 상태를 볼 수 있어요.', '<button class="btn primary" data-login>로그인</button>');
+      main.innerHTML = panelMsg('내가 쓴 글', '🔐', '로그인하면 내가 쓴 글과 검수 상태를 볼 수 있어요.', '<button class="btn primary" data-login>로그인</button>');
       return;
     }
-
     main.innerHTML = '<section class="panel">' +
-      '<div class="panel-h"><h1 class="display">' + esc(q ? '"' + q + '" 검색 결과' : meta.name) + '</h1>' +
+      '<div class="panel-h"><h1 class="display">' + (q ? '🔎 "' + esc(q) + '" 검색 결과' : '<span aria-hidden="true">' + meta.em + '</span> ' + esc(meta.name) + (board === 'all' || board === 'mine' ? '' : ' 게시판')) + '</h1>' +
         '<a class="btn primary" href="#/write' + (meta.topic ? '?t=' + encodeURIComponent(meta.topic) : '') + '">✏️ 글쓰기</a></div>' +
-      (board === 'mine' ? '' : '<div class="sub">' +
+      (board === 'mine' ? '' : boardTabsHtml(q ? '' : board) + '<div class="sub">' +
         STAGES.map(function(s){ return '<a class="chip' + (s.id === stage ? ' on' : '') + '" href="' + boardHref(board, Object.assign({}, keep, { s:s.id })) + '">' + s.name + '</a>'; }).join('') +
         '<span class="sep" aria-hidden="true"></span>' +
         SORTS.map(function(s){ return '<a class="chip' + (s.id === sort ? ' on' : '') + '" href="' + boardHref(board, Object.assign({}, keep, { o: s.id === 'new' ? '' : s.id })) + '">' + s.name + '</a>'; }).join('') +
@@ -382,44 +700,23 @@
     if(stage === 'm12') qb = qb.eq('stage', 'parenting').lte('age_value', 12);
     if(stage === 'm24') qb = qb.eq('stage', 'parenting').gte('age_value', 13).lte('age_value', 24);
     if(stage === 'm25') qb = qb.eq('stage', 'parenting').gte('age_value', 25);
-    if(q){
-      var like = '%' + q.replace(/[\\%_]/g, '\\$&') + '%';
-      qb = qb.ilike(scope === 'author' ? 'author' : 'text', like);
-    }
+    if(q) qb = qb.ilike(scope === 'author' ? 'author' : 'text', '%' + q.replace(/[\\%_]/g, '\\$&') + '%');
     if(sort === 'like') qb = qb.order('likes', { ascending:false });
     if(sort === 'cmt') qb = qb.order('comments', { ascending:false });
-    qb = qb.order('created_at', { ascending:false }).range(from, from + PAGE - 1);
+    var res = await qb.order('created_at', { ascending:false }).range(from, from + PAGE - 1);
 
-    var res = await qb;
     var body = $('list-body');
     if(!body) return;
-    if(res.error){ body.innerHTML = '<div class="empty">글을 불러오지 못했어요. 잠시 후 다시 시도해주세요.</div>'; return; }
+    if(res.error){ body.innerHTML = emptyHtml('😢', '글을 불러오지 못했어요. 잠시 후 다시 시도해주세요.'); return; }
     var rows = res.data || [], total = res.count || 0;
     if(!rows.length){
-      body.innerHTML = '<div class="empty">' + (q ? '검색 결과가 없어요.' : board === 'best' ? '추천을 ' + HOT_MIN + '개 이상 받은 글이 여기에 모여요.' : board === 'mine' ? '아직 쓴 글이 없어요.' : '아직 글이 없어요. 첫 글을 남겨보세요!') + '</div>';
+      body.innerHTML = q ? emptyHtml('🔎', '검색 결과가 없어요. 다른 단어로 찾아보세요.')
+        : board === 'best' ? emptyHtml('🔥', '추천을 ' + HOT_MIN + '개 이상 받은 글이 여기에 모여요.')
+        : board === 'mine' ? emptyHtml('📝', '아직 쓴 글이 없어요.', '<a class="btn primary" href="#/write">첫 글 쓰기</a>')
+        : emptyHtml('🌱', '아직 글이 없어요. 첫 글을 남겨보세요!', '<a class="btn primary" href="#/write' + (meta.topic ? '?t=' + encodeURIComponent(meta.topic) : '') + '">글쓰기</a>');
       return;
     }
-    body.innerHTML = '<table class="list"><thead><tr>' +
-        '<th class="c-no">번호</th><th class="c-tag">말머리</th><th>제목</th><th class="c-author">글쓴이</th><th class="c-date">날짜</th><th class="c-like">추천</th>' +
-      '</tr></thead><tbody>' +
-      rows.map(function(p, i){
-        var pp = parsePost(p.text);
-        var no = total - from - i;
-        var st = board === 'mine' && p.status !== 'approved' ? ' <span class="st">' + (p.status === 'pending' ? '검수 중' : '게시 안 됨') + '</span>' : '';
-        return '<tr>' +
-          '<td class="c-no">' + no + '</td>' +
-          '<td class="c-tag">' + (pp.topic ? '<span class="tag t-' + pp.topic + '">' + pp.topic + '</span>' : '<span class="tag">이야기</span>') + '</td>' +
-          '<td class="c-title"><div class="title">' +
-            (p.likes >= HOT_MIN ? '<span class="ico" title="인기글">🔥</span>' : '') +
-            '<a href="#/p/' + p.id + '">' + esc(pp.title) + '</a>' +
-            (p.media_path ? '<span class="ico" title="사진">📷</span>' : '') +
-            (p.comments ? '<span class="cmt">[' + p.comments + ']</span>' : '') + st +
-          '</div></td>' +
-          '<td class="c-author"><div class="author">' + esc(p.author || '익명') + (stageText(p) ? ' <span class="helper">· ' + esc(stageText(p)) + '</span>' : '') + '</div></td>' +
-          '<td class="c-date">' + shortDate(p.created_at) + '</td>' +
-          '<td class="c-like' + (p.likes >= HOT_MIN ? ' hot' : '') + '">' + (p.likes || 0) + '</td>' +
-        '</tr>';
-      }).join('') + '</tbody></table>' +
+    body.innerHTML = listTableHtml(rows, board, from, total) +
       '<div class="foot"><div class="pager">' + pagerHtml(board, keep, page, Math.ceil(total / PAGE)) + '</div>' +
         '<span class="helper">전체 ' + total.toLocaleString() + '개</span></div>';
   }
@@ -436,32 +733,26 @@
     return out;
   }
 
-  function panelMsg(title, msg, action){
-    return '<section class="panel"><div class="panel-h"><h1 class="display">' + esc(title) + '</h1></div>' +
-      '<div class="empty">' + esc(msg) + (action ? '<div style="margin-top:14px;">' + action + '</div>' : '') + '</div></section>';
-  }
-
-  // ---------- 공지 ----------
   async function renderNotices(main){
-    main.innerHTML = '<section class="panel"><div class="panel-h"><h1 class="display">공지</h1></div><div id="list-body"><div class="empty">불러오는 중…</div></div></section>';
+    main.innerHTML = '<section class="panel"><div class="panel-h"><h1 class="display">📢 공지</h1></div>' + boardTabsHtml('notice') + '<div id="list-body"><div class="empty">불러오는 중…</div></div></section>';
     var res = await sb.from('notices').select('*').order('pinned', { ascending:false }).order('created_at', { ascending:false }).limit(50);
     var body = $('list-body');
-    if(res.error || !res.data || !res.data.length){ body.innerHTML = '<div class="empty">등록된 공지가 없어요.</div>'; return; }
+    if(res.error || !res.data || !res.data.length){ body.innerHTML = emptyHtml('📭', '등록된 공지가 없어요.'); return; }
     body.innerHTML = res.data.map(function(n){
-      return '<details class="c-item"><summary style="cursor:pointer; display:flex; gap:8px; align-items:center;">' +
-        '<span class="tag t-공지">공지</span><b class="one">' + esc(n.title) + '</b><span class="helper">' + shortDate(n.created_at) + '</span></summary>' +
+      return '<details class="c-item"><summary style="cursor:pointer; display:flex; gap:10px; align-items:center;">' +
+        '<span class="tag t-공지">' + (n.pinned ? '📌 공지' : '공지') + '</span><b class="one">' + esc(n.title) + '</b><span class="helper">' + shortDate(n.created_at) + '</span></summary>' +
         '<p>' + esc(n.body) + '</p></details>';
     }).join('');
   }
 
   // ---------- 글 보기 ----------
-  var current = null;   // 지금 보고 있는 글
+  var current = null;
 
   async function renderPost(main, id){
     main.innerHTML = '<section class="panel"><div class="empty">불러오는 중…</div></section>';
     var res = await sb.from('community_posts').select(COLS).eq('id', id).maybeSingle();
     if(res.error || !res.data){
-      main.innerHTML = panelMsg('글을 찾을 수 없어요', '삭제됐거나 아직 검수 중인 글이에요.', '<a class="btn" href="#/">목록으로</a>');
+      main.innerHTML = panelMsg('글을 찾을 수 없어요', '🙈', '삭제됐거나 아직 검수 중인 글이에요.', '<a class="btn" href="#/b/all">목록으로</a>');
       return;
     }
     var p = res.data, pp = parsePost(p.text);
@@ -473,36 +764,36 @@
       var lr = await sb.from('post_likes').select('post_id').eq('post_id', id).maybeSingle();
       liked = !!(lr && lr.data);
     }
-    var img = p.media_path ? await signedUrl(p.media_path) : '';
-    var boardId = (BOARDS.filter(function(b){ return b.topic && b.topic === pp.topic; })[0] || { id:'all' }).id;
+    var img = p.media_path ? (await signUrls([p.media_path]))[p.media_path] || '' : '';
+    var b = BOARDS.filter(function(x){ return x.topic && x.topic === pp.topic; })[0] || BOARDS[0];
 
     main.innerHTML = '<article class="panel">' +
       '<div class="post-h">' +
-        '<a class="helper" href="#/b/' + boardId + '">← ' + esc(pp.topic || '전체글') + ' 게시판</a>' +
-        '<h1 class="display">' + (pp.topic ? '<span class="tag t-' + pp.topic + '" style="vertical-align:middle; margin-right:6px;">' + pp.topic + '</span>' : '') + esc(pp.title) + '</h1>' +
-        '<div class="post-meta"><b style="color:var(--text);">' + esc(p.author || '익명') + '</b>' +
+        '<a class="crumb" href="#/b/' + b.id + '">' + b.em + ' ' + esc(b.name) + ' 게시판 ›</a>' +
+        '<h1 class="display">' + esc(pp.title) + '</h1>' +
+        '<div class="post-meta"><span class="who"><span class="avatar" aria-hidden="true">' + stageEmoji(p.stage) + '</span>' + esc(p.author || '익명') + '</span>' +
+          tagHtml(pp.topic) +
           (stageText(p) ? '<span>' + esc(stageText(p)) + '</span>' : '') +
-          '<span>' + fullDate(p.created_at) + '</span><span>추천 ' + (p.likes || 0) + '</span><span>댓글 ' + (p.comments || 0) + '</span>' +
+          '<span>' + fullDate(p.created_at) + '</span><span>👍 ' + (p.likes || 0) + '</span><span>💬 ' + (p.comments || 0) + '</span>' +
           (p.status !== 'approved' ? '<span class="st">' + (p.status === 'pending' ? '검수 중 — 나에게만 보여요' : '게시 안 됨') + '</span>' : '') +
         '</div></div>' +
-      '<div class="post-body">' + (img ? '<img src="' + esc(img) + '" alt="첨부 사진">' : '') + esc(pp.body === pp.title ? '' : pp.body) + '</div>' +
-      '<div class="vote"><button id="like-btn" aria-pressed="' + liked + '"><span>👍 추천</span><b id="like-n">' + (p.likes || 0) + '</b></button></div>' +
+      '<div class="post-body">' + (img ? '<img src="' + esc(img) + '" alt="첨부 사진">' : '') + esc(pp.body) + '</div>' +
+      '<div class="vote"><button id="like-btn" aria-pressed="' + liked + '" aria-label="추천"><span>👍 추천</span><b id="like-n">' + (p.likes || 0) + '</b></button></div>' +
       '<div class="post-act">' +
         '<button class="link-btn" data-copy-link>🔗 링크 복사</button>' +
-        (mine ? '<button class="link-btn" data-del-post>삭제</button>'
-              : '<button class="link-btn" data-report="post" data-id="' + p.id + '" data-owner="' + (p.owner_id || '') + '">신고</button>') +
-        '<a class="link-btn" href="#/b/' + boardId + '">목록</a>' +
+        (mine ? '<button class="link-btn" data-del-post>🗑 삭제</button>'
+              : '<button class="link-btn" data-report="post" data-id="' + p.id + '" data-owner="' + (p.owner_id || '') + '">🚨 신고</button>') +
+        '<a class="link-btn" href="#/b/' + b.id + '">☰ 목록</a>' +
       '</div>' +
-      '<section class="comments"><h2>댓글 <span id="cmt-n">' + (p.comments || 0) + '</span></h2><div id="cmt-list"><div class="c-item helper">불러오는 중…</div></div>' +
+      '<section class="comments"><h2 class="display">댓글 <span id="cmt-n">' + (p.comments || 0) + '</span></h2><div id="cmt-list"><div class="c-item helper">불러오는 중…</div></div>' +
         (user
-          ? '<form class="c-form" id="cmt-form"><label class="sr" for="cmt-text">댓글</label><textarea id="cmt-text" maxlength="1000" placeholder="따뜻한 댓글을 남겨주세요" required></textarea>' +
+          ? '<form class="c-form" id="cmt-form"><label class="sr" for="cmt-text">댓글</label><textarea id="cmt-text" maxlength="1000" placeholder="따뜻한 한마디가 큰 힘이 돼요 💛" required></textarea>' +
             '<div class="row"><span class="helper">욕설·비방·개인정보는 신고될 수 있어요</span><button class="btn primary" type="submit" id="cmt-submit">등록</button></div></form>'
           : '<div class="c-form"><div class="row"><span class="helper">댓글을 쓰려면 로그인하세요</span><button class="btn primary" data-login>로그인</button></div></div>') +
       '</section></article>' +
-      '<div id="below" style="margin-top:20px;"></div>';
+      '<div id="below"></div>';
     loadComments(p);
-    // 글 아래에 같은 게시판 목록 — 커뮤니티 사이트처럼 계속 읽어 내려가게
-    renderList($('below'), boardId, new URLSearchParams());
+    renderBoard($('below'), b.id, new URLSearchParams());
   }
 
   async function loadComments(p){
@@ -510,12 +801,12 @@
     var el = $('cmt-list');
     if(!el) return;
     var list = (res && res.data) || [];
-    if(!list.length){ el.innerHTML = '<div class="c-item helper">첫 댓글을 남겨보세요</div>'; return; }
+    if(!list.length){ el.innerHTML = '<div class="c-item helper">아직 댓글이 없어요. 첫 댓글을 남겨보세요!</div>'; return; }
     el.innerHTML = list.map(function(c){
       var mine = !!(user && c.owner_id === user.id);
       return '<div class="c-item"><div class="who"><b>' + esc(c.author || '익명') + '</b>' +
           (c.owner_id && c.owner_id === p.owner_id ? '<span class="op">글쓴이</span>' : '') +
-          '<span class="helper">' + fullDate(c.created_at) + '</span>' +
+          '<span class="helper">' + timeAgo(c.created_at) + '</span>' +
           '<span class="r">' + (mine ? '<button class="link-btn" data-del-cmt="' + c.id + '">삭제</button>'
                                      : '<button class="link-btn" data-report="comment" data-id="' + c.id + '" data-owner="' + (c.owner_id || '') + '">신고</button>') + '</span>' +
         '</div><p>' + esc(c.content) + '</p></div>';
@@ -541,14 +832,13 @@
     e.preventDefault();
     var ta = $('cmt-text'), val = ta.value.trim();
     if(!val || !current) return;
-    if(!profile || !profile.nickname){ toast('앱에서 프로필(닉네임)을 먼저 만들어주세요'); return; }
+    if(!myName()){ toast('앱에서 프로필(닉네임)을 먼저 만들어주세요'); return; }
     $('cmt-submit').disabled = true;
-    var res = await sb.from('post_comments').insert({ post_id: current.id, author: profile.nickname + roleLabel(profile.parent_role), content: val });
+    var res = await sb.from('post_comments').insert({ post_id: current.id, author: myName(), content: val });
     $('cmt-submit').disabled = false;
     if(res.error){ toast('댓글을 등록하지 못했어요'); return; }
     ta.value = '';
-    var n = Number($('cmt-n').textContent) + 1;
-    $('cmt-n').textContent = n;
+    $('cmt-n').textContent = Number($('cmt-n').textContent) + 1;
     loadComments(current);
   }
 
@@ -562,7 +852,7 @@
     var res = await sb.from('community_posts').delete().eq('id', current.id).select('id');
     if(res.error || !res.data || !res.data.length){ toast('삭제하지 못했어요'); return; }
     toast('삭제했어요');
-    location.hash = '#/mine';
+    location.hash = '#/my';
   }
 
   async function deleteComment(id){
@@ -575,23 +865,25 @@
 
   // ---------- 글쓰기 ----------
   function renderWrite(main){
-    if(!user){ main.innerHTML = panelMsg('글쓰기', '글을 쓰려면 로그인하세요.', '<button class="btn primary" data-login>로그인</button>'); return; }
-    if(!profile || !profile.nickname){
-      main.innerHTML = panelMsg('글쓰기', '앱에서 닉네임과 아이 정보를 먼저 등록해주세요. 글에 함께 표시돼요.', '<a class="btn primary" href="./index.html#my">앱에서 프로필 만들기</a>');
+    if(!user){ main.innerHTML = panelMsg('글쓰기', '🔐', '글을 쓰려면 로그인하세요.', '<button class="btn primary" data-login>로그인</button>'); return; }
+    if(!myName()){
+      main.innerHTML = panelMsg('글쓰기', '🙂', '앱에서 닉네임과 아이 정보를 먼저 등록해주세요. 글에 함께 표시돼요.', '<a class="btn primary" href="./index.html#my">앱에서 프로필 만들기</a>');
       return;
     }
     var pre = route().params.get('t') || '';
-    main.innerHTML = '<section class="panel"><div class="panel-h"><h1 class="display">글쓰기</h1></div>' +
+    main.innerHTML = '<section class="panel"><div class="panel-h line"><h1 class="display">✏️ 글쓰기</h1></div>' +
       '<form class="form" id="write-form">' +
-        '<div><label>말머리</label><div class="topics" id="topics">' +
-          [''].concat(TOPICS).map(function(t){ return '<button type="button" class="chip' + (t === pre ? ' on' : '') + '" data-topic="' + t + '" aria-pressed="' + (t === pre) + '">' + (t || '이야기') + '</button>'; }).join('') +
+        '<div><label>게시판</label><div class="topics" id="topics">' +
+          [''].concat(TOPICS).map(function(t){
+            var b = BOARDS.filter(function(x){ return x.topic === t; })[0];
+            return '<button type="button" class="chip' + (t === pre ? ' on' : '') + '" data-topic="' + t + '" aria-pressed="' + (t === pre) + '">' + (b ? b.em + ' ' : '💬 ') + (t || '이야기') + '</button>';
+          }).join('') +
         '</div></div>' +
         '<div><label for="w-title">제목</label><input type="text" id="w-title" maxlength="60" required placeholder="제목을 입력하세요"></div>' +
         '<div><label for="w-body">내용</label><textarea id="w-body" maxlength="5000" required placeholder="아이 개월 수나 상황을 함께 적으면 더 좋은 답을 받을 수 있어요."></textarea></div>' +
         '<div><label for="w-photo">사진 (선택, 1장)</label><input type="file" id="w-photo" accept="image/jpeg,image/png,image/webp"></div>' +
-        '<div class="note">글은 운영자 검수 후 공개돼요. 아이 얼굴·이름·주소 같은 개인정보가 드러나지 않게 주의해주세요. 글쓴이에는 <b>' +
-          esc(profile.nickname + roleLabel(profile.parent_role)) + '</b> 와 아이 단계가 함께 표시돼요.</div>' +
-        '<div style="display:flex; gap:8px; justify-content:flex-end;"><a class="btn" href="#/">취소</a><button class="btn primary" type="submit" id="w-submit">등록</button></div>' +
+        '<div class="note">🛡️ 글은 운영자 검수 후 공개돼요. 아이 얼굴·이름·주소 같은 개인정보가 드러나지 않게 주의해주세요.<br>글쓴이에는 <b>' + esc(myName()) + '</b> 와 ' + esc(profileStageText() || '아이 단계') + ' 가 함께 표시돼요.</div>' +
+        '<div style="display:flex; gap:8px; justify-content:flex-end;"><a class="btn" href="#/b/all">취소</a><button class="btn primary" type="submit" id="w-submit">등록</button></div>' +
       '</form></section>';
   }
 
@@ -634,22 +926,12 @@
     var file = $('w-photo').files[0];
     var up = file ? await uploadMedia(file) : {};
     if(up.error){ toast(up.error); btn.disabled = false; btn.textContent = '등록'; return; }
-    var stage = profile.kid_type || null, age = null;
-    // 앱의 pregWeeksAt / ageMonthsAt 과 같은 계산
-    if(stage === 'pregnant' && profile.due_date){
-      var today = new Date(); today.setHours(0,0,0,0);
-      var days = Math.round((new Date(profile.due_date + 'T00:00:00') - today) / 86400000);
-      age = Math.max(1, Math.min(42, 40 - Math.floor(days / 7)));
-    } else if(stage === 'parenting' && profile.birth_month){
-      var bm = profile.birth_month.split('-'), now = new Date();
-      age = Math.max(0, (now.getFullYear() - Number(bm[0])) * 12 + (now.getMonth() + 1 - Number(bm[1])));
-    }
     var id = newUuid();
     // 검수 대기(pending) 글은 SELECT 정책상 RETURNING 이 막히므로 select() 를 붙이지 않는다.
     var res = await sb.from('community_posts').insert({
-      id: id, author: profile.nickname + roleLabel(profile.parent_role),
+      id: id, author: myName(),
       text: (topic ? '[' + topic + '] ' : '') + title + '\n' + body,
-      media_path: up.path || null, stage: stage, age_value: age
+      media_path: up.path || null, stage: (profile && profile.kid_type) || null, age_value: profileAge()
     });
     if(res.error){
       if(up.path) await sb.storage.from('media').remove([up.path]);
@@ -661,12 +943,137 @@
     location.hash = '#/p/' + id;
   }
 
+  // ---------- 챌린지 (앱과 같은 challenge_entries · entry_votes) ----------
+  async function renderChallenge(main){
+    var left = Math.ceil((new Date(CHALLENGE_DEADLINE + 'T23:59:59') - Date.now()) / 86400000);
+    var dd = left > 0 ? 'D-' + left : left === 0 ? 'D-DAY' : '마감';
+    main.innerHTML = '<section class="panel">' +
+      '<div class="ch-hero"><div><span class="dday' + (left < 0 ? ' off' : '') + '">' + dd + '</span>' +
+        '<h1 class="display">👣 첫걸음 챌린지</h1><span class="helper">걸음마 사진 한 장과 짧은 메모로 참여해요 · 10~24개월</span></div>' +
+        (left >= 0 ? '<a class="btn primary" href="./index.html#challenge">📸 앱에서 참여하기</a>' : '') + '</div>' +
+      '<div class="sub"><a class="chip on" href="#/challenge" id="ch-sort-new">최신순</a><a class="chip" href="#/challenge" id="ch-sort-pop">응원순</a><span class="helper" id="ch-count" style="margin-left:auto;"></span></div>' +
+      '<div class="gallery" id="gallery"><div class="helper">불러오는 중…</div></div></section>';
+    loadGallery('new');
+  }
+
+  async function loadGallery(sort){
+    var qb = sb.from('challenge_entries').select('id,name,age,note,media_path,votes,created_at,owner_id').eq('status','approved');
+    if(sort === 'pop') qb = qb.order('votes', { ascending:false });
+    var res = await qb.order('created_at', { ascending:false }).limit(60);
+    var rows = res.data || [];
+    var mine = [];
+    if(user){ var mv = await sb.from('entry_votes').select('entry_id'); mine = (mv.data || []).map(function(x){ return x.entry_id; }); }
+    var urls = await signUrls(rows.map(function(e){ return e.media_path; }));
+    var g = $('gallery'); if(!g) return;
+    $('ch-count').textContent = '참가작 ' + rows.length + '개';
+    $('ch-sort-new').classList.toggle('on', sort !== 'pop'); $('ch-sort-pop').classList.toggle('on', sort === 'pop');
+    g.innerHTML = rows.length ? rows.map(function(e){
+      var on = mine.indexOf(e.id) > -1;
+      return '<div class="gcard"><div class="ph">' + (urls[e.media_path] ? '<img src="' + esc(urls[e.media_path]) + '" alt="' + esc(e.name || '참가작') + ' 사진" loading="lazy">' : '👣') + '</div>' +
+        '<div class="in"><span class="nm">' + esc(e.name || '우리 아이') + (e.age ? ' <span class="helper">· ' + esc(e.age) + '</span>' : '') + '</span>' +
+        '<span class="nt">' + esc(e.note || '') + '</span>' +
+        '<button class="cheer" data-cheer="' + e.id + '" aria-pressed="' + on + '">💛 응원 <span>' + (e.votes || 0) + '</span></button></div></div>';
+    }).join('') : emptyHtml('👣', '아직 공개된 참가작이 없어요. 앱에서 첫 번째 주인공이 되어 보세요!', '<a class="btn primary" href="./index.html#challenge">앱에서 참여하기</a>');
+  }
+
+  async function toggleCheer(btn){
+    if(!user) return openLogin();
+    var id = btn.getAttribute('data-cheer'), on = btn.getAttribute('aria-pressed') !== 'true';
+    btn.disabled = true;
+    var res = on ? await sb.from('entry_votes').insert({ entry_id:id, voter_id:user.id })
+                 : await sb.from('entry_votes').delete().eq('entry_id', id).eq('voter_id', user.id);
+    if(res.error && res.error.code !== '23505'){ toast('응원을 저장하지 못했어요'); btn.disabled = false; return; }
+    var r = await sb.from('challenge_entries').select('votes').eq('id', id).single();
+    btn.setAttribute('aria-pressed', String(on));
+    if(r.data) btn.querySelector('span').textContent = r.data.votes;
+    btn.disabled = false;
+  }
+
+  // ---------- 나들이 (앱과 같은 outings) ----------
+  var REGIONS = ['서울', '인천', '경기', '기타'];
+  async function renderOuting(main, params){
+    var cat = params.get('c') || '', region = params.get('r') || '';
+    var href = function(c, r){ var p = new URLSearchParams(); if(c) p.set('c', c); if(r) p.set('r', r); var s = p.toString(); return '#/outing' + (s ? '?' + s : ''); };
+    main.innerHTML = '<section class="panel"><div class="panel-h"><h1 class="display">🌳 아이와 나들이</h1><span class="helper">아이와 갈 수 있는 행사와 장소</span></div>' +
+      '<div class="sub">' + [['', '전체'], ['event', '🎪 행사'], ['spot', '🛝 놀거리']].map(function(x){ return '<a class="chip' + (x[0] === cat ? ' on' : '') + '" href="' + href(x[0], region) + '">' + x[1] + '</a>'; }).join('') +
+        '<span class="sep" aria-hidden="true"></span>' +
+        [''].concat(REGIONS).map(function(r){ return '<a class="chip' + (r === region ? ' on' : '') + '" href="' + href(cat, r) + '">' + (r || '모든 지역') + '</a>'; }).join('') +
+      '</div><div class="out-list" id="out-list"><div class="helper">불러오는 중…</div></div></section>';
+    // 종료일이 없거나(상시) 아직 지나지 않은 것만 — 앱과 같은 조건
+    var qb = sb.from('outings').select('*').or('ends_on.is.null,ends_on.gte.' + todayISO());
+    if(cat) qb = qb.eq('category', cat);
+    if(region) qb = qb.eq('region', region);
+    var res = await qb.order('sort_order', { ascending:true }).order('starts_on', { ascending:true, nullsFirst:false }).limit(200);
+    var el = $('out-list'); if(!el) return;
+    var rows = res.data || [];
+    el.innerHTML = rows.length ? rows.map(function(o){
+      var link = safeUrl(o.link_url);
+      var when = o.starts_on ? (o.starts_on + (o.ends_on && o.ends_on !== o.starts_on ? ' ~ ' + o.ends_on : '')) : '상시';
+      return '<div class="ocard"><span class="em" aria-hidden="true">' + esc(o.emoji || (o.category === 'spot' ? '🛝' : '🎪')) + '</span><div class="in">' +
+        '<span style="display:flex; gap:6px; flex-wrap:wrap;"><span class="tag">' + esc(o.region || '전체') + '</span>' + (o.age_fit ? '<span class="tag t-정보">' + esc(o.age_fit) + '</span>' : '') + '</span>' +
+        '<b>' + esc(o.title) + '</b>' +
+        '<span class="d">📍 ' + esc(o.place || o.address || '') + '<br>🗓 ' + esc(when) + (o.fee ? ' · 💳 ' + esc(o.fee) : '') + (o.hours ? '<br>⏰ ' + esc(o.hours) : '') + '</span>' +
+        (o.description ? '<span class="d">' + esc(o.description) + '</span>' : '') +
+        (link ? '<a class="more" href="' + esc(link) + '" target="_blank" rel="noopener noreferrer">자세히 보기 ↗</a>' : '') +
+      '</div></div>';
+    }).join('') : emptyHtml('🧺', '지금 소개할 나들이 정보가 없어요. 곧 새 장소를 모아 올게요!');
+  }
+
+  // ---------- 마이페이지 ----------
+  async function renderMy(main){
+    if(!user){ main.innerHTML = panelMsg('마이페이지', '🔐', '로그인하면 내 글, 내 댓글, 우리 아이 기록을 한곳에서 볼 수 있어요.', '<button class="btn primary" data-login>로그인</button>'); return; }
+    var nick = myName() || user.email;
+    var st = appLocalState();
+    main.innerHTML = '<section class="panel"><div class="my-head"><span class="avatar" aria-hidden="true">' + stageEmoji(profile && profile.kid_type) + '</span>' +
+        '<div style="flex:1; min-width:0;"><h1 class="display">' + esc(nick) + '</h1><div class="pills">' +
+          (profileStageText() ? '<span class="pill">' + esc(profileStageText()) + '</span>' : '') +
+          (profile && profile.region ? '<span class="pill">📍 ' + esc(profile.region) + '</span>' : '') +
+          ((profile && profile.interests) || []).slice(0, 4).map(function(t){ return '<span class="pill">#' + esc(t) + '</span>'; }).join('') +
+        '</div></div><a class="btn" href="./index.html#my">⚙️ 프로필 수정 (앱)</a></div></section>' +
+      '<section class="panel"><div class="panel-h"><h2 class="display"><span class="bubble" style="background:#DDF1E6;">🌱</span>우리 아이 기록</h2><a class="more" href="./index.html#growth">앱에서 기록하기 ›</a></div>' + kidRecordHtml(st) + '</section>' +
+      '<section class="panel"><div class="panel-h line"><h2 class="display"><span class="bubble" style="background:#FFE1D6;">📝</span>내가 쓴 글</h2></div><div id="my-posts"><div class="empty">불러오는 중…</div></div></section>' +
+      '<section class="panel"><div class="panel-h"><h2 class="display"><span class="bubble" style="background:#E3EDFF;">💬</span>내가 쓴 댓글</h2></div><ul class="act-list" id="my-cmts" style="margin:0; padding:0;"></ul></section>';
+
+    var ps = await sb.from('community_posts').select(COLS).eq('owner_id', user.id).order('created_at', { ascending:false }).limit(20);
+    if($('my-posts')) $('my-posts').innerHTML = (ps.data || []).length ? listTableHtml(ps.data, 'mine', 0, ps.data.length, true)
+      : emptyHtml('📝', '아직 쓴 글이 없어요.', '<a class="btn primary" href="#/write">첫 글 쓰기</a>');
+    var cs = await sb.from('post_comments').select('post_id,content,created_at').eq('owner_id', user.id).order('created_at', { ascending:false }).limit(10);
+    if($('my-cmts')) $('my-cmts').innerHTML = (cs.data || []).length ? cs.data.map(function(c){
+      return '<li><a href="#/p/' + c.post_id + '"><span class="one">' + esc(c.content) + '</span><span class="helper">' + timeAgo(c.created_at) + '</span></a></li>';
+    }).join('') : '<li class="helper" style="padding:0 20px 18px;">아직 쓴 댓글이 없어요.</li>';
+  }
+
+  // 앱의 growthRecords · careLog · vaccines (이 기기 저장분)
+  function kidRecordHtml(st){
+    var g = st && Array.isArray(st.growthRecords) ? st.growthRecords.slice().sort(function(a,b){ return a.ts - b.ts; }) : [];
+    var care = st && Array.isArray(st.careLog) ? st.careLog : [];
+    var vac = st && st.vaccines ? Object.keys(st.vaccines).filter(function(k){ return st.vaccines[k]; }).length : 0;
+    if(!g.length && !care.length && !vac){
+      return emptyHtml('📱', '이 기기에 저장된 앱 기록이 없어요. 앱에서 키·몸무게, 수유·수면을 기록하면 여기서도 보여요.', '<a class="btn primary" href="./index.html#growth">앱에서 기록 시작</a>');
+    }
+    var w = g.filter(function(x){ return x.weight != null; }), h = g.filter(function(x){ return x.height != null; });
+    var lw = w[w.length - 1], lh = h[h.length - 1];
+    var start = new Date(); start.setHours(0,0,0,0);
+    var feeds = care.filter(function(c){ return c.type === 'feed' && c.ts >= start.getTime(); }).length;
+    return '<div class="kid-grid">' +
+      '<div class="kid k1"><span class="k">⚖️ 몸무게</span><span class="v">' + (lw ? lw.weight + 'kg' : '–') + '</span><span class="s">' + (lw ? shortDate(new Date(lw.ts).toISOString()) + ' 기록' : '기록 없음') + '</span>' + spark(w.map(function(x){ return x.weight; }), '#E8572F') + '</div>' +
+      '<div class="kid k2"><span class="k">📏 키</span><span class="v">' + (lh ? lh.height + 'cm' : '–') + '</span><span class="s">' + (lh ? shortDate(new Date(lh.ts).toISOString()) + ' 기록' : '기록 없음') + '</span>' + spark(h.map(function(x){ return x.height; }), '#2F6B47') + '</div>' +
+      '<div class="kid k3"><span class="k">🍼 오늘 수유 · 💉 접종</span><span class="v">' + feeds + '회</span><span class="s">예방접종 ' + vac + '개 완료</span></div>' +
+    '</div><p class="helper" style="padding:0 20px 16px; margin:0;">이 기기의 앱에 저장된 기록이에요. 다른 기기의 기록은 그 기기에서 보여요.</p>';
+  }
+  function spark(vals, color){
+    if(vals.length < 2) return '';
+    var W = 160, H = 34, min = Math.min.apply(null, vals), max = Math.max.apply(null, vals), rg = (max - min) || 1;
+    var pts = vals.slice(-12).map(function(v, i, a){ return (i * W / (a.length - 1)).toFixed(1) + ',' + (H - 3 - (v - min) / rg * (H - 6)).toFixed(1); }).join(' ');
+    return '<svg width="100%" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" aria-hidden="true"><polyline points="' + pts + '" fill="none" stroke="' + color + '" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  }
+
   // ---------- 사이드 ----------
   async function renderSide(){
     var week = new Date(Date.now() - 7 * 86400000).toISOString();
     var hot = await sb.from('community_posts').select('id,text,likes,comments').eq('status', 'approved')
       .gte('created_at', week).order('likes', { ascending:false }).order('comments', { ascending:false }).limit(10);
-    var rows = (hot.data || []);
+    var rows = hot.data || [];
     if(rows.length < 5){
       // 이번 주 글이 적으면 전체 기간 인기글로 채운다
       var all = await sb.from('community_posts').select('id,text,likes,comments').eq('status', 'approved')
@@ -676,32 +1083,33 @@
     $('side-hot').innerHTML = rows.length ? rows.map(function(p, i){
       return '<li><a href="#/p/' + p.id + '"><span class="rank">' + (i + 1) + '</span><span class="one">' + esc(parsePost(p.text).title) + '</span>' +
         (p.comments ? '<span class="cmt">[' + p.comments + ']</span>' : '') + '</a></li>';
-    }).join('') : '<li class="empty" style="padding:20px;">아직 글이 없어요</li>';
+    }).join('') : '<li class="helper" style="padding:10px 20px;">아직 글이 없어요</li>';
 
     var cm = await sb.from('post_comments').select('post_id,content,created_at').order('created_at', { ascending:false }).limit(6);
     $('side-cmt').innerHTML = (cm.data || []).length ? cm.data.map(function(c){
-      return '<li><a href="#/p/' + c.post_id + '"><span class="one">' + esc(c.content) + '</span><span class="meta">' + shortDate(c.created_at) + '</span></a></li>';
-    }).join('') : '<li class="empty" style="padding:20px;">아직 댓글이 없어요</li>';
+      return '<li><a href="#/p/' + c.post_id + '"><span class="one">' + esc(c.content) + '</span><span class="meta">' + timeAgo(c.created_at) + '</span></a></li>';
+    }).join('') : '<li class="helper" style="padding:10px 20px;">아직 댓글이 없어요</li>';
 
     var nt = await sb.from('notices').select('id,title,created_at').order('pinned', { ascending:false }).order('created_at', { ascending:false }).limit(3);
     $('side-notice').innerHTML = (nt.data || []).length ? nt.data.map(function(n){
       return '<li><a href="#/b/notice"><span class="one">' + esc(n.title) + '</span><span class="meta">' + shortDate(n.created_at) + '</span></a></li>';
-    }).join('') : '<li class="empty" style="padding:20px;">공지가 없어요</li>';
+    }).join('') : '<li class="helper" style="padding:10px 20px;">공지가 없어요</li>';
   }
 
   // ---------- 로그인 · 신고 모달 ----------
-  function openModal(html){ $('modal-card').innerHTML = html; $('modal').hidden = false; var f = $('modal-card').querySelector('input,textarea,button'); if(f) f.focus(); }
-  function closeModal(){ $('modal').hidden = true; $('modal-card').innerHTML = ''; }
+  var lastFocus = null;
+  function openModal(html){ lastFocus = document.activeElement; $('modal-card').innerHTML = html; $('modal').hidden = false; var f = $('modal-card').querySelector('input,textarea,button'); if(f) f.focus(); }
+  function closeModal(){ $('modal').hidden = true; $('modal-card').innerHTML = ''; if(lastFocus && lastFocus.focus) lastFocus.focus(); }
 
   function openLogin(){
-    openModal('<h3 class="display">로그인</h3>' +
+    openModal('<h3 class="display">👋 다시 만나서 반가워요</h3>' +
       '<form id="login-form" style="display:flex; flex-direction:column; gap:10px;">' +
         '<label class="sr" for="l-email">이메일</label><input id="l-email" type="email" autocomplete="email" placeholder="이메일" required>' +
         '<label class="sr" for="l-pw">비밀번호</label><input id="l-pw" type="password" autocomplete="current-password" placeholder="비밀번호" required>' +
-        '<span class="helper" id="l-hint"></span>' +
-        '<button class="btn primary" type="submit" style="justify-content:center; padding:11px;">로그인</button>' +
+        '<span class="helper" id="l-hint" role="alert"></span>' +
+        '<button class="btn primary" type="submit" style="padding:12px;">로그인</button>' +
       '</form>' +
-      '<span class="helper">카카오·구글 로그인과 회원가입은 <a href="./index.html#onboarding" style="text-decoration:underline;">앱 화면</a>에서 할 수 있어요. 같은 계정으로 이 사이트에도 로그인돼요.</span>' +
+      '<span class="helper">카카오·구글 로그인과 회원가입은 <a href="./index.html#onboarding" style="text-decoration:underline;">앱 화면</a>에서 할 수 있어요. 같은 계정으로 사이트에도 로그인돼요.</span>' +
       '<button class="btn" data-close>닫기</button>');
   }
 
@@ -716,11 +1124,11 @@
   function openReport(type, id, owner){
     if(!user) return openLogin();
     reportTarget = { type:type, id:id, owner: owner || null };
-    openModal('<h3 class="display">신고하기</h3><div class="reasons" id="reasons">' +
+    openModal('<h3 class="display">🚨 신고하기</h3><div class="reasons" id="reasons">' +
       REPORT_REASONS.map(function(r){ return '<button type="button" class="chip" data-reason="' + r + '" aria-pressed="false">' + r + '</button>'; }).join('') +
       '</div><label class="sr" for="r-detail">자세한 내용</label><textarea id="r-detail" maxlength="500" placeholder="자세한 내용 (선택)"></textarea>' +
-      '<span class="helper" id="r-hint"></span>' +
-      '<div style="display:flex; gap:8px; justify-content:flex-end;">' +
+      '<span class="helper" id="r-hint" role="alert"></span>' +
+      '<div style="display:flex; gap:8px; justify-content:flex-end; flex-wrap:wrap;">' +
         (owner && owner !== user.id ? '<button class="btn" data-block="' + esc(owner) + '">이 사용자 차단</button>' : '') +
         '<button class="btn" data-close>취소</button><button class="btn primary" id="r-submit" disabled>신고 접수</button></div>');
   }
@@ -749,11 +1157,13 @@
   // ---------- 이벤트 ----------
   document.addEventListener('click', function(e){
     var t = e.target.closest('button, a');
-    if(!t) { if(e.target === $('modal')) closeModal(); return; }
+    if(!t){ if(e.target === $('modal')) closeModal(); return; }
     if(t.hasAttribute('data-login')){ e.preventDefault(); openLogin(); }
     else if(t.hasAttribute('data-logout')){ sb.auth.signOut(); }
     else if(t.hasAttribute('data-close')){ closeModal(); }
     else if(t.id === 'like-btn'){ toggleLike(); }
+    else if(t.hasAttribute('data-cheer')){ toggleCheer(t); }
+    else if(t.id === 'ch-sort-new' || t.id === 'ch-sort-pop'){ e.preventDefault(); loadGallery(t.id === 'ch-sort-pop' ? 'pop' : 'new'); }
     else if(t.hasAttribute('data-del-post')){ deletePost(); }
     else if(t.hasAttribute('data-del-cmt')){ deleteComment(t.getAttribute('data-del-cmt')); }
     else if(t.hasAttribute('data-report')){ openReport(t.getAttribute('data-report'), t.getAttribute('data-id'), t.getAttribute('data-owner')); }
@@ -787,14 +1197,14 @@
     user = session ? session.user : null;
     profile = null;
     if(user){
-      var r = await sb.from('profiles').select('nickname,parent_role,kid_type,due_date,birth_month').eq('id', user.id).maybeSingle();
+      var r = await sb.from('profiles').select('nickname,parent_role,kid_type,due_date,birth_month,region,interests').eq('id', user.id).maybeSingle();
       profile = r.data || null;
     }
     renderMe();
   }
 
   if(!sb){
-    $('main').innerHTML = panelMsg('연결 오류', '서버에 연결하지 못했어요. 잠시 후 새로고침해주세요.');
+    $('main').innerHTML = panelMsg('연결 오류', '😢', '서버에 연결하지 못했어요. 잠시 후 새로고침해주세요.');
     return;
   }
   var booted = false;

@@ -99,6 +99,9 @@
           onAuthStateChange: function(f){ listeners.push(f); return { data:{ subscription:{ unsubscribe:function(){} } } }; },
           signOut: function(){ window.__SBSTUB.signOut(); return Promise.resolve({ error:null }); },
           signInWithPassword: function(){ return Promise.resolve({ error:null }); },
+          // 기본은 새 가입(인증 메일 대기). 테스트에서 __SBSTUB.signUpResult 로 바꾼다.
+          signUp: function(){ return Promise.resolve(window.__SBSTUB.signUpResult ||
+            { data:{ user:{ id:'u-new', identities:[{ provider:'email' }] }, session:null }, error:null }); },
           signInWithOtp: function(){ return Promise.resolve({ error:null }); },
           signInWithOAuth: function(){ return Promise.resolve({ error:null }); }
         }

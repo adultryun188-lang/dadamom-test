@@ -177,6 +177,47 @@ function check(name, ok, detail) {
     await page.close();
   }
 
+  // ------------------------------------------------- 이미 가입된 이메일 --
+  // Supabase 는 이미 있는 이메일이면 성공처럼 답하고(identities 빈 배열) 메일을 안 보낸다.
+  console.log(NL + '[가입 — 이미 가입된 이메일]');
+  if (!USE_STUB) console.log('  SKIP  스텁에서만 응답을 바꿀 수 있음 (배포본은 손으로 확인)');
+  else {
+    const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+    await prep(page);
+    const errs = [];
+    page.on('pageerror', e => errs.push(e.message));
+    const signup = async (result) => {
+      await page.goto(BASE + '#onboarding', { waitUntil: 'load' });
+      await page.evaluate((r) => { window.__SBSTUB.signUpResult = r; }, result);
+      await page.click('[data-auth-mode="signup"]');
+      await page.fill('#auth-email', 'exists@dadamom.test');
+      await page.fill('#auth-password', 'abcd1234');
+      await page.fill('#auth-password2', 'abcd1234');
+      await page.click('#signup-next');
+      for (const id of ['terms', 'privacy', 'age14']) await page.check('#consent-' + id);
+      await page.click('#signup-submit');
+      await page.waitForTimeout(800);
+      return page.evaluate(() => ({
+        hint: (document.getElementById('auth-hint') || {}).textContent || '',
+        body: document.body.innerText,
+        pending: localStorage.getItem('dadamom.pendingConsents')
+      }));
+    };
+
+    let r = await signup({ data: { user: { id: 'u-old', identities: [] }, session: null }, error: null });
+    check('이미 가입된 이메일 안내', r.hint === '이미 가입된 이메일이에요. 로그인하거나 카카오·구글로 들어와 주세요.', r.hint);
+    check('"인증 메일을 보냈어요" 를 띄우지 않음', !r.body.includes('인증 메일을 보냈어요'));
+    check('가입 동의를 기기에 남기지 않음', r.pending === null, r.pending);
+
+    r = await signup({ data: null, error: { code: 'user_already_exists', message: 'User already registered' } });
+    check('인증 끈 프로젝트의 오류도 같은 안내', r.hint.startsWith('이미 가입된 이메일이에요'), r.hint);
+
+    r = await signup(null);   // 스텁 기본값 = 새 가입
+    check('새 이메일은 그대로 "인증 메일을 보냈어요"', r.body.includes('인증 메일을 보냈어요'));
+    check('JS 오류 없음', errs.length === 0, errs.join('; '));
+    await page.close();
+  }
+
   // ------------------------------------------------- 모바일 기기 --
   console.log(NL + '[기기 프로파일]');
   for (const name of ['Pixel 7', 'iPhone 13', 'iPhone SE']) {

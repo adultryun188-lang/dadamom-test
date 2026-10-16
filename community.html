@@ -318,6 +318,16 @@
   .photo-preview{ display:flex; gap:10px; align-items:center; margin-top:10px; }
   .photo-preview img{ width:96px; height:96px; object-fit:cover; border-radius:14px; border:1px solid var(--border); }
   .draft-note{ font-size:12px; color:var(--text3); }
+  .bell{ position:relative; width:38px; height:38px; flex:0 0 auto; border-radius:12px; border:1px solid var(--border); background:#fff; font-size:17px; display:inline-flex; align-items:center; justify-content:center; }
+  .bell:hover{ box-shadow:0 4px 12px rgba(201,67,24,.1); }
+  .bell .badge{ position:absolute; top:-6px; right:-6px; min-width:19px; height:19px; padding:0 5px; border-radius:999px; background:var(--coral); color:#fff; font-size:11px; font-weight:800; display:flex; align-items:center; justify-content:center; border:2px solid #fff; }
+  .noti-list{ display:flex; flex-direction:column; gap:2px; max-height:60vh; overflow:auto; margin:0 -8px; }
+  .noti-item{ display:flex; gap:10px; padding:11px 10px; border-radius:12px; font-size:13.5px; align-items:flex-start; line-height:1.55; }
+  .noti-item:hover{ background:#FFF8F2; }
+  .noti-item.new{ background:#FFF3EC; }
+  .noti-item .ic{ flex:0 0 auto; font-size:18px; }
+  .noti-item .tx{ flex:1; min-width:0; }
+  .noti-item .meta{ display:block; font-size:11.5px; color:var(--text3); margin-top:2px; }
 
   @media (max-width:980px){
     .layout{ grid-template-columns:minmax(0,1fr); }
@@ -622,7 +632,8 @@
       return;
     }
     var nick = myName() || user.email;
-    el.innerHTML = '<a href="#/my" class="avatar" aria-label="마이페이지">' + stageEmoji(profile && profile.kid_type) + '</a>' +
+    el.innerHTML = '<button class="bell" id="bell-btn" aria-label="알림"><span aria-hidden="true">🔔</span><span class="badge" id="bell-n" hidden></span></button>' +
+      '<a href="#/my" class="avatar" aria-label="마이페이지">' + stageEmoji(profile && profile.kid_type) + '</a>' +
       '<a href="#/my" class="nick"><b>' + esc(nick) + '</b>님</a><button class="btn" data-logout>로그아웃</button>';
     side.className = 'panel me-card';
     side.innerHTML = '<div class="who"><span class="avatar" aria-hidden="true">' + stageEmoji(profile && profile.kid_type) + '</span><div><b class="display">' + esc(nick) + '</b>' +
@@ -841,10 +852,14 @@
     var mine = !!(user && p.owner_id === user.id);
     current = p;
     document.title = pp.title + ' — 다다맘 커뮤니티';
-    var liked = false;
+    var liked = false, saved = false;
     if(user){
-      var lr = await sb.from('post_likes').select('post_id').eq('post_id', id).maybeSingle();
-      liked = !!(lr && lr.data);
+      var rr = await Promise.all([
+        sb.from('post_likes').select('post_id').eq('post_id', id).maybeSingle(),
+        sb.from('post_bookmarks').select('post_id').eq('post_id', id).maybeSingle()
+      ]);
+      liked = !!(rr[0] && rr[0].data);
+      saved = !!(rr[1] && rr[1].data);
     }
     var img = p.media_path ? (await signUrls([p.media_path]))[p.media_path] || '' : '';
     var b = BOARDS.filter(function(x){ return x.topic && x.topic === pp.topic; })[0] || BOARDS[0];
@@ -863,6 +878,7 @@
       '<div class="vote"><button id="like-btn" aria-pressed="' + liked + '" aria-label="추천"><span>👍 추천</span><b id="like-n">' + (p.likes || 0) + '</b></button></div>' +
       '<div class="post-act">' +
         '<button class="link-btn" data-share>📤 공유</button>' +
+        '<button class="link-btn" id="save-btn" aria-pressed="' + saved + '">' + (saved ? '⭐ 스크랩됨' : '☆ 스크랩') + '</button>' +
         (mine ? '<button class="link-btn" data-edit-post>✏️ 수정</button><button class="link-btn" data-del-post>🗑 삭제</button>'
               : '<button class="link-btn" data-report="post" data-id="' + p.id + '" data-owner="' + (p.owner_id || '') + '">🚨 신고</button>') +
         '<a class="link-btn" href="#/b/' + b.id + '">☰ 목록</a>' +
@@ -938,6 +954,87 @@
   function zoomImage(src){
     openModal('<img src="' + esc(src) + '" alt="첨부 사진 크게 보기"><button class="btn" data-close style="margin-top:10px;">닫기</button>');
     $('modal-card').classList.add('lightbox');
+  }
+
+  // ---------- 알림 ----------
+  // 서버에 알림 표를 따로 두지 않는다. 내 글에 달린 남의 댓글과, 내 글의 검수 상태 변화를
+  // 이미 있는 표에서 읽어 만든다. "어디까지 봤는지"·"지난번 상태"는 이 기기에만 저장한다.
+  var NOTI = { items: [], unseen: 0 };
+  function notiKey(k){ return 'dadamom_noti_' + k + '::' + user.id; }
+  function readJSON(k, d){ try{ return JSON.parse(localStorage.getItem(k) || 'null') || d; }catch(e){ return d; } }
+  function writeJSON(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+
+  async function checkNoti(){
+    if(!user){ NOTI = { items: [], unseen: 0 }; renderBell(); return; }
+    var uid = user.id;
+    var mp = await sb.from('community_posts').select('id,text,status').eq('owner_id', uid).order('created_at', { ascending:false }).limit(100);
+    if(!user || user.id !== uid || mp.error) return;
+    var posts = mp.data || [], titles = {};
+    posts.forEach(function(p){ titles[p.id] = parsePost(p.text).title; });
+    var seen = Number(readJSON(notiKey('seen'), 0)), first = !seen, now = Date.now();
+
+    // 검수 통과: 지난번에 본 상태가 '검수 중'이었는데 지금 '공개'면 알린다
+    var prev = readJSON(notiKey('status'), {}), map = {}, okLog = readJSON(notiKey('ok'), []);
+    posts.forEach(function(p){
+      map[p.id] = p.status;
+      if(!first && prev[p.id] && prev[p.id] !== 'approved' && p.status === 'approved') okLog.unshift({ id: p.id, t: titles[p.id], at: now });
+    });
+    okLog = okLog.slice(0, 20);
+    writeJSON(notiKey('status'), map); writeJSON(notiKey('ok'), okLog);
+    var items = okLog.map(function(x){ return { kind:'ok', id:x.id, title:x.t, at:x.at }; });
+
+    if(posts.length){
+      var cm = await sb.from('post_comments').select('post_id,author,content,created_at,owner_id')
+        .in('post_id', posts.map(function(p){ return p.id; })).neq('owner_id', uid).order('created_at', { ascending:false }).limit(30);
+      (cm.data || []).forEach(function(c){
+        items.push({ kind:'cmt', id:c.post_id, title:titles[c.post_id] || '', who:c.author, text:c.content, at:new Date(c.created_at).getTime() });
+      });
+    }
+    items.sort(function(a, b){ return b.at - a.at; });
+    // 처음 켠 기기에서는 지난 댓글을 전부 '새 알림'으로 쏟아내지 않는다
+    if(first){ seen = now; writeJSON(notiKey('seen'), seen); }
+    NOTI = { items: items.slice(0, 30), unseen: items.filter(function(i){ return i.at > seen; }).length, seen: seen };
+    renderBell();
+  }
+
+  function renderBell(){
+    var n = $('bell-n'); if(!n) return;
+    n.hidden = !NOTI.unseen;
+    n.textContent = NOTI.unseen > 9 ? '9+' : String(NOTI.unseen);
+    $('bell-btn').setAttribute('aria-label', NOTI.unseen ? '알림 ' + NOTI.unseen + '개 새로 옴' : '알림');
+  }
+
+  function openNoti(){
+    var seen = NOTI.seen || 0;
+    openModal('<h3 class="display">🔔 알림</h3>' +
+      (NOTI.items.length ? '<div class="noti-list">' + NOTI.items.map(function(i){
+        var body = i.kind === 'ok'
+          ? '<b>"' + esc(i.title) + '"</b> 글이 검수를 통과해 공개됐어요'
+          : '<b>' + esc(i.who || '익명') + '</b>님이 "' + esc(i.title) + '"에 댓글을 남겼어요: ' + esc(i.text);
+        return '<a class="noti-item' + (i.at > seen ? ' new' : '') + '" href="#/p/' + esc(i.id) + '" data-close>' +
+          '<span class="ic" aria-hidden="true">' + (i.kind === 'ok' ? '✅' : '💬') + '</span><span class="tx">' + body + '<span class="meta">' + timeAgo(new Date(i.at).toISOString()) + '</span></span></a>';
+      }).join('') + '</div>'
+      : '<div class="empty" style="padding:28px 10px;"><span class="em" aria-hidden="true">🔕</span>아직 알림이 없어요. 내 글에 댓글이 달리면 여기에 알려드려요.</div>') +
+      '<span class="helper">내 글에 달린 댓글과 검수 결과를 알려드려요.</span>' +
+      '<button class="btn" data-close>닫기</button>');
+    // 열어 본 순간 모두 읽음
+    writeJSON(notiKey('seen'), Date.now());
+    NOTI.seen = Date.now(); NOTI.unseen = 0; renderBell();
+  }
+
+  // ---------- 스크랩 (post_bookmarks: 본인 행만, 0014) ----------
+  async function toggleSave(){
+    if(!user) return openLogin();
+    var btn = $('save-btn'); if(!btn || !current) return;
+    var on = btn.getAttribute('aria-pressed') !== 'true';
+    btn.disabled = true;
+    var res = on ? await sb.from('post_bookmarks').insert({ post_id: current.id, user_id: user.id })
+                 : await sb.from('post_bookmarks').delete().eq('post_id', current.id).eq('user_id', user.id);
+    btn.disabled = false;
+    if(res.error && res.error.code !== '23505'){ toast('스크랩을 저장하지 못했어요'); return; }
+    btn.setAttribute('aria-pressed', String(on));
+    btn.textContent = on ? '⭐ 스크랩됨' : '☆ 스크랩';
+    toast(on ? '스크랩했어요. 마이페이지에서 모아볼 수 있어요' : '스크랩을 취소했어요');
   }
 
   async function sharePost(){
@@ -1224,9 +1321,21 @@
           ((profile && profile.interests) || []).slice(0, 4).map(function(t){ return '<span class="pill">#' + esc(t) + '</span>'; }).join('') +
         '</div></div><a class="btn" href="./index.html#my">⚙️ 프로필 수정 (앱)</a></div></section>' +
       '<section class="panel"><div class="panel-h"><h2 class="display"><span class="bubble" style="background:#DDF1E6;">🌱</span>우리 아이 기록</h2><a class="more" href="./index.html#growth">앱에서 기록하기 ›</a></div>' + kidRecordHtml(st) + '</section>' +
+      '<section class="panel"><div class="panel-h line"><h2 class="display"><span class="bubble" style="background:#FFF0C2;">⭐</span>스크랩한 글</h2></div><div id="my-saved"><div class="empty">불러오는 중…</div></div></section>' +
       '<section class="panel"><div class="panel-h line"><h2 class="display"><span class="bubble" style="background:#FFE1D6;">📝</span>내가 쓴 글</h2></div><div id="my-posts"><div class="empty">불러오는 중…</div></div></section>' +
       '<section class="panel"><div class="panel-h"><h2 class="display"><span class="bubble" style="background:#E3EDFF;">💬</span>내가 쓴 댓글</h2></div><ul class="act-list" id="my-cmts" style="margin:0; padding:0;"></ul></section>';
 
+    // 스크랩: 스크랩한 순서대로. 지워졌거나 차단한 사람의 글은 글 쪽 RLS 가 걸러 빠진다.
+    var bm = await sb.from('post_bookmarks').select('post_id,created_at').order('created_at', { ascending:false }).limit(30);
+    var ids = (bm.data || []).map(function(x){ return x.post_id; });
+    var saved = [];
+    if(ids.length){
+      var sp = await sb.from('community_posts').select(COLS).in('id', ids);
+      var byId = {}; (sp.data || []).forEach(function(r){ byId[r.id] = r; });
+      saved = ids.map(function(i){ return byId[i]; }).filter(Boolean);
+    }
+    if($('my-saved')) $('my-saved').innerHTML = saved.length ? listTableHtml(saved, 'saved', 0, saved.length, true)
+      : emptyHtml('⭐', '스크랩한 글이 없어요. 글 아래 ☆ 스크랩을 누르면 여기에 모여요.');
     var ps = await sb.from('community_posts').select(COLS).eq('owner_id', user.id).order('created_at', { ascending:false }).limit(20);
     if($('my-posts')) $('my-posts').innerHTML = (ps.data || []).length ? listTableHtml(ps.data, 'mine', 0, ps.data.length, true)
       : emptyHtml('📝', '아직 쓴 글이 없어요.', '<a class="btn primary" href="#/write">첫 글 쓰기</a>');
@@ -1354,6 +1463,8 @@
     if(!t){ if(e.target === $('modal')) closeModal(); return; }
     if(t.hasAttribute('data-login')){ e.preventDefault(); openLogin(); }
     else if(t.hasAttribute('data-share')){ sharePost(); }
+    else if(t.id === 'save-btn'){ toggleSave(); }
+    else if(t.id === 'bell-btn'){ openNoti(); }
     else if(t.hasAttribute('data-edit-post')){ openEdit(); }
     else if(t.hasAttribute('data-clear-recent')){ try{ localStorage.removeItem(RECENT_KEY); }catch(err){} renderRecent(); }
     else if(t.hasAttribute('data-clear-draft')){ clearDraft(); $('w-title').value = ''; $('w-body').value = ''; $('draft-note').textContent = ''; }
@@ -1408,12 +1519,14 @@
     return;
   }
   var booted = false;
+  setInterval(function(){ if(document.visibilityState === 'visible') checkNoti(); }, 120000);
   sb.auth.onAuthStateChange(function(ev, session){
     // 세션 복원(INITIAL_SESSION) 뒤 한 번 그리고, 로그인·로그아웃 때 다시 그린다.
     if(ev === 'TOKEN_REFRESHED') return;
     setTimeout(async function(){
       await loadUser(session);
       if(!booted || ev === 'SIGNED_IN' || ev === 'SIGNED_OUT'){ booted = true; render(); renderSide(); renderRecent(); }
+      checkNoti();
     }, 0);
   });
 })();

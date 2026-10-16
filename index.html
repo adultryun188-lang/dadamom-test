@@ -29,8 +29,10 @@
 <script>
   // PC 로 첫 화면(주소만)을 열면 커뮤니티 사이트로 보낸다. 앱 기능은 #home 처럼 해시를 붙여 들어온다.
   // 로그인 콜백(?code= 등)은 앱이 처리해야 하므로 쿼리가 있으면 보내지 않는다.
-  if(!location.hash && !location.search && window.matchMedia('(min-width:960px)').matches && !window.matchMedia('(display-mode: standalone)').matches){
-    location.replace('./community.html');
+  // 단 홍보 링크의 ?from= 하나만 있으면 커뮤니티로 보내되 그 값을 그대로 넘긴다 (커뮤니티가 기기에 남김).
+  var onlyFrom = /^\?from=[A-Za-z0-9-]{1,32}$/.test(location.search);
+  if(!location.hash && (!location.search || onlyFrom) && window.matchMedia('(min-width:960px)').matches && !window.matchMedia('(display-mode: standalone)').matches){
+    location.replace('./community.html' + (onlyFrom ? location.search : ''));
   }
 </script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Jua&display=swap">

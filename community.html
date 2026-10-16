@@ -439,6 +439,14 @@
 (function(){
   'use strict';
   var ENV = window.DADAMOM_ENV || {};
+
+  // 홍보 효과 측정 — 앱(index.html)과 같은 키·같은 규칙. 바꿀 때 둘 다 바꾼다.
+  // 처음 들어온 주소의 ?from= 만 기기에 남기고(먼저 온 값 우선), 앱에서 가입할 때 profiles.signup_from 으로 간다.
+  var FROM_KEY = 'dadamom.from', FROM_RE = /^[A-Za-z0-9-]{1,32}$/, LAST_SEEN_KEY = 'dadamom.lastSeen';
+  try{
+    var fromParam = new URLSearchParams(location.search).get('from');
+    if(fromParam && FROM_RE.test(fromParam) && !localStorage.getItem(FROM_KEY)) localStorage.setItem(FROM_KEY, fromParam);
+  }catch(e){}
   var sb = null;
   try{ sb = window.supabase.createClient(ENV.SUPABASE_URL, ENV.SUPABASE_ANON_KEY); }catch(e){}
 
@@ -1512,7 +1520,20 @@
       profile = r.data || null;
     }
     renderMe();
+    touchLastSeen();
   }
+
+  // 마지막 접속일을 하루 한 번만 남긴다 (앱과 같은 키라 같은 날 앱에서 이미 남겼으면 건너뛴다).
+  // 실패해도 그날은 다시 시도하지 않는다 — last_seen 컬럼(0015)이 아직 없는 DB 에서 매 화면 요청을 보내지 않게.
+  function touchLastSeen(){
+    if(!user) return;
+    var mark = user.id + ':' + todayISO();
+    try{ if(localStorage.getItem(LAST_SEEN_KEY) === mark) return; localStorage.setItem(LAST_SEEN_KEY, mark); }catch(e){ return; }
+    sb.from('profiles').update({ last_seen: todayISO() }).eq('id', user.id).then(function(res){
+      if(res && res.error) console.warn('[다다맘] last_seen 갱신 실패', res.error);
+    });
+  }
+  document.addEventListener('visibilitychange', function(){ if(!document.hidden) touchLastSeen(); });
 
   if(!sb){
     $('main').innerHTML = panelMsg('연결 오류', '😢', '서버에 연결하지 못했어요. 잠시 후 새로고침해주세요.');

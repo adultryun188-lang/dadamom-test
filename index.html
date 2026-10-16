@@ -3922,6 +3922,7 @@
   var famPulling = null, famPullOwner = null, famLastPull = 0;
   var famFlushing = null, famFlushOwner = null, famFlushFamily = null;
   var famRevision = 0, famEdits = Object.create(null);
+  var famLeaving = false, famEpoch = 0, famPullEpoch = 0;
 
   var FAM_ERRORS = {
     invalid_code: '코드가 맞지 않거나 만료됐어요. 새 코드를 받아주세요',
@@ -3966,6 +3967,7 @@
   }
 
   function famFlush(){
+    if(famLeaving) return Promise.resolve(false);
     if(!sb || !authUser || !state.family) return Promise.resolve(true);
     if(famFlushing && famFlushOwner === state && famFlushFamily === state.family.id) return famFlushing;
     var owner = state, uid = authUser.id, fid = state.family.id;
@@ -3973,7 +3975,7 @@
     // 같은 기기에서 빠르게 바꿔도 서버 도착 순서가 뒤집히지 않도록 한 번에 하나만 보낸다.
     var job = Promise.resolve().then(async function(){
       try{
-        while(current() && (state.familyOutbox || []).length){
+        while(current() && !famLeaving && (state.familyOutbox || []).length){
           var sending = state.familyOutbox.slice(0, 200);
           var res = await sb.from('family_records').upsert(sending.map(function(r){
             return { family_id:fid, kind:r.kind, rid:r.rid, body:r.body, deleted:r.deleted };
@@ -4024,11 +4026,11 @@
 
   // 앱 열 때·로그인 직후·성장 화면 열 때 (지시서 2-4 ②). force 가 아니면 30초에 한 번만.
   function famPull(force){
-    if(!sb || !authUser) return Promise.resolve();
-    if(famPulling && famPullOwner === state) return famPulling;
+    if(!sb || !authUser || famLeaving) return Promise.resolve();
+    if(famPulling && famPullOwner === state && famPullEpoch === famEpoch) return famPulling;
     if(!force && Date.now() - famLastPull < 30000) return Promise.resolve();
-    var owner = state, uid = authUser.id;
-    function current(){ return authUser && authUser.id === uid && state === owner; }
+    var owner = state, uid = authUser.id, epoch = famEpoch;
+    function current(){ return authUser && authUser.id === uid && state === owner && famEpoch === epoch && !famLeaving; }
     var job = Promise.resolve().then(async function(){
       try{
         var mf = await sb.rpc('my_family');
@@ -4079,6 +4081,7 @@
       finally{ if(famPulling === job){ famPulling = null; famPullOwner = null; } }
     });
     famPullOwner = owner;
+    famPullEpoch = epoch;
     famPulling = job;
     return job;
   }
@@ -4156,6 +4159,7 @@
     if(res.error){ showToast(famErrText(res.error)); btn.disabled = false; btn.textContent = '동의하고 시작하기'; return; }
     famPending = null;
     closeModal();
+    famEpoch++;
     state.family = { id: res.data.family_id, cursor: null };
     state.familyOutbox = [];
     save();
@@ -4166,19 +4170,40 @@
   }
 
   async function famLeave(){
+    if(famLeaving || !sb || !authUser || !state.family) return;
     var last = famInfo && (famInfo.members || []).length <= 1;
     var msg = last
       ? '가족 공유에서 나갈까요? 마지막 구성원이라 가족 기록이 서버에서 모두 삭제돼요. 이 기기의 기록은 남아요.'
       : '가족 공유에서 나갈까요? 지금까지의 기록은 이 기기에 남아요. 내가 남긴 기록은 다른 가족에게도 남아요.';
     if(!window.confirm(msg)) return;
-    await famFlush();   // 보내지 못한 기록이 있으면 먼저 보낸다
-    var res = await sb.rpc('leave_family');
-    if(res.error){ showToast(famErrText(res.error)); return; }
-    var cr = await sb.from('consent_records').insert({ kind:'family_share', granted:false, doc_version:'v1' });
-    if(cr.error) console.warn('[다다맘] 가족 공유 철회 기록 실패', cr.error);
-    state.family = null; state.familyOutbox = []; famInfo = null; save();
-    renderFamily();
-    showToast('가족 공유에서 나왔어요. 지금까지의 기록은 이 기기에 남아요');
+    var owner = state, uid = authUser.id;
+    function current(){ return authUser && authUser.id === uid && state === owner; }
+    var operation = {};
+    famLeaving = operation; famEpoch++;
+    var btn = document.querySelector('[data-family-leave]');
+    if(btn) btn.disabled = true;
+    try{
+      // 0017 미적용 환경에서 기존의 비원자적 종료를 실행하지 않는다.
+      var version = await sb.rpc('family_privacy_version');
+      if(!current()) return;
+      if(version.error || typeof version.data !== 'number' || version.data < 17) throw new Error('family_privacy_not_ready');
+      // 종료 의사 뒤에는 새 기록을 업로드하지 않는다. 이미 시작한 전송만 마무리한다.
+      if(famFlushing && famFlushOwner === owner) await famFlushing;
+      if(!current()) return;
+      var res = await sb.rpc('leave_family');
+      if(!current()) return;
+      if(res.error || !res.data || !res.data.ok || res.data.consent_revoked !== true) throw (res.error || new Error('family_leave_unconfirmed'));
+      state.family = null; state.familyOutbox = []; famInfo = null; save();
+      showToast('가족 공유에서 나왔어요. 지금까지의 기록은 이 기기에 남아요');
+    }catch(e){
+      if(current()){
+        console.warn('[다다맘] 가족 공유 종료 확인 실패', e);
+        showToast('가족 공유 종료를 확인하지 못했어요. 연결을 확인하고 다시 시도해주세요');
+      }
+    }finally{
+      if(famLeaving === operation) famLeaving = false;
+      if(current()) renderFamily();
+    }
   }
 
   async function famRemove(uid, name){
@@ -4613,6 +4638,7 @@
     blockedIds = [];
     if(authUser){ fetchBlocks().then(function(){ renderBlockList(); }); touchLastSeen(); }
     state = loadState();
+    famLeaving = false; famEpoch++;
     famInfo = null;
     famLastPull = 0;
     famRevision = 0; famEdits = Object.create(null);

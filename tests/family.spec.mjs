@@ -28,9 +28,9 @@ const ANON_KEY = process.env.SUPABASE_ANON_KEY || pick('SUPABASE_ANON_KEY');
 // 테스트 전용 계정 비밀번호. CLAUDE.md 에 공개된 값이고 테스트 프로젝트에만 존재한다.
 const PW = process.env.TEST_PASSWORD || 'dadamom-test-1234';
 
-if (!/srxdtddrtnhtlbbviyvs/.test(SUPABASE_URL) && !process.env.ALLOW_ANY_PROJECT) {
+if (new URL(SUPABASE_URL).origin !== 'https://srxdtddrtnhtlbbviyvs.supabase.co') {
   console.error('테스트 프로젝트가 아닙니다: ' + SUPABASE_URL);
-  console.error('의도한 것이라면 ALLOW_ANY_PROJECT=1 을 붙이세요.');
+  console.error('이 스크립트는 테스트 프로젝트만 허용합니다.');
   process.exit(2);
 }
 
@@ -84,6 +84,12 @@ const errIs = (r, msg) => r.status >= 400 && (r.json?.message || '') === msg;
     admin: await login('admin@dadamom.test')
   };
   const uid = { A: await uidOf(tok.A), C: await uidOf(tok.C) };
+  const privacy = (await rpc('family_privacy_version', tok.A)).json === 17;
+  if(process.env.REQUIRE_FAMILY_PRIVACY === '1' && !privacy) throw new Error('0017 미적용: DB 작업은 실행하지 않았습니다.');
+  const ended = async t => {
+    const r = await req('GET', '/rest/v1/consent_records?kind=eq.family_share&select=granted,scope&order=created_at.desc,granted.asc&limit=1', t);
+    return r.json?.[0]?.granted === false;
+  };
 
   // 지난 실행이 중간에 끊겼어도 깨끗하게 시작
   for (const t of Object.values(tok)) await rpc('leave_family', t);
@@ -160,17 +166,34 @@ const errIs = (r, msg) => r.status >= 400 && (r.json?.message || '') === msg;
     check('방장이 아니면 빼기 차단', errIs(r, 'not_owner'), r.json?.message);
     r = await rpc('remove_family_member', tok.A, { p_user: uid.C });
     check('방장이 dadC 빼기', r.status === 200, 'HTTP ' + r.status + ' ' + (r.json?.message || ''));
+    if(privacy){
+      const kept = (await records(tok.A, fid)).json?.find(x => x.rid === 'bcg');
+      check('빼기 후 계정 연결 제거·기록 유지', kept?.updated_by === null && kept?.body === false);
+      check('빼기 후 공유 종료 기록 false', await ended(tok.C));
+    }
     r = await records(tok.C, fid);
     check('빠진 dadC 는 기록이 안 보임', r.json?.length === 0, 'rows=' + r.json?.length);
+    if(privacy){
+      r = await rpc('join_family', tok.C, { p_code: code });
+      check('종료 뒤 재참여는 새 동의 필요', errIs(r, 'consent_required'));
+      await consent(tok.C, true);
+    }
     r = await rpc('join_family', tok.C, { p_code: code });
     check('빠진 뒤 옛 코드로 재참여 차단', errIs(r, 'invalid_code'), r.json?.message);
 
     r = await rpc('new_family_invite', tok.A);
     const code2 = r.json?.invite_code;
     check('새 초대 코드', !!code2 && code2 !== code, code2);
+    // 0017부터 강제 제거 시에도 공유 권한이 종료된다. 재참여에는 새 동의가 필요하다.
+    await consent(tok.C, true);
     r = await rpc('join_family', tok.C, { p_code: code2 });
     check('새 코드로 다시 참여', r.status === 200, 'HTTP ' + r.status);
     r = await rpc('leave_family', tok.A);
+    if(privacy){
+      check('나가기 응답은 철회 완료를 함께 확인', r.json?.consent_revoked === true);
+      check('나가기 후 공유 종료 기록 false', await ended(tok.A));
+      check('나간 계정의 마지막 수정자 연결 제거', (await records(tok.C, fid)).json?.every(x => x.updated_by !== uid.A));
+    }
     r = await rpc('my_family', tok.C);
     check('방장이 나가면 dadC 가 방장', r.json?.is_owner === true && r.json?.members?.length === 1, r.body.slice(0, 120));
     r = await rpc('leave_family', tok.C);

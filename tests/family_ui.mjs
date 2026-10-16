@@ -95,7 +95,9 @@ async function family(p) { await screen(p, 'my', true); await p.locator('#family
 let browser;
 const clients = [];
 try {
-  const A0 = await api('momA@dadamom.test'); clients.push(A0);
+  const A0 = await api('momA@dadamom.test');
+  assert.equal(await A0.rpc('family_privacy_version'), 17, '0017 테스트 DB 적용 후 실행하세요');
+  clients.push(A0);
   const B0 = await api('dadC@dadamom.test'); clients.push(B0);
   const C0 = await api('momB@dadamom.test');
   for (const c of clients) await c.rpc('leave_family');

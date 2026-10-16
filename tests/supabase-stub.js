@@ -85,7 +85,11 @@
       return {
         storage: { from: bucket },
         from: tbl,
-        rpc: function(name){
+        rpc: function(name, args){
+          if(typeof window.__SBSTUB.rpcHandler === 'function'){
+            var custom = window.__SBSTUB.rpcHandler(name, args);
+            if(custom !== undefined) return Promise.resolve(custom);
+          }
           if(name === 'delete_my_account'){
             window.__SBSTUB.deleted = true;
             store.profiles = store.profiles.filter(function(r){ return r.id !== (window.__SBSTUB.curId||''); });

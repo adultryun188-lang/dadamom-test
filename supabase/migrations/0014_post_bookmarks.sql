@@ -12,7 +12,7 @@
 --   · 수정(UPDATE)할 것이 없으므로 UPDATE 정책·권한을 두지 않는다.
 --
 -- 추가만 하는 변경이라 되돌리기는 drop table 한 줄. 기존 데이터에 영향 없음.
--- 적용: 테스트(srxdtddrtnhtlbbviyvs) 2026-10-16. 운영은 승인 후.
+-- 적용: 테스트(srxdtddrtnhtlbbviyvs)·운영 2026-10-16 (운영은 사장님 승인, begin…rollback 리허설 후)
 -- =============================================================================
 begin;
 
@@ -33,7 +33,9 @@ create policy pb_select on public.post_bookmarks for select to authenticated usi
 create policy pb_insert on public.post_bookmarks for insert to authenticated with check (user_id = auth.uid());
 create policy pb_delete on public.post_bookmarks for delete to authenticated using (user_id = auth.uid());
 
-revoke all on public.post_bookmarks from public, anon;
+-- authenticated 도 같이 회수한 뒤 필요한 것만 준다. Supabase 기본 권한이 새 표에
+-- UPDATE 까지 주기 때문이다 (UPDATE 정책이 없어 RLS 가 막지만, 권한 자체를 남기지 않는다).
+revoke all on public.post_bookmarks from public, anon, authenticated;
 grant select, insert, delete on public.post_bookmarks to authenticated;
 
 notify pgrst, 'reload schema';

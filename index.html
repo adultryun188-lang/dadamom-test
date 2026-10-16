@@ -438,6 +438,10 @@
           <span style="font-size:13px; color:var(--text2);">안녕하세요</span>
           <h1 class="display" id="home-name" style="font-size:21px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"></h1>
         </div>
+        <button type="button" id="home-bell" data-open-noti hidden aria-label="알림" style="position:relative; display:flex; align-items:center; justify-content:center; width:44px; height:44px; margin-right:6px; border:none; background:none; flex:0 0 auto;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+          <span id="home-bell-n" hidden style="position:absolute; top:5px; right:3px; min-width:17px; height:17px; padding:0 4px; border-radius:999px; background:var(--accent); color:#fff; font-size:10.5px; font-weight:800; line-height:17px; text-align:center;"></span>
+        </button>
         <a href="#my" class="pill" style="display:flex; align-items:center; gap:6px; padding:8px 12px; background:var(--surface); border:1px solid var(--border); font-size:12.5px; color:var(--text2); text-decoration:none;">
           <span id="home-chip"></span>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
@@ -608,6 +612,11 @@
           <span style="flex:1; font-size:14px; font-weight:700;">혜택함</span>
           <span id="my-benefit-badge" style="font-size:11.5px; font-weight:700; color:var(--accent2); background:var(--accent-soft); padding:2px 8px; border-radius:999px;">0</span>
         </a>
+        <button type="button" class="card row" data-open-saved style="align-items:center; gap:14px; padding:16px; border:1px solid var(--border); text-align:left; width:100%;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="1.9" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5l2.6 5.3 5.8.8-4.2 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z"/></svg>
+          <span style="flex:1; font-size:14px; font-weight:700;">스크랩한 글</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
         <button type="button" class="card row" data-share-app style="align-items:center; gap:14px; padding:16px; border:1px solid var(--border); text-align:left; width:100%;">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="1.9" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 10.6l6.8-3.8M8.6 13.4l6.8 3.8"/></svg>
           <span style="flex:1; font-size:14px; font-weight:700;">다다맘 앱 공유하기</span>
@@ -2382,6 +2391,8 @@
       var mineLikes = await fetchMyReactionIds('post_likes', 'post_id');
       if(mineLikes){ state.myLikes = mineLikes; save(); }
       var likedIds = mineLikes || state.myLikes;
+      var mineSaved = await fetchMyReactionIds('post_bookmarks', 'post_id');
+      if(mineSaved) savedPostIds = mineSaved;
       var rows = merged.map(function(r){
         return {
           id:r.id, author:r.author, owner_id:r.owner_id || null, time: timeAgo(r.created_at), bg:'var(--chip-b)',
@@ -2469,6 +2480,7 @@
       save();
       renderAll((location.hash || '').replace('#',''));
     });
+    checkNoti();
   }
 
   function buildNav(active){
@@ -2896,6 +2908,7 @@
       '<button data-open-comments="' + p.id + '" aria-label="댓글 보기, 현재 ' + p.comments + '개" style="display:flex; align-items:center; gap:5px; border:none; background:none; color:var(--text2); min-height:44px;">' +
       '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="1.8" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-8.9 8.4 9 9 0 0 1-3.6-.7L3 20l1.3-3.9a8.2 8.2 0 0 1-1-4A8.4 8.4 0 0 1 12.1 3a8.3 8.3 0 0 1 8.9 8.5z"/></svg>' +
       '<span style="font-size:12px;">' + p.comments + '</span></button>' +
+      (p.mine ? '' : saveBtnHtml(p.id)) +
       '<button data-share-post="' + p.id + '" aria-label="공유하기" style="display:flex; align-items:center; gap:5px; border:none; background:none; color:var(--text2); min-height:44px; margin-left:auto;">' +
       '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="1.8" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 10.6l6.8-3.8M8.6 13.4l6.8 3.8"/></svg>' +
       '<span style="font-size:12px;">공유</span></button>' +
@@ -2966,6 +2979,7 @@
   function renderHome(){
     document.getElementById('home-name').textContent = (state.nickname ? state.nickname + '님' : '다다맘님');
     document.getElementById('home-chip').textContent = profileSummary();
+    renderBell();
     document.getElementById('home-status').innerHTML = homeStatusHtml();
     document.getElementById('home-missions').innerHTML = homeMissionsHtml();
     document.getElementById('home-feedbar').innerHTML = homeFeedBarHtml();
@@ -3319,6 +3333,7 @@
           '<button data-open-comments="' + p.id + '" aria-label="댓글 보기, 현재 ' + p.comments + '개" style="display:flex; align-items:center; gap:5px; border:none; background:none; color:var(--text2); min-height:44px;">' +
           '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="1.8" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-8.9 8.4 9 9 0 0 1-3.6-.7L3 20l1.3-3.9a8.2 8.2 0 0 1-1-4A8.4 8.4 0 0 1 12.1 3a8.3 8.3 0 0 1 8.9 8.5z"/></svg>' +
           '<span style="font-size:12px;">' + p.comments + '</span></button>' +
+          (p.mine ? '' : saveBtnHtml(p.id)) +
           '<button data-share-post="' + p.id + '" aria-label="공유하기" style="display:flex; align-items:center; gap:5px; border:none; background:none; color:var(--text2); min-height:44px; margin-left:auto;">' +
           '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="1.8" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 10.6l6.8-3.8M8.6 13.4l6.8 3.8"/></svg>' +
           '<span style="font-size:12px;">공유</span></button>' +
@@ -4829,6 +4844,146 @@
     }
   });
 
+  // ---------- 스크랩 · 알림 (커뮤니티 사이트와 같은 데이터) ----------
+  // 스크랩은 post_bookmarks(0014, 본인 행만). 기기에 저장하지 않고 fetchPosts 때마다 계정에서 다시 읽는다.
+  var savedPostIds = [];
+
+  function saveBtnHtml(id){
+    var on = savedPostIds.indexOf(id) > -1;
+    return '<button data-save-post="' + id + '" aria-pressed="' + on + '" aria-label="스크랩" style="display:flex; align-items:center; border:none; background:none; color:var(--text2); min-height:44px;">' +
+      '<svg width="17" height="17" viewBox="0 0 24 24" fill="' + (on ? 'var(--accent)' : 'none') + '" stroke="var(--accent)" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5l2.6 5.3 5.8.8-4.2 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z"/></svg></button>';
+  }
+
+  function toggleSavePost(pid){
+    if(sb && !authUser){ showToast('로그인하면 스크랩할 수 있어요'); return; }
+    var on = savedPostIds.indexOf(pid) === -1;
+    // 스크랩 버튼도 커뮤니티와 홈 피드 양쪽에 있다
+    var redraw = function(){
+      renderCommunity();
+      if((location.hash || '').replace('#','') === 'home') renderHome();
+    };
+    var setOn = function(v){
+      savedPostIds = savedPostIds.filter(function(x){ return x !== pid; });
+      if(v) savedPostIds.unshift(pid);
+    };
+    setOn(on); redraw();
+    sendReaction('post_bookmarks', 'post_id', 'user_id', pid, on).then(function(r){
+      if(!r.ok){ setOn(!on); redraw(); showToast('스크랩하지 못했어요'); return; }
+      showToast(on ? '스크랩했어요. MY에서 모아 볼 수 있어요' : '스크랩을 취소했어요');
+    });
+  }
+
+  // 커뮤니티 사이트와 같은 규칙으로 첫 줄을 제목으로 쓴다
+  function postTitle(text){
+    var s = String(text || '').replace(/^\[[^\]]{1,6}\]\s*/, '').trim().split('\n')[0];
+    return s ? (s.length > 40 ? s.slice(0, 40) + '…' : s) : '(제목 없음)';
+  }
+
+  function linkListHtml(rows){
+    return '<div class="col" style="gap:2px; max-height:60vh; overflow:auto;">' + rows.map(function(r){
+      return '<a href="./community.html#/p/' + encodeURIComponent(r.id) + '" style="display:flex; gap:10px; padding:11px 8px; border-radius:12px; text-decoration:none; color:var(--text); font-size:13.5px; line-height:1.55;' + (r.isNew ? ' background:var(--accent-soft);' : '') + '">' +
+        (r.icon ? '<span aria-hidden="true">' + r.icon + '</span>' : '') +
+        '<span style="flex:1; min-width:0;">' + r.html + '<span class="helper" style="display:block;">' + escapeHtml(r.meta) + '</span></span></a>';
+    }).join('') + '</div>';
+  }
+
+  async function openSavedModal(){
+    if(sb && !authUser){ showToast('로그인하면 스크랩한 글을 볼 수 있어요'); return; }
+    var head = '<div class="modal-head"><h3 class="display">스크랩한 글</h3><button class="modal-close" data-close-modal aria-label="닫기">✕</button></div>';
+    openModal(head + '<div id="saved-body"><p class="helper">불러오는 중…</p></div>');
+    var body = '', rows = [];
+    try{
+      if(sb){
+        // 스크랩한 순서대로. 지워졌거나 차단한 사람의 글은 글 쪽 RLS 가 걸러 빠진다.
+        var bm = await sb.from('post_bookmarks').select('post_id').order('created_at', { ascending:false }).limit(30);
+        if(bm.error) throw bm.error;
+        var ids = (bm.data || []).map(function(x){ return x.post_id; });
+        if(ids.length){
+          var sp = await sb.from('community_posts').select('id,text,author,created_at').in('id', ids);
+          if(sp.error) throw sp.error;
+          var byId = {};
+          (sp.data || []).forEach(function(r){ byId[r.id] = r; });
+          rows = ids.map(function(i){ return byId[i]; }).filter(Boolean);
+        }
+      }
+      body = rows.length
+        ? linkListHtml(rows.map(function(r){ return { id:r.id, html:'<b>' + escapeHtml(postTitle(r.text)) + '</b>', meta:(r.author || '익명') + ' · ' + timeAgo(r.created_at) }; }))
+        : '<p class="helper" style="padding:18px 0;">스크랩한 글이 없어요. 글 아래 ☆ 를 누르면 여기에 모여요.</p>';
+    }catch(e){ body = '<p class="helper" style="padding:18px 0;">스크랩한 글을 불러오지 못했어요. 잠시 후 다시 열어 주세요.</p>'; }
+    var slot = document.getElementById('saved-body');   // 기다리는 사이 다른 창을 열었으면 덮어쓰지 않는다
+    if(slot) slot.innerHTML = body + '<a class="helper" href="./community.html#/my" style="display:block; margin-top:10px;">커뮤니티 사이트 MY에서 더 보기 ›</a>';
+  }
+
+  // 알림: 서버에 알림 표가 없다. 내 글에 달린 남의 댓글과 내 글의 검수 통과를 이미 있는 표에서 읽는다.
+  // 키를 커뮤니티 사이트(community.html)와 같이 써서 한쪽에서 읽으면 다른 쪽도 읽음이 된다.
+  var noti = { items: [], unseen: 0, seen: 0 };
+  function notiKey(k){ return 'dadamom_noti_' + k + '::' + authUser.id; }
+  function notiRead(k, d){ try{ return JSON.parse(localStorage.getItem(notiKey(k)) || 'null') || d; }catch(e){ return d; } }
+  function notiWrite(k, v){ try{ localStorage.setItem(notiKey(k), JSON.stringify(v)); }catch(e){} }
+
+  async function checkNoti(){
+    if(!sb || !authUser){ noti = { items: [], unseen: 0, seen: 0 }; renderBell(); return; }
+    var uid = authUser.id;
+    try{
+      var mp = await sb.from('community_posts').select('id,text,status').eq('owner_id', uid).order('created_at', { ascending:false }).limit(100);
+      if(!authUser || authUser.id !== uid || mp.error) return;
+      var posts = mp.data || [], titles = {};
+      posts.forEach(function(p){ titles[p.id] = postTitle(p.text); });
+      var seen = Number(notiRead('seen', 0)), first = !seen, now = Date.now();
+      var prev = notiRead('status', {}), map = {}, okLog = notiRead('ok', []);
+      posts.forEach(function(p){
+        map[p.id] = p.status;
+        if(!first && prev[p.id] && prev[p.id] !== 'approved' && p.status === 'approved') okLog.unshift({ id: p.id, t: titles[p.id], at: now });
+      });
+      okLog = okLog.slice(0, 20);
+      notiWrite('status', map); notiWrite('ok', okLog);
+      var items = okLog.map(function(x){ return { kind:'ok', id:x.id, title:x.t, at:x.at }; });
+      if(posts.length){
+        var cm = await sb.from('post_comments').select('post_id,author,content,created_at,owner_id')
+          .in('post_id', posts.map(function(p){ return p.id; })).neq('owner_id', uid).order('created_at', { ascending:false }).limit(30);
+        if(!authUser || authUser.id !== uid) return;
+        (cm.data || []).forEach(function(c){
+          items.push({ kind:'cmt', id:c.post_id, title:titles[c.post_id] || '', who:c.author, text:c.content, at:new Date(c.created_at).getTime() });
+        });
+      }
+      items.sort(function(a, b){ return b.at - a.at; });
+      // 처음 켠 기기에서는 지난 댓글을 전부 '새 알림'으로 쏟아내지 않는다
+      if(first){ seen = now; notiWrite('seen', seen); }
+      noti = { items: items.slice(0, 30), unseen: items.filter(function(i){ return i.at > seen; }).length, seen: seen };
+      renderBell();
+    }catch(e){ /* 알림은 부가 기능. 실패해도 지난 상태를 그대로 둔다 */ }
+  }
+
+  function renderBell(){
+    var b = document.getElementById('home-bell');
+    if(!b) return;
+    b.hidden = !(sb && authUser);
+    var n = document.getElementById('home-bell-n');
+    n.hidden = !noti.unseen;
+    n.textContent = noti.unseen > 9 ? '9+' : String(noti.unseen);
+    b.setAttribute('aria-label', noti.unseen ? '알림 ' + noti.unseen + '개 새로 옴' : '알림');
+  }
+
+  function openNoti(){
+    if(!authUser) return;
+    var seen = noti.seen || 0;
+    var head = '<div class="modal-head"><h3 class="display">알림</h3><button class="modal-close" data-close-modal aria-label="닫기">✕</button></div>';
+    openModal(head + (noti.items.length
+      ? linkListHtml(noti.items.map(function(i){
+          return {
+            id:i.id, isNew: i.at > seen, icon: i.kind === 'ok' ? '✅' : '💬', meta: timeAgo(new Date(i.at).toISOString()),
+            html: i.kind === 'ok'
+              ? '<b>"' + escapeHtml(i.title) + '"</b> 글이 검수를 통과해 공개됐어요'
+              : '<b>' + escapeHtml(i.who || '익명') + '</b>님이 "' + escapeHtml(i.title) + '"에 댓글을 남겼어요: ' + escapeHtml(i.text)
+          };
+        }))
+      : '<p class="helper" style="padding:18px 0;">아직 알림이 없어요. 내 글에 댓글이 달리면 여기에 알려드려요.</p>') +
+      '<p class="helper" style="margin-top:8px;">내 글에 달린 댓글과 검수 결과를 알려드려요.</p>');
+    // 열어 본 순간 모두 읽음
+    notiWrite('seen', Date.now());
+    noti.seen = Date.now(); noti.unseen = 0; renderBell();
+  }
+
   // ---------- 공유하기 ----------
   var shareTarget = null;
 
@@ -5232,6 +5387,11 @@
       openModal(growthModalHtml());
       return;
     }
+
+    var savePostBtn = e.target.closest('[data-save-post]');
+    if(savePostBtn){ toggleSavePost(savePostBtn.getAttribute('data-save-post')); return; }
+    if(e.target.closest('[data-open-saved]')){ openSavedModal(); return; }
+    if(e.target.closest('[data-open-noti]')){ openNoti(); return; }
 
     var sharePostBtn = e.target.closest('[data-share-post]');
     if(sharePostBtn){

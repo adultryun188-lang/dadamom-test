@@ -214,3 +214,11 @@ create table _counter_backup_20260930 as
   select 'entry' as k, id, votes as n from public.challenge_entries
   union all select 'post', id, likes from public.community_posts;
 ```
+
+---
+
+# 0015 (홍보 측정: 가입 경로·마지막 접속일) 운영 이관
+
+- **DB 먼저.** 새 `index.html` 은 프로필 저장 때 `signup_from` 을 보냅니다. 컬럼이 없으면 프로필 저장이 실패합니다.
+- 추가만 하는 변경이라 기존 데이터에 영향 없음. 되돌리기는 마이그레이션 파일 맨 아래 주석.
+- 확인 SQL·해석 주의점은 `docs/홍보_측정.md`.

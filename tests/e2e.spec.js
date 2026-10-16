@@ -127,6 +127,56 @@ function check(name, ok, detail) {
     await page.close();
   }
 
+  // ------------------------------------------------- 홍보 측정 --
+  // 가입 경로(?from=)와 마지막 접속일(last_seen). 로그인을 흉내내야 해서 스텁에서만 돈다.
+  console.log(NL + '[홍보 측정]');
+  if (!USE_STUB) console.log('  SKIP  스텁 없이는 로그인을 흉내낼 수 없음 (배포본은 손으로 확인)');
+  else {
+    const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+    await prep(page);
+    const errs = [], warns = [];
+    page.on('pageerror', e => errs.push(e.message));
+    page.on('console', m => { if (m.type() === 'warning' && /다다맘/.test(m.text())) warns.push(m.text()); });
+    const from = () => page.evaluate(() => localStorage.getItem('dadamom.from'));
+
+    await page.goto(BASE + '?from=bad_value!', { waitUntil: 'load' });
+    check('허용 안 되는 from 은 버림', (await from()) === null);
+    await page.goto(BASE + '?from=qr-cafe1', { waitUntil: 'load' });
+    check('from 저장', (await from()) === 'qr-cafe1');
+    await page.goto(BASE + '?from=qr-other', { waitUntil: 'load' });
+    await page.waitForTimeout(1500);
+    check('먼저 온 from 을 덮어쓰지 않음', (await from()) === 'qr-cafe1');
+
+    // 게스트로 아이 정보를 입력해둔 채 가입·로그인 → 프로필이 처음 만들어지며 from 이 실린다
+    await page.evaluate(() => {
+      localStorage.setItem('dadamom_v2::guest', JSON.stringify({ onboarded: true, nickname: '측정', kidType: 'baby', region: '서울' }));
+      window.__SBSTUB.signIn('u-from', 'from@dadamom.test');
+    });
+    await page.waitForTimeout(1500);
+    const prof = await page.evaluate(() => window.__SBSTUB.store.profiles.find(r => r.id === 'u-from') || null);
+    check('가입 시 프로필에 signup_from', !!prof && prof.signup_from === 'qr-cafe1', JSON.stringify(prof && prof.signup_from));
+
+    // 마지막 접속일: 로그인하면 오늘로, 같은 날 다시 열면 쓰지 않는다
+    const seen = await page.evaluate(async () => {
+      const S = window.__SBSTUB, wait = ms => new Promise(r => setTimeout(r, ms));
+      const d = new Date(), today = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+      S.signOut(); await wait(300);
+      S.store.profiles.push({ id: 'u-seen', onboarded: true, nickname: '접속', last_seen: '2000-01-01' });
+      const row = () => S.store.profiles.find(r => r.id === 'u-seen');
+      S.signIn('u-seen', 'seen@dadamom.test'); await wait(1200);
+      const first = row().last_seen;
+      row().last_seen = '2000-01-01';
+      S.signOut(); await wait(300);
+      S.signIn('u-seen', 'seen@dadamom.test'); await wait(1200);
+      document.dispatchEvent(new Event('visibilitychange')); await wait(300);
+      return { today, first, second: row().last_seen };
+    });
+    check('로그인하면 last_seen 이 오늘', seen.first === seen.today, JSON.stringify(seen));
+    check('같은 날 다시 열면 갱신 안 함', seen.second === '2000-01-01', seen.second);
+    check('JS 오류·저장 실패 경고 없음', errs.length === 0 && warns.length === 0, errs.concat(warns).join('; '));
+    await page.close();
+  }
+
   // ------------------------------------------------- 모바일 기기 --
   console.log(NL + '[기기 프로파일]');
   for (const name of ['Pixel 7', 'iPhone 13', 'iPhone SE']) {

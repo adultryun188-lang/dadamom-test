@@ -732,6 +732,16 @@
   var GUEST_STORAGE_KEY   = 'dadamom_v2::guest';
   var PENDING_STORAGE_KEY = 'dadamom_v2::pending'; // 주인을 모르는 기존 데이터 보관함
                                                    // (로그아웃 상태에선 보이지 않고, 첫 로그인 때 그 계정으로 귀속)
+  // 홍보 효과 측정: 처음 들어온 주소의 ?from= 값(영문·숫자·하이픈 32자 이내)만 기기에 남긴다.
+  // 먼저 온 값을 지키고, 가입으로 프로필이 처음 만들어질 때 서버로 간다 (이후 고정은 0015 트리거).
+  var FROM_KEY = 'dadamom.from', FROM_RE = /^[A-Za-z0-9-]{1,32}$/;
+  try{
+    var fromParam = new URLSearchParams(location.search).get('from');
+    if(fromParam && FROM_RE.test(fromParam) && !localStorage.getItem(FROM_KEY)) localStorage.setItem(FROM_KEY, fromParam);
+  }catch(e){}
+  function storedFrom(){
+    try{ var v = localStorage.getItem(FROM_KEY); return v && FROM_RE.test(v) ? v : null; }catch(e){ return null; }
+  }
   // 로그인한 계정의 데이터와 비로그인 데이터를 분리해 보관한다.
   function storageKey(){
     return (authUser && authUser.id) ? ('dadamom_v2::' + authUser.id) : GUEST_STORAGE_KEY;
@@ -4403,7 +4413,7 @@
     }
     albumPhotos = []; albumLoaded = false; albumFetching = null;   // 계정이 바뀌면 앨범도 다시 불러온다
     blockedIds = [];
-    if(authUser){ fetchBlocks().then(function(){ renderBlockList(); }); }
+    if(authUser){ fetchBlocks().then(function(){ renderBlockList(); }); touchLastSeen(); }
     state = loadState();
     // 방금 로그인한 사람이 온보딩 화면에 서 있으면 홈으로 보낸다
     // (MY에서 프로필을 고치러 들어온 경우는 로그인 상태가 바뀌지 않으므로 해당 없음)
@@ -4487,7 +4497,7 @@
   async function saveProfileRemote(){
     if(!sb || !authUser) return;
     try{
-      await sb.from('profiles').upsert({
+      var res = await sb.from('profiles').upsert({
         id: authUser.id,
         nickname: state.nickname || null,
         kid_type: state.kidType,
@@ -4496,10 +4506,29 @@
         birth_month: state.birthMonth || null,
         region: state.region,
         interests: Array.isArray(state.interests) ? state.interests : [],
-        onboarded: !!state.onboarded
+        onboarded: !!state.onboarded,
+        signup_from: storedFrom()   // 행이 처음 생길 때만 남는다 (수정 때는 DB 가 옛 값 유지)
       });
-    }catch(e){}
+      if(res && res.error) console.warn('[다다맘] 프로필 저장 실패', res.error);
+    }catch(e){ console.warn('[다다맘] 프로필 저장 실패', e); }
   }
+
+  // 홍보 효과 측정: 마지막 접속일을 하루 한 번만 남긴다 (날짜만).
+  // 프로필이 아직 없으면 0행 갱신이지만, 그날 만들어지는 행은 DB 기본값이 오늘이라 빈틈이 없다.
+  var LAST_SEEN_KEY = 'dadamom.lastSeen';
+  function touchLastSeen(){
+    if(!sb || !authUser) return;
+    var today = todayISO(), mark = authUser.id + ':' + today;
+    try{ if(localStorage.getItem(LAST_SEEN_KEY) === mark) return; }catch(e){}
+    try{
+      sb.from('profiles').update({ last_seen: today }).eq('id', authUser.id).then(function(res){
+        if(res && res.error){ console.warn('[다다맘] last_seen 갱신 실패', res.error); return; }
+        try{ localStorage.setItem(LAST_SEEN_KEY, mark); }catch(e){}
+      }, function(e){ console.warn('[다다맘] last_seen 갱신 실패', e); });
+    }catch(e){ console.warn('[다다맘] last_seen 갱신 실패', e); }
+  }
+  // 백그라운드에 며칠 떠 있던 앱(설치형)으로 돌아와도 '앱을 연 것'으로 친다
+  document.addEventListener('visibilitychange', function(){ if(!document.hidden) touchLastSeen(); });
 
   // ---------- 로그인 게이트 ----------
   // 서버에 쓰는 동작(글쓰기·챌린지 참여·체험단 신청)은 로그인이 필요합니다.

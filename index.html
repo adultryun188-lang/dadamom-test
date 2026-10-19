@@ -449,6 +449,7 @@
         </a>
       </div>
 
+      <div id="home-install"></div>
       <div id="home-status"></div>
 
       <div class="home-sec">
@@ -1857,7 +1858,7 @@
     return matchedInterest((t.title || '') + ' ' + (t.brand || ''));
   }
   // TODO: 실제 캠페인 마감일로 교체해주세요 (지금은 플레이스홀더 값입니다)
-  var CHALLENGE_DEADLINE = '2026-10-15';
+  var CHALLENGE_DEADLINE = '2026-11-30';
   function daysUntil(dateStr){
     var target = new Date(dateStr + 'T23:59:59');
     return Math.ceil((target.getTime() - Date.now()) / 86400000);
@@ -3030,6 +3031,7 @@
     document.getElementById('home-name').textContent = (state.nickname ? state.nickname + '님' : '다다맘님');
     document.getElementById('home-chip').textContent = profileSummary();
     renderBell();
+    document.getElementById('home-install').innerHTML = installHintHtml();
     document.getElementById('home-status').innerHTML = homeStatusHtml();
     var missionsEl = document.getElementById('home-missions');
     missionsEl.innerHTML = homeMissionsHtml();
@@ -5072,6 +5074,61 @@
     noti.seen = Date.now(); noti.unseen = 0; renderBell();
   }
 
+  // ---------- 홈 화면에 추가 안내 ----------
+  // 아이폰은 스토어 앱이 없어 "홈 화면에 추가"를 모르면 매번 브라우저로 들어와야 한다.
+  // 브라우저로 연 휴대폰에서만, 닫기 전까지 홈 위쪽에 작게 보여준다. 설치형·PC·스토어 앱(TWA)에서는 안 뜬다.
+  var INSTALL_HINT_KEY = 'dadamom.installHint';
+  var installPromptEvt = null;
+  window.addEventListener('beforeinstallprompt', function(e){
+    e.preventDefault();   // 크롬 기본 띠 대신 아래 카드의 버튼으로 연다
+    installPromptEvt = e;
+    if((location.hash || '') === '#home') renderHome();
+  });
+  window.addEventListener('appinstalled', function(){ installPromptEvt = null; dismissInstallHint(); });
+
+  function installHintHtml(){
+    var standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+    var off = false;
+    try{ off = localStorage.getItem(INSTALL_HINT_KEY) === 'off'; }catch(e){}
+    if(standalone || off || window.matchMedia('(min-width:960px)').matches) return '';
+    var ua = navigator.userAgent || '';
+    var ios = /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+    var how, btn = '';
+    if(/KAKAOTALK/i.test(ua)){
+      how = '카카오톡 안에서는 설치가 안 돼요. 오른쪽 아래 메뉴에서 <b>다른 브라우저로 열기</b>를 누른 뒤 다시 보세요.';
+    } else if(/Instagram|NAVER|FBAN|FBAV|Line\//i.test(ua)){
+      how = '앱 안 브라우저에서는 설치가 안 돼요. 메뉴에서 <b>' + (ios ? 'Safari' : 'Chrome') + '로 열기</b>를 눌러 주세요.';
+    } else if(ios){
+      how = '아래쪽 <b>공유 버튼(□↑)</b>을 누르고 <b>홈 화면에 추가</b>를 고르세요.';
+    } else if(installPromptEvt){
+      how = '버튼 한 번이면 홈 화면에 다다맘이 생겨요.';
+      btn = '<button type="button" class="btn-primary" data-install-go style="height:38px; padding:0 16px; font-size:13px; flex:0 0 auto;">설치하기</button>';
+    } else {
+      how = '오른쪽 위 <b>⋮ 메뉴</b>에서 <b>홈 화면에 추가</b> 또는 <b>앱 설치</b>를 누르세요.';
+    }
+    return '<div class="card col" role="note" aria-label="홈 화면에 추가 안내" style="gap:8px; padding:14px 16px; word-break:keep-all;">' +
+      '<div class="row" style="align-items:center; gap:8px;">' +
+        '<span style="flex:1; font-size:14px; font-weight:800;">📲 앱처럼 설치해 두세요</span>' +
+        '<button type="button" data-install-dismiss aria-label="안내 닫기" style="border:none; background:none; color:var(--text2); min-width:44px; min-height:44px; font-size:16px;">✕</button>' +
+      '</div>' +
+      '<div class="row" style="align-items:center; gap:10px;"><p class="helper" style="flex:1; font-size:12.5px; line-height:1.6;">' + how + '</p>' + btn + '</div>' +
+    '</div>';
+  }
+
+  function runInstallPrompt(){
+    if(!installPromptEvt) return;
+    var evt = installPromptEvt;
+    installPromptEvt = null;
+    evt.prompt();
+    evt.userChoice.then(function(c){ if(c && c.outcome === 'accepted') dismissInstallHint(); else renderHome(); }).catch(function(){});
+  }
+
+  function dismissInstallHint(){
+    try{ localStorage.setItem(INSTALL_HINT_KEY, 'off'); }catch(e){}
+    var el = document.getElementById('home-install');
+    if(el) el.innerHTML = '';
+  }
+
   // ---------- 공유하기 ----------
   var shareTarget = null;
 
@@ -5497,6 +5554,8 @@
     if(savePostBtn){ toggleSavePost(savePostBtn.getAttribute('data-save-post')); return; }
     if(e.target.closest('[data-open-saved]')){ openSavedModal(); return; }
     if(e.target.closest('[data-open-noti]')){ openNoti(); return; }
+    if(e.target.closest('[data-install-go]')){ runInstallPrompt(); return; }
+    if(e.target.closest('[data-install-dismiss]')){ dismissInstallHint(); return; }
 
     var sharePostBtn = e.target.closest('[data-share-post]');
     if(sharePostBtn){

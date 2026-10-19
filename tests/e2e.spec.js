@@ -210,6 +210,13 @@ function check(name, ok, detail) {
       const m = document.getElementById('home-missions');
       return !m.innerText.includes('마감됐어요') && (m.innerHTML !== '' || m.parentElement.hidden);
     }));
+    check('홈 화면에 추가 안내가 뜸 (브라우저·휴대폰 폭)', await page.evaluate(() => !!document.querySelector('#home-install [data-install-dismiss]')));
+    await page.click('#home-install [data-install-dismiss]');
+    await page.evaluate(() => { location.hash = '#community'; });
+    await page.waitForTimeout(300);
+    await page.evaluate(() => { location.hash = '#home'; });
+    await page.waitForTimeout(600);
+    check('닫으면 다시 안 뜸', await page.evaluate(() => document.getElementById('home-install').innerHTML === '' && localStorage.getItem('dadamom.installHint') === 'off'));
     check('남의 글에만 스크랩 버튼', await page.evaluate(() =>
       !!document.querySelector('#home-feed [data-save-post="p-other"]') && !document.querySelector('[data-save-post="p-mine"]')));
 

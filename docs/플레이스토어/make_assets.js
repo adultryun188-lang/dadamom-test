@@ -44,6 +44,67 @@ const FEATURE_HTML = `<!doctype html><html lang="ko"><meta charset="utf-8">
   <div class="deco"><span>🍼</span><span>🧸</span><span>🌱</span><span>💛</span></div>
 </div></html>`;
 
+// 스토어 화면용 예시 글·참가작. 테스트 DB 에는 검수 확인용 글만 있어 그대로 찍으면 "검수 대기 확인용…"이 나온다.
+// 서버 응답만 이 브라우저 안에서 바꿔 끼운다 — DB 에는 아무것도 쓰지 않는다.
+const ago = (h) => new Date(Date.now() - h * 36e5).toISOString();
+const uid = (n) => '00000000-0000-4000-8000-' + String(n).padStart(12, '0');
+const SAMPLE_PHOTOS = {
+  walk: ['#FFD9C7', '#FFF1D6', '👣'], toy: ['#DDF1E6', '#FFF6D9', '🧸'], food: ['#FFE6B8', '#FFF6E8', '🥣'],
+  park: ['#D8ECFF', '#F0FFF4', '🌳'], bath: ['#E3EDFF', '#FFF0F5', '🛁'],
+};
+const SAMPLE_POSTS = [
+  { n: 1, h: 0.4, author: '서윤맘', stage: 'parenting', age: 8, likes: 24, comments: 9, photo: 'food', text: '[자랑] 오늘 처음으로 숟가락을 직접 잡았어요! 반은 흘렸지만 너무 기특해요 🥹' },
+  { n: 2, h: 2, author: '하준아빠', stage: 'parenting', age: 9, likes: 15, comments: 12, text: '[질문] 9개월인데 밤에 두세 번씩 깨요. 다들 수면교육 언제 시작하셨어요?' },
+  { n: 3, h: 5, author: '봄이맘', stage: 'pregnant', age: 30, likes: 31, comments: 7, photo: 'bath', text: '[정보] 신생아 목욕 준비물 정리해봤어요. 욕조·온도계·속싸개면 첫 달은 충분했어요.' },
+  { n: 4, h: 9, author: '지안맘', stage: 'parenting', age: 7, likes: 11, comments: 5, text: '[고민] 이유식 거부가 심해요. 묽기를 바꿔봐도 고개를 돌려요 ㅠㅠ' },
+  { n: 5, h: 26, author: '도담아빠', stage: 'parenting', age: 8, likes: 18, comments: 4, photo: 'park', text: '주말에 다녀온 수원 공원, 유모차 다니기 정말 편했어요. 수유실도 깨끗해요.' },
+];
+const SAMPLE_ENTRIES = [
+  { n: 11, h: 1, name: '서아', age: '13개월', votes: 42, photo: 'walk', note: '소파 잡고 세 걸음! 박수 쳐주니 또 걸어요' },
+  { n: 12, h: 4, name: '이준', age: '12개월', votes: 35, photo: 'toy', note: '보행기 없이 첫 걸음마 성공한 날이에요' },
+  { n: 13, h: 20, name: '하율', age: '15개월', votes: 28, photo: 'park', note: '공원에서 엄마 손 놓고 혼자 걸었어요' },
+];
+const postRow = (p) => ({ id: uid(p.n), author: p.author, owner_id: uid(900 + p.n), created_at: ago(p.h), text: p.text,
+  media_path: p.photo ? 'sample/' + p.photo + '.png' : null, likes: p.likes, comments: p.comments,
+  stage: p.stage, age_value: p.age, status: 'approved' });
+const entryRow = (e) => ({ id: uid(e.n), name: e.name, age: e.age, note: e.note, owner_id: uid(900 + e.n), created_at: ago(e.h),
+  media_path: 'sample/' + e.photo + '.png', votes: e.votes, status: 'approved' });
+
+async function useSampleContent(browser, ctx) {
+  // 예시 사진: 그라데이션 + 이모지 (저작권 걱정 없는 그림)
+  const pics = {};
+  const pp = await browser.newPage({ viewport: { width: 600, height: 600 } });
+  for (const [k, [a, b, em]] of Object.entries(SAMPLE_PHOTOS)) {
+    await pp.setContent(`<body style="margin:0;width:600px;height:600px;display:flex;align-items:center;justify-content:center;background:linear-gradient(140deg,${a},${b});font-size:260px">${em}</body>`);
+    pics[k] = await pp.screenshot();
+  }
+  await pp.close();
+
+  const json = (route, body) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(body) });
+  // 공개 목록(status=eq.approved)만 예시로. 내 글·알림 조회는 빈 목록.
+  const list = (rows) => (route) => {
+    if (route.request().method() !== 'GET') return route.continue();
+    return json(route, route.request().url().includes('status=eq.approved') ? rows : []);
+  };
+  await ctx.route('**/rest/v1/community_posts?*', list(SAMPLE_POSTS.map(postRow)));
+  await ctx.route('**/rest/v1/challenge_entries?*', list(SAMPLE_ENTRIES.map(entryRow)));
+  await ctx.route('**/storage/v1/object/sign/media', async (route) => {
+    const { paths } = JSON.parse(route.request().postData() || '{}');
+    return json(route, (paths || []).map((p) => ({ path: p, signedURL: '/object/sign/media/' + p + '?token=sample', error: null })));
+  });
+  await ctx.route('**/storage/v1/object/sign/media/sample/**', (route) => {
+    const k = route.request().url().split('/sample/')[1].split('.')[0];
+    return route.fulfill({ status: 200, contentType: 'image/png', body: pics[k] });
+  });
+  // 챌린지 마감일을 앞으로 당겨 "참여 중" 화면으로 찍는다 (코드의 날짜가 지나면 '모집 마감'만 보인다)
+  const until = new Date(Date.now() + 12 * 864e5).toISOString().slice(0, 10);
+  await ctx.route(/\/index\.html(\?.*)?$/, async (route) => {
+    const res = await route.fetch();
+    const body = (await res.text()).replace(/var CHALLENGE_DEADLINE = '[\d-]+';/, `var CHALLENGE_DEADLINE = '${until}';`);
+    return route.fulfill({ response: res, body });
+  });
+}
+
 async function main() {
   fs.mkdirSync(OUT, { recursive: true });
   fs.copyFileSync(path.join(ROOT, 'icons', 'icon-512.png'), path.join(OUT, 'icon-512.png'));
@@ -64,7 +125,8 @@ async function main() {
   await og.close();
 
   // 2) 휴대전화 스크린샷 — 360x640 @3배 = 1080x1920
-  const ctx = await browser.newContext({ viewport: { width: 360, height: 640 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true });
+  const ctx = await browser.newContext({ viewport: { width: 360, height: 640 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true, serviceWorkers: 'block' });
+  await useSampleContent(browser, ctx);
   const page = await ctx.newPage();
   await page.goto(BASE + '/index.html#onboarding', { waitUntil: 'load' });
   await sleep(1500);

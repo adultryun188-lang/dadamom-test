@@ -311,7 +311,7 @@
   .btn-ghost:hover{ background:#FFFBF7; box-shadow:0 4px 12px rgba(201,67,24,.08); }
   .chip.on, .chip-f[aria-pressed="true"]{ border:1px solid var(--text); background:var(--text); color:var(--bg); }
   .segmented button[aria-selected="true"]{ box-shadow:0 2px 8px rgba(120,60,20,.10); }
-  .mission-go{ background:var(--accent-soft); color:var(--accent-strong); }
+  .mission-go{ background:var(--accent-soft); color:#B53A12; }   /* accent-strong 은 이 배경에서 4.49:1 로 기준(4.5) 미달 */
   #home-fab, #fab{ background:var(--btn-grad) !important; box-shadow:0 10px 24px rgba(201,67,24,.32) !important; }
   .navbar{ background:rgba(255,255,255,.88); backdrop-filter:saturate(1.4) blur(14px); -webkit-backdrop-filter:saturate(1.4) blur(14px); }
   .navbar button.active{ color:var(--accent-strong); }
@@ -3707,7 +3707,7 @@
       var overdue = next.age <= myAge;
       nextEl.innerHTML = '<div class="row" style="align-items:center; justify-content:space-between;">' +
         '<div class="col" style="gap:2px;"><span style="font-size:13.5px; font-weight:700;">' + escapeHtml(next.name) + '</span>' +
-        '<span class="helper" style="' + (overdue ? 'color:var(--accent);' : '') + '">' + (overdue ? '접종 시기가 지났어요' : ('권장 생후 ' + next.age + '개월')) + '</span></div>' +
+        '<span class="helper" style="' + (overdue ? 'color:var(--accent-strong);' : '') + '">' + (overdue ? '접종 시기가 지났어요' : ('권장 생후 ' + next.age + '개월')) + '</span></div>' +
         '<button type="button" data-vax-done="' + next.id + '" class="pill" style="padding:8px 14px; border:1px solid var(--border); background:var(--surface); font-size:12.5px; font-weight:700; color:var(--accent2);">완료 체크</button></div>';
     }
   }

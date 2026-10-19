@@ -21,6 +21,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <!-- 앱(index.html)과 같은 환경설정·같은 DB·같은 로그인 세션을 쓴다. -->
 <script src="./env.js"></script>
+<script src="./community-flow.js"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Jua&display=swap">
 <style>
   :root{
@@ -606,6 +607,7 @@
 
   async function render(){
     var r = route(), s0 = r.seg[0] || '', main = $('main');
+    if(s0 !== 'p') current = null;
     $('q').value = r.params.get('q') || '';
     $('q-scope').value = r.params.get('f') === 'author' ? 'author' : 'text';
     var section = s0 === '' ? 'home' : (s0 === 'b' || s0 === 'p' || s0 === 'write') ? 'community'
@@ -879,7 +881,7 @@
         '<div class="post-meta"><span class="who"><span class="avatar" aria-hidden="true">' + stageEmoji(p.stage) + '</span>' + esc(p.author || '익명') + '</span>' +
           tagHtml(pp.topic) +
           (stageText(p) ? '<span>' + esc(stageText(p)) + '</span>' : '') +
-          '<span>' + fullDate(p.created_at) + '</span><span>👍 ' + (p.likes || 0) + '</span><span>💬 ' + (p.comments || 0) + '</span>' +
+          '<span>' + fullDate(p.created_at) + '</span><span>👍 <b data-post-likes>' + (p.likes || 0) + '</b></span><span>💬 <b data-post-comments>' + (p.comments || 0) + '</b></span>' +
           (p.status !== 'approved' ? '<span class="st">' + (p.status === 'pending' ? '검수 중 — 나에게만 보여요' : '게시 안 됨') + '</span>' : '') +
         '</div></div>' +
       '<div class="post-body">' + (img ? '<img src="' + esc(img) + '" alt="첨부 사진 (누르면 크게 보기)" data-zoom>' : '') + esc(pp.body) + '</div>' +
@@ -1034,10 +1036,12 @@
   async function toggleSave(){
     if(!user) return openLogin();
     var btn = $('save-btn'); if(!btn || !current) return;
+    var p = current, uid = user.id;
     var on = btn.getAttribute('aria-pressed') !== 'true';
     btn.disabled = true;
-    var res = on ? await sb.from('post_bookmarks').insert({ post_id: current.id, user_id: user.id })
-                 : await sb.from('post_bookmarks').delete().eq('post_id', current.id).eq('user_id', user.id);
+    var res = on ? await sb.from('post_bookmarks').insert({ post_id: p.id, user_id: uid })
+                 : await sb.from('post_bookmarks').delete().eq('post_id', p.id).eq('user_id', uid);
+    if(current !== p || !user || user.id !== uid) return;
     btn.disabled = false;
     if(res.error && res.error.code !== '23505'){ toast('스크랩을 저장하지 못했어요'); return; }
     btn.setAttribute('aria-pressed', String(on));
@@ -1046,6 +1050,7 @@
   }
 
   async function sharePost(){
+    if(!current || current.status !== 'approved'){ toast('공개 승인된 글만 링크로 공유할 수 있어요'); return; }
     var url = location.href, title = document.title;
     if(navigator.share){
       try{ await navigator.share({ title:title, url:url }); return; }catch(e){ if(e && e.name === 'AbortError') return; }
@@ -1054,9 +1059,10 @@
   }
 
   async function loadComments(p){
+    var uid = user && user.id;
     var res = await sb.from('post_comments').select('id,author,content,created_at,owner_id').eq('post_id', p.id).order('created_at', { ascending:true }).limit(300);
     var el = $('cmt-list');
-    if(!el) return;
+    if(!el || current !== p || (user && user.id) !== uid || route().seg[1] !== p.id || res.error) return;
     var list = (res && res.data) || [];
     if(!list.length){ el.innerHTML = '<div class="c-item helper">아직 댓글이 없어요. 첫 댓글을 남겨보세요!</div>'; return; }
     el.innerHTML = list.map(function(c){
@@ -1073,15 +1079,16 @@
   async function toggleLike(){
     if(!user) return openLogin();
     var btn = $('like-btn'); if(!btn || !current) return;
+    var p = current, uid = user.id;
     var on = btn.getAttribute('aria-pressed') !== 'true';
     btn.disabled = true;
-    var res = on ? await sb.from('post_likes').insert({ post_id: current.id, liker_id: user.id })
-                 : await sb.from('post_likes').delete().eq('post_id', current.id).eq('liker_id', user.id);
+    var res = on ? await sb.from('post_likes').insert({ post_id: p.id, liker_id: uid })
+                 : await sb.from('post_likes').delete().eq('post_id', p.id).eq('liker_id', uid);
+    if(current !== p || !user || user.id !== uid) return;
     if(res.error && res.error.code !== '23505'){ toast('추천을 저장하지 못했어요'); btn.disabled = false; return; }
     // 합계는 DB 트리거가 유지한다. 다시 읽어 맞춘다.
-    var r = await sb.from('community_posts').select('likes').eq('id', current.id).single();
     btn.setAttribute('aria-pressed', String(on));
-    if(r.data) $('like-n').textContent = r.data.likes;
+    await refreshPostCounts(p);
     btn.disabled = false;
   }
 
@@ -1090,13 +1097,15 @@
     var ta = $('cmt-text'), val = ta.value.trim();
     if(!val || !current) return;
     if(!myName()){ toast('앱에서 프로필(닉네임)을 먼저 만들어주세요'); return; }
+    var p = current, uid = user && user.id;
     $('cmt-submit').disabled = true;
-    var res = await sb.from('post_comments').insert({ post_id: current.id, author: myName(), content: val });
+    var res = await sb.from('post_comments').insert({ post_id: p.id, author: myName(), content: val });
+    if(current !== p || (user && user.id) !== uid) return;
     $('cmt-submit').disabled = false;
     if(res.error){ toast('댓글을 등록하지 못했어요'); return; }
     ta.value = '';
-    $('cmt-n').textContent = Number($('cmt-n').textContent) + 1;
-    loadComments(current);
+    await refreshPostCounts(p);
+    loadComments(p);
   }
 
   async function deletePost(){
@@ -1114,10 +1123,40 @@
 
   async function deleteComment(id){
     if(!confirm('댓글을 삭제할까요?')) return;
+    var p = current, uid = user && user.id;
     var res = await sb.from('post_comments').delete().eq('id', id).select('id');
+    if(current !== p || (user && user.id) !== uid) return;
     if(res.error || !res.data || !res.data.length){ toast('삭제하지 못했어요'); return; }
-    $('cmt-n').textContent = Math.max(0, Number($('cmt-n').textContent) - 1);
-    loadComments(current);
+    await refreshPostCounts(p);
+    loadComments(p);
+  }
+
+  // 상세의 위/아래 숫자와 목록·사이드를 서버 값으로 함께 맞춘다. 댓글 입력란은 다시 만들지 않는다.
+  async function refreshPostCounts(p){
+    var uid = user && user.id;
+    var results = await Promise.all([
+      sb.from('community_posts').select('likes,comments,status').eq('id', p.id).maybeSingle(),
+      uid ? sb.from('post_likes').select('post_id').eq('post_id', p.id).eq('liker_id', uid).maybeSingle() : null,
+      uid ? sb.from('post_bookmarks').select('post_id').eq('post_id', p.id).eq('user_id', uid).maybeSingle() : null
+    ]);
+    var res = results[0];
+    if(current !== p || (user && user.id) !== uid || route().seg[1] !== p.id || res.error || !res.data) return;
+    p.likes = res.data.likes || 0; p.comments = res.data.comments || 0; p.status = res.data.status;
+    [['like-n',p.likes],['cmt-n',p.comments]].forEach(function(pair){ if($(pair[0])) $(pair[0]).textContent = pair[1]; });
+    document.querySelectorAll('[data-post-likes]').forEach(function(el){ el.textContent = p.likes; });
+    document.querySelectorAll('[data-post-comments]').forEach(function(el){ el.textContent = p.comments; });
+    var like = $('like-btn'), mark = $('save-btn');
+    if(like && !like.disabled && results[1] && !results[1].error) like.setAttribute('aria-pressed', String(!!results[1].data));
+    if(mark && !mark.disabled && results[2] && !results[2].error){
+      var saved = !!results[2].data;
+      mark.setAttribute('aria-pressed', String(saved)); mark.textContent = saved ? '⭐ 스크랩됨' : '☆ 스크랩';
+    }
+    var below = $('below');
+    if(below){
+      var board = BOARDS.filter(function(b){ return b.topic && b.topic === parsePost(p.text).topic; })[0] || BOARDS[0];
+      renderBoard(below, board.id, new URLSearchParams());
+    }
+    renderSide();
   }
 
   // ---------- 글쓰기 ----------
@@ -1419,7 +1458,7 @@
         '<span class="helper" id="l-hint" role="alert"></span>' +
         '<button class="btn primary" type="submit" style="padding:12px;">로그인</button>' +
       '</form>' +
-      '<span class="helper">카카오·구글 로그인과 회원가입은 <a href="./index.html#onboarding" style="text-decoration:underline;">앱 화면</a>에서 할 수 있어요. 같은 계정으로 사이트에도 로그인돼요.</span>' +
+      '<span class="helper">카카오·구글 로그인과 회원가입은 <a href="' + esc(window.DadamomCommunityFlow.authEntry(location.href)) + '" style="text-decoration:underline;">앱 화면</a>에서 할 수 있어요. 같은 계정으로 사이트에도 로그인돼요.</span>' +
       '<button class="btn" data-close>닫기</button>');
   }
 
@@ -1510,13 +1549,27 @@
     else if(e.target.id === 'edit-form') submitEdit(e);
   });
   document.addEventListener('keydown', function(e){ if(e.key === 'Escape' && !$('modal').hidden) closeModal(); });
+  // 머리말·사이드의 회원가입도 열어둔 글로 돌아오게 한다.
+  document.addEventListener('click', function(e){
+    var link = e.target.closest('a[href="./index.html#onboarding"], a[href="./index.html#my"]');
+    if(link){ link.href = window.DadamomCommunityFlow.authEntry(location.href); }
+  });
   window.addEventListener('hashchange', function(){ document.title = '다다맘 커뮤니티'; render(); });
 
   async function loadUser(session){
-    user = session ? session.user : null;
+    var next = session ? session.user : null;
+    if((user && user.id) !== (next && next.id)){
+      if(!$('modal').hidden) closeModal();
+      NOTI = { items: [], unseen: 0 };
+      current = null;
+      renderBell();
+    }
+    user = next;
     profile = null;
     if(user){
-      var r = await sb.from('profiles').select('nickname,parent_role,kid_type,due_date,birth_month,region,interests').eq('id', user.id).maybeSingle();
+      var uid = user.id;
+      var r = await sb.from('profiles').select('nickname,parent_role,kid_type,due_date,birth_month,region,interests').eq('id', uid).maybeSingle();
+      if(!user || user.id !== uid) return;
       profile = r.data || null;
     }
     renderMe();
@@ -1533,7 +1586,16 @@
       if(res && res.error) console.warn('[다다맘] last_seen 갱신 실패', res.error);
     });
   }
-  document.addEventListener('visibilitychange', function(){ if(!document.hidden) touchLastSeen(); });
+  var lastVisibleRefresh = 0;
+  function refreshVisibleCommunity(){
+    if(document.hidden || Date.now() - lastVisibleRefresh < 1500 || !$('modal').hidden) return;
+    lastVisibleRefresh = Date.now();
+    var r = route();
+    if(r.seg[0] === 'p' && current){ refreshPostCounts(current); loadComments(current); }
+    else if(['','b','my','mine'].indexOf(r.seg[0] || '') > -1){ render(); renderSide(); }
+  }
+  document.addEventListener('visibilitychange', function(){ if(!document.hidden){ touchLastSeen(); refreshVisibleCommunity(); } });
+  window.addEventListener('focus', refreshVisibleCommunity);
 
   if(!sb){
     $('main').innerHTML = panelMsg('연결 오류', '😢', '서버에 연결하지 못했어요. 잠시 후 새로고침해주세요.');

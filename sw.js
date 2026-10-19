@@ -14,6 +14,7 @@ const CACHE = 'dadamom-test-' + BUILD;
 const PRECACHE = [
   './',
   './index.html',
+  './community-flow.js',
   './offline.html',
   './manifest.webmanifest',
   './icons/icon-192.png',

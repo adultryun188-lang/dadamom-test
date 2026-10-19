@@ -26,6 +26,7 @@
 <meta name="apple-mobile-web-app-title" content="다다맘 TEST">
 <!-- 환경설정. 저장소에 커밋하지 않고 배포할 때 scripts/build.sh 가 만든다. -->
 <script src="./env.js"></script>
+<script src="./community-flow.js"></script>
 <script>
   // PC 로 첫 화면(주소만)을 열면 커뮤니티 사이트로 보낸다. 앱 기능은 #home 처럼 해시를 붙여 들어온다.
   // 로그인 콜백(?code= 등)은 앱이 처리해야 하므로 쿼리가 있으면 보내지 않는다.
@@ -1144,7 +1145,7 @@
         email: email,
         password: authDraft.password,
         options: {
-          emailRedirectTo: location.href.split('#')[0],
+          emailRedirectTo: authCallbackUrl(),
           data: nickname ? { nickname: nickname } : {}
         }
       });
@@ -1176,7 +1177,7 @@
     var btn = document.getElementById('kakao-signin-btn');
     if(btn){ btn.disabled = true; }
     try{
-      var res = await sb.auth.signInWithOAuth({ provider: 'kakao', options: { redirectTo: location.href.split('#')[0], scopes: 'profile_nickname profile_image' } });
+      var res = await sb.auth.signInWithOAuth({ provider: 'kakao', options: { redirectTo: authCallbackUrl(), scopes: 'profile_nickname profile_image' } });
       if(res && res.error){
         if(hint) hint.textContent = '카카오 로그인 실패: ' + res.error.message;
         if(btn){ btn.disabled = false; }
@@ -1197,7 +1198,7 @@
     var btn = document.getElementById('google-signin-btn');
     if(btn){ btn.disabled = true; }
     try{
-      var res = await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: location.href.split('#')[0] } });
+      var res = await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: authCallbackUrl() } });
       if(res && res.error){
         if(hint) hint.textContent = '구글 로그인 실패: ' + res.error.message;
         if(btn){ btn.disabled = false; }
@@ -1225,7 +1226,7 @@
     if(btn){ btn.disabled = true; btn.textContent = isSignup ? '가입하는 중...' : '로그인하는 중...'; }
     try{
       var res = isSignup
-        ? await sb.auth.signUp({ email: email, password: password, options: { emailRedirectTo: location.href.split('#')[0] } })
+        ? await sb.auth.signUp({ email: email, password: password, options: { emailRedirectTo: authCallbackUrl() } })
         : await sb.auth.signInWithPassword({ email: email, password: password });
       if(isSignup && isRepeatedSignup(res)){
         if(hint) hint.textContent = REPEATED_SIGNUP_MSG;
@@ -1264,7 +1265,7 @@
     }
     if(btn){ btn.disabled = true; btn.textContent = '보내는 중...'; }
     try{
-      var res = await sb.auth.signInWithOtp({ email: email, options: { emailRedirectTo: location.href.split('#')[0] } });
+      var res = await sb.auth.signInWithOtp({ email: email, options: { emailRedirectTo: authCallbackUrl() } });
       if(res.error){
         if(hint) hint.textContent = '전송 실패: ' + res.error.message;
         if(btn){ btn.disabled = false; btn.textContent = '로그인 링크 받기'; }
@@ -2401,11 +2402,13 @@
 
   async function fetchEntries(){
     if(!sb) return null;
+    var requestState = state;
     try{
       var res = await sb.from('challenge_entries').select('*').eq('status', 'approved').order('created_at', {ascending:false}).limit(50);
       if(res.error || !res.data) return null;
       var merged = newestFirst(res.data.concat(await fetchOwnUnapproved('challenge_entries')));
       var mineVotes = await fetchMyReactionIds('entry_votes', 'entry_id');
+      if(state !== requestState) return null;
       if(mineVotes){ state.myVotes = mineVotes; save(); }
       var votedIds = mineVotes || state.myVotes;
       // media_url 은 DB 값을 그대로 쓰지 않는다. media_path 로 짧은 서명 URL 을 새로 받는다.
@@ -2424,14 +2427,17 @@
 
   async function fetchPosts(){
     if(!sb) return null;
+    var requestState = state;
     try{
       var res = await sb.from('community_posts').select('*').eq('status', 'approved').order('created_at', {ascending:false}).limit(50);
       if(res.error || !res.data) return null;
       var merged = newestFirst(res.data.concat(await fetchOwnUnapproved('community_posts')));
       var mineLikes = await fetchMyReactionIds('post_likes', 'post_id');
+      if(state !== requestState) return null;
       if(mineLikes){ state.myLikes = mineLikes; save(); }
       var likedIds = mineLikes || state.myLikes;
       var mineSaved = await fetchMyReactionIds('post_bookmarks', 'post_id');
+      if(state !== requestState) return null;
       if(mineSaved) savedPostIds = mineSaved;
       var rows = merged.map(function(r){
         return {
@@ -2492,14 +2498,16 @@
 
   function refreshRemote(){
     if(!sb) return;
+    var requestState = state;
     resignLocalMedia().then(function(changed){
-      if(!changed) return;
+      if(!changed || state !== requestState) return;
       var here = (location.hash || '').replace('#','');
       if(here === 'home') renderHome();
       if(here === 'community') renderCommunity();
       if(here === 'challenge') renderChallenge();
     });
     Promise.all([fetchEntries(), fetchPosts(), fetchAppliedCounts(), fetchMyApplications()]).then(function(r){
+      if(state !== requestState) return;
       var entries = r[0], posts = r[1], counts = r[2], mine = r[3];
       if(entries){
         var prevMineEntries = state.entries.filter(function(e){
@@ -2519,6 +2527,7 @@
       if(mine) state.applied = mine;
       save();
       renderAll((location.hash || '').replace('#',''));
+      if(location.hash === '#growth') renderGrowthScreen();
     });
     checkNoti();
   }
@@ -4552,7 +4561,7 @@
     }
     showScreen(id);
     renderAll(id);
-    if(id === 'home' || id === 'challenge' || id === 'benefit' || id === 'community'){
+    if(['home','challenge','benefit','community','my','growth'].indexOf(id) > -1){
       refreshRemote();
     }
     if(id === 'growth'){ renderGrowthScreen(); renderAlbum(); }
@@ -4667,6 +4676,12 @@
   // ---------- 계정 전환 시 로컬 상태 교체 ----------
   // 로그인하면 그 계정의 데이터를, 로그아웃하면 게스트 데이터를 보여준다.
   function switchStateForAccount(){
+    // 계정이 바뀌면 이전 계정의 알림·스크랩·열린 모달을 넘기지 않는다.
+    if(!document.getElementById('modal-backdrop').hidden) closeModal();
+    clearAuthDraft();
+    savedPostIds = [];
+    noti = { items: [], unseen: 0, seen: 0 };
+    renderBell();
     // 게스트로 프로필을 만든 뒤 로그인한 경우, 그 프로필을 계정으로 넘겨준다(이동).
     if(authUser && authUser.id){
       var accKey = 'dadamom_v2::' + authUser.id;
@@ -4713,8 +4728,10 @@
 
     // 서버에 저장된 프로필이 있으면 그것이 기준이다 (기기를 바꿔도 따라온다)
     if(authUser){
+      var profileUid = authUser.id;
       var wasOnboarded = !!state.onboarded;
       fetchProfileRow().then(function(row){
+        if(!authUser || authUser.id !== profileUid) return;
         var hadRow = !!(row && row.onboarded);
         if(row) applyProfileRow(row);
 
@@ -4742,6 +4759,7 @@
           showToast('등록했어요');
         }else if(hadRow){
           save();
+          if(resumeCommunityReturn()) return;
           // 다른 기기에서 가입해둔 계정으로 방금 들어왔다면 바로 홈으로
           var h = location.hash || '';
           if(!wasOnboarded && (h === '' || h === '#onboarding')){ location.hash = '#home'; }
@@ -4756,6 +4774,19 @@
 
   // 로그인 직전에 온보딩 화면에서 입력해둔 값 (로그인 후 계정으로 옮긴다)
   var pendingOnboarding = null;
+
+  function authCallbackUrl(){ return window.DadamomCommunityFlow.callbackUrl(location.href); }
+
+  // 허용된 커뮤니티 내부 경로만 복귀한다. 서버 프로필 확인/저장 후 호출한다.
+  var communityReturnStarted = false;
+  function resumeCommunityReturn(){
+    if(communityReturnStarted || !authUser || !state.onboarded) return false;
+    var target = window.DadamomCommunityFlow.returnUrl(location.href);
+    if(!target) return false;
+    communityReturnStarted = true;
+    location.replace(target);
+    return true;
+  }
 
   // ---------- 서버 프로필 (계정에 귀속되는 고객 정보) ----------
   async function fetchProfileRow(){
@@ -4781,7 +4812,8 @@
   }
 
   async function saveProfileRemote(){
-    if(!sb || !authUser) return;
+    if(!sb || !authUser) return false;
+    var profileUid = authUser.id, profileState = state;
     try{
       var res = await sb.from('profiles').upsert({
         id: authUser.id,
@@ -4795,8 +4827,11 @@
         onboarded: !!state.onboarded,
         signup_from: storedFrom()   // 행이 처음 생길 때만 남는다 (수정 때는 DB 가 옛 값 유지)
       });
-      if(res && res.error) console.warn('[다다맘] 프로필 저장 실패', res.error);
-    }catch(e){ console.warn('[다다맘] 프로필 저장 실패', e); }
+      if(res && res.error){ console.warn('[다다맘] 프로필 저장 실패', res.error); return false; }
+      if(!authUser || authUser.id !== profileUid || state !== profileState) return false;
+      resumeCommunityReturn();
+      return true;
+    }catch(e){ console.warn('[다다맘] 프로필 저장 실패', e); return false; }
   }
 
   // 홍보 효과 측정: 마지막 접속일을 하루 한 번만 남긴다 (날짜만).
@@ -4814,7 +4849,17 @@
     }catch(e){ console.warn('[다다맘] last_seen 갱신 실패', e); }
   }
   // 백그라운드에 며칠 떠 있던 앱(설치형)으로 돌아와도 '앱을 연 것'으로 친다
-  document.addEventListener('visibilitychange', function(){ if(!document.hidden){ touchLastSeen(); famPull(); } });
+  document.addEventListener('visibilitychange', function(){
+    if(!document.hidden){ touchLastSeen(); famPull(); refreshVisibleFeed(); }
+  });
+  window.addEventListener('focus', refreshVisibleFeed);
+  var lastFeedRefresh = 0;
+  function refreshVisibleFeed(){
+    if(document.hidden || Date.now() - lastFeedRefresh < 1500) return;
+    if(['#home','#community','#growth','#my'].indexOf(location.hash) === -1) return;
+    lastFeedRefresh = Date.now();
+    refreshRemote();
+  }
 
   // ---------- 로그인 게이트 ----------
   // 서버에 쓰는 동작(글쓰기·챌린지 참여·체험단 신청)은 로그인이 필요합니다.
@@ -5031,6 +5076,11 @@
   var shareTarget = null;
 
   function shareUrlFor(){ return location.href.split('#')[0]; }
+
+  function sharePostUrlFor(post){
+    if(!post || post.status !== 'approved' || post.visibility === 'private' || !sb) return '';
+    return window.DadamomCommunityFlow.postUrl(post.id, location.href);
+  }
 
   function openShareModal(payload){
     shareTarget = payload;
@@ -5287,6 +5337,18 @@
       }
       state.onboarded = true; state.browsing = false;
       save();
+      if(sb && window.DadamomCommunityFlow.returnUrl(location.href)){
+        var onboardingState = state;
+        document.getElementById('start-btn').disabled = true;
+        saveProfileRemote().then(function(ok){
+          if(state !== onboardingState) return;
+          if(!ok){
+            state.onboarded = false; save(); renderOnboarding();
+            showToast('아이 정보를 저장하지 못했어요. 다시 시도해주세요');
+          }
+        });
+        return;
+      }
       saveProfileRemote();
       location.hash = '#home';
       return;
@@ -5441,8 +5503,10 @@
       var spid = sharePostBtn.getAttribute('data-share-post');
       var spost = state.posts.filter(function(x){ return x.id === spid; })[0];
       if(spost){
+        var postUrl = sharePostUrlFor(spost);
+        if(!postUrl){ showToast('공개 승인된 글만 링크로 공유할 수 있어요'); return; }
         var excerpt = spost.text.length > 60 ? spost.text.slice(0,60) + '…' : spost.text;
-        openShareModal({ title:'다다맘', text: excerpt + ' - 다다맘에서 더 보기', url: shareUrlFor() });
+        openShareModal({ title:'다다맘', text: excerpt + ' - 다다맘에서 더 보기', url: postUrl });
       }
       return;
     }
@@ -6094,20 +6158,26 @@
 
   // ---------- 사진 카드 만들기 ----------
   function wrapCanvasText(ctx, text, x, y, maxWidth, lineHeight, maxLines){
-    var words = String(text || '').split(' ');
-    var line = '', lines = [];
-    for(var i=0;i<words.length;i++){
-      var test = line + words[i] + ' ';
-      if(ctx.measureText(test).width > maxWidth && line){
-        lines.push(line);
-        line = words[i] + ' ';
-        if(lines.length === maxLines) break;
-      } else {
-        line = test;
-      }
+    var value = String(text || '').replace(/\r\n?/g, '\n');
+    var split = function(s){
+      return typeof Intl.Segmenter === 'function'
+        ? Array.from(new Intl.Segmenter('ko', { granularity:'grapheme' }).segment(s), function(v){ return v.segment; })
+        : Array.from(s);
+    };
+    var chars = split(value), line = '', lines = [];
+    chars.forEach(function(ch){
+      if(ch === '\n'){ lines.push(line); line = ''; return; }
+      if(line && ctx.measureText(line + ch).width > maxWidth){ lines.push(line); line = ch; }
+      else line += ch;
+    });
+    if(line) lines.push(line);
+    var shown = lines.slice(0, maxLines);
+    if(lines.length > maxLines){
+      var last = split(shown[maxLines - 1] || '');
+      while(last.length && ctx.measureText(last.join('') + '…').width > maxWidth) last.pop();
+      shown[maxLines - 1] = last.join('') + '…';
     }
-    if(lines.length < maxLines && line.trim()) lines.push(line);
-    lines.slice(0, maxLines).forEach(function(l, i){ ctx.fillText(l.trim(), x, y + i * lineHeight); });
+    shown.forEach(function(l, i){ ctx.fillText(l, x, y + i * lineHeight); });
   }
 
   function buildShareCard(it){
@@ -6115,7 +6185,7 @@
     img.crossOrigin = 'anonymous';
     img.onload = function(){
       try{
-        var W = 600, boxH = 600, H = 760;
+        var W = 600, boxH = 600, H = 820;
         var canvas = document.createElement('canvas');
         canvas.width = W; canvas.height = H;
         var ctx = canvas.getContext('2d');

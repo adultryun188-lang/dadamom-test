@@ -22,14 +22,25 @@ const CARDS = [
     note: '가입 없이 먼저 둘러볼 수 있어요' },
 ];
 
-const html = (c) => `<!doctype html><html lang="ko"><meta charset="utf-8">
+// 메타 광고 소재 (docs/홍보자료/메타광고.md). A = 경품을 앞세움, B = 공감을 앞세움.
+// 피드 1080x1350, 스토리·릴스 1080x1920 (위 260px·아래 380px 는 인스타 화면 요소가 덮으니 비워 둠).
+const AD_A = { chip: '첫걸음 챌린지 · 11/30 마감', title: '첫걸음 사진<br>한 장이면 돼요', sub: '참가하면 4명 추첨, 2만 원 상당 육아용품',
+  items: ['10~24개월 아이', '사진 한 장 + 짧은 메모', '12/3 당첨 발표'], note: '가입 없이 먼저 구경할 수 있어요', foot: '다다맘 · 지금 참여하기' };
+const AD_B = { chip: '다다맘 첫걸음 챌린지', title: '우리 아이 첫걸음,<br>응원받아요', sub: '같은 개월 수 엄마·아빠들의 첫걸음 모음',
+  items: ['참가자 중 4명 추첨', '2만 원 상당 육아용품', '11/30 마감 · 12/3 발표'], note: '글과 사진은 운영자 확인 뒤 공개돼요', foot: '다다맘 · 지금 참여하기' };
+const ADS = [
+  { file: 'meta-a-feed', w: 1080, h: 1350, ...AD_A }, { file: 'meta-a-story', w: 1080, h: 1920, story: true, ...AD_A },
+  { file: 'meta-b-feed', w: 1080, h: 1350, ...AD_B }, { file: 'meta-b-story', w: 1080, h: 1920, story: true, ...AD_B },
+];
+
+const html = (c, w = 1080, h = 1350) => `<!doctype html><html lang="ko"><meta charset="utf-8">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Jua&display=swap">
 <style>
   *{box-sizing:border-box;margin:0}
-  body{width:1080px;height:1350px;overflow:hidden;font-family:'Gowun Dodum',sans-serif;color:#2B2118;
+  body{width:${w}px;height:${h}px;overflow:hidden;font-family:'Gowun Dodum',sans-serif;color:#2B2118;
     background:radial-gradient(620px 420px at 0% 0%,#FFD3BF 0%,transparent 70%),
                radial-gradient(640px 460px at 100% 100%,#FFE79E 0%,transparent 70%),#FFFBF5;}
-  .wrap{height:100%;padding:96px 96px 84px;display:flex;flex-direction:column}
+  .wrap{height:100%;padding:${c.story ? '260px 96px 380px' : '96px 96px 84px'};display:flex;flex-direction:column}
   .brand{display:flex;align-items:center;gap:20px}
   .mark{width:84px;height:84px;border-radius:28px;background:linear-gradient(140deg,#FF9A76,#FF7A59 55%,#F2A93B);
     color:#fff;font-family:'Jua';font-size:50px;display:flex;align-items:center;justify-content:center}
@@ -49,7 +60,7 @@ const html = (c) => `<!doctype html><html lang="ko"><meta charset="utf-8">
   <p class="sub">${c.sub}</p>
   ${c.items.length ? '<ul>' + c.items.map((i) => '<li>' + i + '</li>').join('') + '</ul>' : ''}
   <p class="note">${c.note}</p>
-  <p class="foot">다다맘 · 프로필 링크에서 가입 없이 둘러보기</p>
+  <p class="foot">${c.foot || '다다맘 · 프로필 링크에서 가입 없이 둘러보기'}</p>
 </div>`;
 
 (async () => {
@@ -66,6 +77,15 @@ const html = (c) => `<!doctype html><html lang="ko"><meta charset="utf-8">
     if (over) { console.log('  FAIL  card-' + (i + 1) + ' 글자가 넘침'); failed++; }
     await page.screenshot({ path: path.join(OUT, 'card-' + (i + 1) + '.png') });
     console.log('  ' + (over ? 'WARN' : 'OK  ') + '  card-' + (i + 1) + '.png');
+  }
+  for (const a of ADS) {
+    await page.setViewportSize({ width: a.w, height: a.h });
+    await page.setContent(html(a, a.w, a.h), { waitUntil: 'networkidle' });
+    await page.evaluate(() => document.fonts.ready);
+    const over = await page.evaluate((h) => document.querySelector('.wrap').scrollHeight > h, a.h);
+    if (over) { console.log('  FAIL  ' + a.file + ' 글자가 넘침'); failed++; }
+    await page.screenshot({ path: path.join(__dirname, '광고', a.file + '.png') });
+    console.log('  ' + (over ? 'WARN' : 'OK  ') + '  광고/' + a.file + '.png');
   }
 
   // 2) 포스터 QR 이 넣은 값 그대로의 주소로 읽히는지 (jsQR 로 디코드)

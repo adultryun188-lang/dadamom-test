@@ -5,7 +5,7 @@ import { chromium, devices } from 'playwright';
 
 const BASE = process.argv[2] || 'http://localhost:8000';
 const PAGES = ['community.html#/', 'community.html#/b/all', 'community.html#/challenge', 'community.html#/outing',
-  'community.html#/my', 'community.html#/write', 'community.html#/p/7bd0cf22-beb4-4263-a131-0cccf7468e4a', 'community.html#/b/notice', 'index.html#home', '404.html'];
+  'community.html#/my', 'community.html#/write', 'community.html#/p/7bd0cf22-beb4-4263-a131-0cccf7468e4a', 'community.html#/b/notice', 'index.html#home', '404.html', 'delete-account.html'];
 // 280·300px: 큰 글씨 설정을 켠 휴대폰은 같은 화면에 글자가 커서 더 좁은 화면처럼 동작한다
 const PHONES = ['Galaxy S9+', 'Pixel 7', 'iPhone SE', 'iPhone 13', '좁게 300', '좁게 280'];
 const custom = (w) => ({ ...devices['Galaxy S9+'], viewport: { width: w, height: 640 } });

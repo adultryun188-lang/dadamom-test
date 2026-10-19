@@ -1,6 +1,6 @@
-# Resend 인증 메일 발신 도메인 — DNS 추가 대기
+# Resend 인증 메일 — 도메인 인증·SMTP 저장 확인 (실제 수신 미검증)
 
-## 승인 및 현재 상태
+## 최초 등록 당시 상태 (후속 진행은 아래 기록 참조)
 
 - 사용자가 Resend 무료 플랜 사용 및 신규 가입을 완료했고, 발신 도메인 등록을 요청했다.
 - Resend 계정의 Domains에서 **auth.dadamom.co.kr**을 등록했다. 발송 지역은 화면 기본값인 Tokyo(ap-northeast-1)를 유지했다.
@@ -81,3 +81,39 @@ p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDBKm91D6b1soa7yDfMcSedMJLE4Z0Jb98JgVadoZ
 - 아직 SMTP 활성화 저장·연결 성공·실제 발송·네이버 메일 수신은 확인하지 않았다. 저장 성공과 실제 메일 도착은 별도로 검증해야 한다.
 - 회원 데이터 조회·수정·SQL·로그인·고객 메일 발송은 하지 않았다. 기본 URL·Redirect URLs·인증 확인 요구·발송 제한 등 다른 설정도 바꾸지 않았다.
 - 비밀값 입력 전 증거: C:/Users/eodls/Documents/ChatGPT/어플계획/다다맘_Supabase_SMTP_키입력전_2026-10-19.jpg
+
+## 후속: 사용자 직접 저장 후 SMTP·가입 설정 점검 (2026-10-19)
+
+### 사용자 직접 단계와 관찰 구분
+
+- 이전 키 발급 보고 후 목록을 다시 확인했을 때 당시 팀에는 Onboarding 키 1개만 표시됐다. 기존 키의 비밀값을 읽거나 삭제하지 않고 dadamom-auth-smtp / Sending access / auth.dadamom.co.kr 새 키 양식만 다시 준비했다. 최종 Add 및 비밀키 복사·입력은 사용자 직접 단계로 넘겼다.
+- 이후 사용자가 Supabase SMTP 저장 및 Templates 이동 완료를 보고했다. 어느 키 원문을 입력했는지는 조회하지 않았다. 비밀번호를 읽거나 표시 상태를 바꾸지 않았다.
+
+### 실제 대시보드에서 확인한 사항
+
+- SMTP Settings를 다시 열어 **Enable custom SMTP ON**, 미저장 변경 없음(Save changes 비활성)을 확인했다.
+- 화면에서 Sender email address no-reply@auth.dadamom.co.kr / Sender name 다다맘 / Host smtp.resend.com / Port 465 / Username resend 확인. 비밀키의 유효성이나 SMTP 인증 성공을 의미하지는 않는다.
+- Sign In / Providers: Allow new users to sign up ON, Confirm email ON, Email ENABLED. 이 설정들을 변경하지 않았다.
+- URL Configuration: Site URL https://dadamom.co.kr/index.html 및 기존 허용 복귀 주소 4개 유지 확인.
+- Rate Limits: 이메일 시간당 30통, 동일 사용자 메일 최소 간격 60초 확인. 제한값 변경 없음.
+- Confirm sign up 제목은 Confirm your email address이고 본문도 영어 기본 문구다. 링크 href는 {{ .ConfirmationURL }}로 유지되어 있다. 한글화는 적용하지 않았다.
+- SMTP 저장 확인 증거: C:/Users/eodls/Documents/ChatGPT/어플계획/다다맘_SMTP_저장확인_2026-10-19.jpg (화면에 키 원문 없음).
+
+### 아직 완료로 보고하면 안 되는 사항
+
+- 실제 SMTP 접속·인증·발송, Resend 전달 성공, 네이버/Gmail 받은편지함 도착, 인증 링크 클릭 후 복귀·로그인은 모두 미검증이다.
+- 운영 가입·resend·OTP·비밀번호 재설정 요청은 하지 않았다. 이러한 요청은 회원/토큰 상태 또는 발송 기록을 바꿀 수 있어 회원 데이터 불변 검증 수단으로 사용하지 않는다.
+- 운영 Users·Table Editor·SQL을 열지 않았고 회원 조회·변경·가입·삭제·로그인 및 고객 메일 발송을 하지 않았다. 이번 점검은 읽기 전용이며 인증 설정 추가 저장도 없다.
+
+### 다음 실제 검증 절차 (별도 승인·사용자 키 입력 필요)
+
+1. 테스트 프로젝트 srxdtddrtnhtlbbviyvs에만 별도 테스트용 발송 키/SMTP 연결을 준비하고 비밀키 입력·저장은 사용자가 직접 한다. 운영 키를 코드·문서에 복사하거나 테스트 저장소에 넣지 않는다.
+2. 테스트 전용 수신 주소로 가입 인증 메일 1건 발송 및 테스트 계정 1개 생성 허용을 먼저 확인한다. 과거 제공된 eodlsakstp45@naver.com을 이번 발송에 자동 재사용하지 않는다.
+3. 승인 후 테스트 앱에서만 가입 요청 → Resend 발송/전달 상태 → 사용자 네이버 받은편지함·스팸함 확인 → 사용자가 인증 링크 직접 클릭 → 테스트 앱 복귀 확인 순서로 검증한다. 운영 도메인으로 복귀해 운영 로그인되지 않도록 테스트 프로젝트 Site URL/allow list를 먼저 확인한다.
+4. 실제 수신 성공 전에는 일반 고객 이메일 가입 검증 완료라고 표현하지 않는다. 이 테스트가 성공해도 운영에 저장된 비밀키 자체의 SMTP 인증 성공은 별도다. 운영 발송 경로의 최종 검증에는 회원/토큰을 바꾸지 않는 지원된 전용 테스트 기능 또는 별도 명시 승인이 필요하다.
+5. 가입 인증 메일 한글화는 별도 제품 문구 승인 후 처리한다. 미적용 제안: 제목 [다다맘] 이메일 주소를 인증해 주세요 / 본문 가입 완료를 위해 아래 버튼을 눌러 이메일 주소를 인증해 주세요. / 버튼 이메일 인증하기 / 본인이 요청하지 않았다면 이 메일을 무시해 주세요. 링크는 {{ .ConfirmationURL }}를 유지한다.
+
+### 공식 참고
+
+- https://resend.com/docs/send-with-supabase-smtp — smtp.resend.com / 465 / resend / API key 설정.
+- https://supabase.com/docs/guides/auth/auth-smtp — custom SMTP 및 기본 발송 제한, 인증 메일 운용 권장 사항.

@@ -10,6 +10,9 @@ window.DADAMOM_ENV = {
   // (/auth/v1/settings 로 google:true, kakao:true 확인)
   // 이전에는 등록이 없어 버튼을 누르면 'provider is not enabled' JSON 이 그대로 떴다.
   SOCIAL_LOGIN: true,
+  // 네이버 Client 등록·테스트 Supabase custom:naver 연동 전에는 요청하지 않는다.
+  // 실제 OAuth 왕복 검증을 준비한 뒤에만 true로 바꾼다. 비밀키는 이 파일에 넣지 않는다.
+  NAVER_LOGIN: 'preview',
   SHOW_TEST_BADGE: true,
   BUILD: '__BUILD__'
 };

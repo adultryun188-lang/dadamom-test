@@ -8,6 +8,8 @@ window.DADAMOM_ENV = {
   APP_NAME: '다다맘',
   // 운영에는 카카오·구글이 연결돼 있다
   SOCIAL_LOGIN: true,
+  // 예시만 제공. 테스트 연동 완료 및 별도 운영 승인 전에는 활성화하지 않는다.
+  NAVER_LOGIN: false,
   SHOW_TEST_BADGE: false,
   BUILD: '__BUILD__'
 };

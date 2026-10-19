@@ -143,6 +143,14 @@
     font-size:15px; font-weight:700; border:1px solid var(--border); text-decoration:none; cursor:pointer; margin-top:10px;
   }
   .btn-google:disabled{ opacity:.5; cursor:not-allowed; }
+  .btn-naver{
+    display:flex; align-items:center; justify-content:center; gap:8px; width:100%;
+    min-height:50px; border-radius:18px; background:#03A94D; color:#fff;
+    font-size:19px; font-weight:700; border:none; text-decoration:none; cursor:pointer; margin-top:10px;
+  }
+  .btn-naver:disabled{ cursor:not-allowed; }
+  .btn-naver:focus-visible{ outline:3px solid var(--text); outline-offset:3px; }
+  .naver-login-note{ display:block; margin-top:6px; }
   .auth-divider{
     display:flex; align-items:center; gap:10px; margin:14px 0; color:var(--text2); font-size:12px;
   }
@@ -841,6 +849,10 @@
   var authView = 'password';
   var authMode = 'login';
 
+  function naverButtonLabelHtml(){
+    return '<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M16.273 12.845 7.376 0H0v24h7.727V11.155L16.624 24H24V0h-7.727z"/></svg>네이버로 로그인';
+  }
+
   function authModalHtml(){
     var head = '<div class="modal-head"><h3 class="display">로그인</h3><button class="modal-close" data-close-modal aria-label="닫기">✕</button></div>';
     return head + authBodyHtml();
@@ -849,15 +861,17 @@
   // 로그인 폼 본체. 모달에도 쓰고, 첫 화면에도 그대로 심는다.
   function authBodyHtml(){
     var head = '';
+    // true: 연동 검증 준비 완료, 'preview': 버튼만 표시하고 외부 인증은 차단.
+    // 설정 누락/false이면 숨긴다. 기존 카카오·구글 스위치와 독립적으로 관리한다.
+    var naverVisible = ENV.NAVER_LOGIN === true || ENV.NAVER_LOGIN === 'preview';
     // 소셜 로그인은 환경마다 제공자 설정이 다르다.
-    // 테스트 프로젝트에는 카카오·구글이 등록돼 있지 않아, 버튼을 누르면
-    // Supabase 가 'provider is not enabled' JSON 을 그대로 띄운다.
-    // 그래서 환경 설정으로 끄고, 왜 없는지 한 줄로 알려준다.
-    if(ENV.SOCIAL_LOGIN === false){
+    // 제공자가 등록되지 않은 환경에서 외부 오류 페이지로 이동하지 않도록
+    // 환경 설정으로 카카오·구글 버튼을 끌 수 있다.
+    if(ENV.SOCIAL_LOGIN === false && !naverVisible){
       var socialOff =
         '<div class="card col" style="gap:4px; padding:13px 15px; margin-bottom:14px;">' +
           '<span style="font-size:12.5px; font-weight:700;">이 환경에서는 이메일 로그인만 됩니다</span>' +
-          '<span class="helper">카카오·구글 로그인은 운영 앱에서만 연결돼 있어요.</span>' +
+          '<span class="helper">카카오·구글 로그인은 이 환경에서 꺼져 있어요.</span>' +
         '</div>';
       if(authView === 'magiclink'){
         return head + socialOff +
@@ -869,7 +883,7 @@
       return head + socialOff + authPasswordFormHtml();
     }
 
-    var social = ''+
+    var social = ENV.SOCIAL_LOGIN === false ? '' : ''+
       '<button type="button" class="btn-kakao" id="kakao-signin-btn">' +
         '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3C6.477 3 2 6.463 2 10.742c0 2.708 1.79 5.09 4.49 6.462l-1.145 4.19a.4.4 0 0 0 .61.44l4.94-3.27c.35.03.7.05 1.05.05 5.523 0 10-3.463 10-7.872C22 6.463 17.523 3 12 3z" fill="#191919"/></svg>' +
         '카카오로 로그인' +
@@ -882,8 +896,16 @@
           '<path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.1-4 5.4l6.3 5.2C40.7 36 44 30.8 44 24c0-1.2-.1-2.4-.4-3.5z"/>' +
         '</svg>' +
         '구글로 로그인' +
-      '</button>' +
-      '<div class="auth-divider">또는 이메일로</div>';
+      '</button>';
+
+    if(naverVisible){
+      var naverReady = ENV.NAVER_LOGIN === true;
+      social += '<button type="button" class="btn-naver" id="naver-signin-btn"' +
+        (naverReady ? '' : ' disabled aria-describedby="naver-login-note"') + '>' +
+        naverButtonLabelHtml() + '</button>' +
+        (naverReady ? '' : '<span class="helper naver-login-note" id="naver-login-note">연결 준비 중 · 네이버 개발자 설정 후 사용할 수 있어요.</span>');
+    }
+    social += '<div class="auth-divider">또는 이메일로</div>';
 
     if(authView === 'magiclink'){
       return head + social +
@@ -1217,6 +1239,43 @@
       if(btn){ btn.disabled = false; }
     }
   }
+
+  var naverSignInPending = false;
+  async function handleNaverSignIn(){
+    var hint = document.getElementById('auth-hint');
+    if(ENV.NAVER_LOGIN !== true){
+      if(hint) hint.textContent = '네이버 로그인 연결을 준비 중이에요. 이메일이나 다른 로그인 방법을 이용해주세요.';
+      return;
+    }
+    if(naverSignInPending) return;
+    if(!sb || !sb.auth || typeof sb.auth.signInWithOAuth !== 'function'){
+      if(hint) hint.textContent = '지금은 네이버 로그인을 사용할 수 없어요.';
+      return;
+    }
+    var btn = document.getElementById('naver-signin-btn');
+    naverSignInPending = true;
+    if(btn){ btn.disabled = true; btn.textContent = '네이버로 이동 중...'; }
+    if(hint) hint.textContent = '';
+    try{
+      // Client Secret 및 토큰 교환은 Supabase에서만 처리한다. 브라우저에 넣지 않는다.
+      // 네이버 discovery가 공개한 scope만 사용한다(email scope는 지원 목록에 없음).
+      var res = await sb.auth.signInWithOAuth({ provider: 'custom:naver', options: { redirectTo: authCallbackUrl(), scopes: 'openid profile' } });
+      if(!res || res.error) throw new Error('naver-oauth-start-failed');
+      // 인증 페이지로 이동한다. 재시도 가능한 오류 외에는 중복 요청을 허용하지 않는다.
+    }catch(e){
+      naverSignInPending = false;
+      if(hint) hint.textContent = '네이버 로그인을 시작하지 못했어요. 잠시 후 다시 시도하거나 다른 로그인 방법을 이용해주세요.';
+      if(btn){ btn.disabled = false; btn.innerHTML = naverButtonLabelHtml(); }
+    }
+  }
+
+  // 외부 인증 화면에서 뒤로 돌아온 bfcache 화면에 '이동 중' 상태를 남기지 않는다.
+  window.addEventListener('pageshow', function(e){
+    if(!e.persisted) return;
+    naverSignInPending = false;
+    var btn = document.getElementById('naver-signin-btn');
+    if(btn && ENV.NAVER_LOGIN === true){ btn.disabled = false; btn.innerHTML = naverButtonLabelHtml(); }
+  });
 
   async function handlePasswordAuth(){
     var emailEl = document.getElementById('auth-email');
@@ -5817,6 +5876,7 @@
     if(e.target.closest('#signup-submit')){ handleSignupSubmit(); return; }
     if(e.target.closest('#kakao-signin-btn')){ handleKakaoSignIn(); return; }
     if(e.target.closest('#google-signin-btn')){ handleGoogleSignIn(); return; }
+    if(e.target.closest('#naver-signin-btn')){ handleNaverSignIn(); return; }
     if(e.target.closest('#auth-submit')){ handleAuthSubmit(); return; }
     if(e.target.closest('#auth-password-submit')){ handlePasswordAuth(); return; }
 

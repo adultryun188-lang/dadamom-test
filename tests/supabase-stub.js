@@ -34,6 +34,7 @@
       select: function(){ op = op || 'select'; return api; },
       eq: function(c,v){ filters.push([c,v]); return api; },
       neq: function(c,v){ filters.push(function(r){ return r[c] !== v; }); return api; },
+      gte: function(c,v){ filters.push(function(r){ var x = Date.parse(r[c]), y = Date.parse(v); return (isNaN(x) || isNaN(y)) ? r[c] >= v : x >= y; }); return api; },
       in: function(c,vs){ filters.push(function(r){ return (vs||[]).indexOf(r[c]) > -1; }); return api; },
       or: function(){ return api; },
       order: function(){ return api; },

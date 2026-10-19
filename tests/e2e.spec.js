@@ -249,6 +249,41 @@ function check(name, ok, detail) {
     await page.close();
   }
 
+  // ------------------------------------------------- 관리자: 가입 경로 --
+  console.log(NL + '[관리자 — 가입 경로]');
+  if (!USE_STUB) console.log('  SKIP  스텁에서만 관리자·프로필을 흉내낼 수 있음');
+  else {
+    const page = await browser.newPage({ viewport: { width: 360, height: 800 } });
+    await prep(page);
+    const errs = [];
+    page.on('pageerror', e => errs.push(e.message));
+    await page.goto(BASE + '#onboarding', { waitUntil: 'load' });
+    await page.evaluate(() => {
+      const S = window.__SBSTUB, day = 864e5, iso = (ms) => new Date(ms).toISOString(), kst = (ms) => new Date(ms + 9 * 36e5).toISOString().slice(0, 10);
+      const now = Date.now();
+      S.admin = true;
+      S.store.profiles.push(
+        { id: 'u-ad', onboarded: true, nickname: '운영', kid_type: 'parenting', created_at: iso(now - 90 * day) },     // 30일 밖 → 안 셈
+        { id: 'u-q1', signup_from: 'qr-cafe1', created_at: iso(now - 3 * day), last_seen: kst(now) },              // 다시 옴 + 7일 내
+        { id: 'u-q2', signup_from: 'qr-cafe1', created_at: iso(now - 2 * day), last_seen: kst(now - 2 * day) },    // 가입한 날만
+        { id: 'u-n1', created_at: iso(now - 20 * day), last_seen: kst(now - 15 * day) });                          // 경로 없음, 다시 왔지만 7일 밖
+      S.signIn('u-ad', 'admin@dadamom.test');
+    });
+    await page.waitForTimeout(1200);
+    await page.evaluate(() => { location.hash = '#admin'; });
+    await page.waitForTimeout(2500);
+    const rows = await page.evaluate(() => {
+      const h = Array.from(document.querySelectorAll('#admin-body h2')).find(x => x.textContent.indexOf('가입 경로') === 0);
+      const t = h && h.nextElementSibling && h.nextElementSibling.querySelector('table');
+      return t ? Array.from(t.querySelectorAll('tr')).slice(1).map(tr => Array.from(tr.children).map(td => td.textContent).join('|')) : null;
+    });
+    check('경로별 가입·다시 옴·7일 내 접속', JSON.stringify(rows) === JSON.stringify(['qr-cafe1|2|1|2', '(경로 없음)|1|1|0']), JSON.stringify(rows));
+    const wide = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth);
+    check('360px 에서 넘침 없음', !wide);
+    check('JS 오류 없음', errs.length === 0, errs.join('; '));
+    await page.close();
+  }
+
   // ------------------------------------------------- 이미 가입된 이메일 --
   // Supabase 는 이미 있는 이메일이면 성공처럼 답하고(identities 빈 배열) 메일을 안 보낸다.
   console.log(NL + '[가입 — 이미 가입된 이메일]');

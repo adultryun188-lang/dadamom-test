@@ -47,3 +47,21 @@ p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDBKm91D6b1soa7yDfMcSedMJLE4Z0Jb98JgVadoZ
 
 - GitHub의 dadamom.co.kr 소유권 인증은 이미 완료됐지만, 이는 **Resend 발신 도메인 인증과 별개**다.
 - 이 문서는 발신 도메인 등록 및 사용자 DNS 추가 안내까지의 기록이다. 일반 고객 이메일 가입이 이미 가능해졌다고 해석하지 않는다.
+
+## 후속: 발신 도메인 인증 완료 (같은 날)
+
+- 사용자가 가비아에서 세 레코드를 저장한 뒤 공개 DNS를 확인했다. DKIM TXT 원문, rsend.auth CNAME, send.auth CNAME이 발급 값과 모두 일치했다. CNAME 끝의 점은 정상 FQDN 표기로 정규화해 비교했다.
+- Resend의 I've added the records를 실행했다. DNS verified 이벤트 이후 서비스 검증을 기다렸고, 최종 **STATUS Verified / Domain verified: Your domain is ready to send emails**를 확인했다.
+- Records 탭의 DKIM 및 CNAME 두 행 모두 Verified 확인. Receiving은 꺼진 상태 유지.
+- 도메인 인증 완료는 메일 발신 자격 준비를 의미하며, Supabase SMTP 연결이나 가입 메일 수신 검증 완료를 뜻하지 않는다.
+- Configuration은 읽기 전용으로 확인했다. 추적 설정은 Enable tracking metrics / Configure로 표시됐으며 별도 설정하지 않았다. TLS는 기본 Opportunistic 유지. 발송 전용 도메인 외 설정은 변경하지 않았다.
+- 인증 완료 증거: C:/Users/eodls/Documents/ChatGPT/어플계획/다다맘_Resend_발신도메인_인증완료_2026-10-19.jpg
+
+### 다음 사용자 단계: API 키 직접 발급
+
+- Resend API keys에서 기존 키를 삭제·재사용하거나 비밀값을 열지 않았다.
+- 신규 키 양식만 준비했다: 이름 dadamom-auth-smtp / Permission Sending access / Domain auth.dadamom.co.kr.
+- **Add 버튼은 누르지 않았다. 새 키 생성·조회·복사·저장하지 않았다.** 사용자가 직접 최종 발급하고 비밀값을 안전한 비밀번호 관리자 등에 보관한 뒤 발급 결과 창을 닫아야 한다.
+- 키 원문은 채팅·스크린샷·문서·저장소에 보내지 않는다. 다음 SMTP 비밀번호 입력·저장도 사용자가 직접 진행한다.
+- 양식 준비 증거(키 원문 없음): C:/Users/eodls/Documents/ChatGPT/어플계획/다다맘_Resend_API키_직접발급준비_2026-10-19.jpg
+- 현재 API 키 연결·SMTP 활성화·실제 메일 발송은 미완료이며, 회원 데이터 조회/수정·운영 로그인·SQL은 하지 않았다. 기존 사용자 변경은 보존했다.

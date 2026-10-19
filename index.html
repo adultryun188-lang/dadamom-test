@@ -780,6 +780,7 @@
   // ---------- 인증(이메일 매직링크) ----------
   var authUser = null;
   var isAdminUser = false;
+  var adminPending = 0;   // 검수 대기 글·참가작 수 (관리자만, checkNoti 가 센다)
 
   function renderAccount(){
     var statusEl = document.getElementById('account-status');
@@ -787,7 +788,10 @@
     var adminLink = document.getElementById('admin-link');
     if(statusEl){ statusEl.textContent = authUser ? (authUser.email + '(으)로 로그인됨') : '로그인하지 않았어요'; }
     if(actionBtn){ actionBtn.textContent = authUser ? '로그아웃' : '로그인'; }
-    if(adminLink){ adminLink.hidden = !isAdminUser; }
+    if(adminLink){
+      adminLink.hidden = !isAdminUser;
+      adminLink.textContent = '콘텐츠 검수 콘솔' + (isAdminUser && adminPending ? ' · 검수 대기 ' + adminPending + '건' : '');
+    }
     var delLink = document.getElementById('delete-account-link');
     if(delLink){ delLink.hidden = !authUser; }
   }
@@ -798,6 +802,7 @@
       return sb.rpc('is_admin').then(function(res){
         isAdminUser = !!(res && !res.error && res.data);
         renderAccount();
+        if(isAdminUser) checkNoti();   // 관리자 여부가 늦게 오므로, 알게 되면 바로 검수 대기를 센다
         return isAdminUser;
       }).catch(function(){ isAdminUser = false; renderAccount(); return false; });
     }catch(e){ isAdminUser = false; renderAccount(); return Promise.resolve(false); }
@@ -4971,7 +4976,7 @@
 
   function linkListHtml(rows){
     return '<div class="col" style="gap:2px; max-height:60vh; overflow:auto;">' + rows.map(function(r){
-      return '<a href="./community.html#/p/' + encodeURIComponent(r.id) + '" style="display:flex; gap:10px; padding:11px 8px; border-radius:12px; text-decoration:none; color:var(--text); font-size:13.5px; line-height:1.55;' + (r.isNew ? ' background:var(--accent-soft);' : '') + '">' +
+      return '<a href="' + (r.href || './community.html#/p/' + encodeURIComponent(r.id)) + '"' + (r.attr || '') + ' style="display:flex; gap:10px; padding:11px 8px; border-radius:12px; text-decoration:none; color:var(--text); font-size:13.5px; line-height:1.55;' + (r.isNew ? ' background:var(--accent-soft);' : '') + '">' +
         (r.icon ? '<span aria-hidden="true">' + r.icon + '</span>' : '') +
         '<span style="flex:1; min-width:0;">' + r.html + '<span class="helper" style="display:block;">' + escapeHtml(r.meta) + '</span></span></a>';
     }).join('') + '</div>';
@@ -5036,6 +5041,16 @@
           items.push({ kind:'cmt', id:c.post_id, title:titles[c.post_id] || '', who:c.author, text:c.content, at:new Date(c.created_at).getTime() });
         });
       }
+      // 관리자: 검수 대기는 처리할 때까지 매번 새 알림으로 띄운다 (2026-10-19 운영에 2건이 아무도 모르게 쌓여 있었다)
+      adminPending = 0;
+      if(isAdminUser){
+        var pc = await sb.from('community_posts').select('id', { count:'exact', head:true }).eq('status', 'pending');
+        var ec = await sb.from('challenge_entries').select('id', { count:'exact', head:true }).eq('status', 'pending');
+        if(!authUser || authUser.id !== uid) return;
+        adminPending = (pc.count || 0) + (ec.count || 0);
+        if(adminPending) items.push({ kind:'review', n: adminPending, at: now });
+        renderAccount();
+      }
       items.sort(function(a, b){ return b.at - a.at; });
       // 처음 켠 기기에서는 지난 댓글을 전부 '새 알림'으로 쏟아내지 않는다
       if(first){ seen = now; notiWrite('seen', seen); }
@@ -5060,6 +5075,8 @@
     var head = '<div class="modal-head"><h3 class="display">알림</h3><button class="modal-close" data-close-modal aria-label="닫기">✕</button></div>';
     openModal(head + (noti.items.length
       ? linkListHtml(noti.items.map(function(i){
+          if(i.kind === 'review') return { href:'#admin', attr:' data-close-modal', isNew:true, icon:'📝', meta:'관리자 화면에서 승인·반려해 주세요',
+            html:'<b>검수 대기 ' + i.n + '건</b>이 있어요' };
           return {
             id:i.id, isNew: i.at > seen, icon: i.kind === 'ok' ? '✅' : '💬', meta: timeAgo(new Date(i.at).toISOString()),
             html: i.kind === 'ok'

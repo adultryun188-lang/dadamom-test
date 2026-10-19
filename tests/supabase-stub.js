@@ -16,7 +16,7 @@
   function tbl(name){
     var rows = store[name] || (store[name] = []);
     var filters = [];
-    var op = null, payload = null;
+    var op = null, payload = null, countOpt = false;
     function match(r){ return filters.every(function(f){ return typeof f === 'function' ? f(r) : r[f[0]] === f[1]; }); }
     function run(){
       if(op === 'update'){
@@ -28,10 +28,11 @@
         rows.length = 0; Array.prototype.push.apply(rows, keep);
         return { data:null, error:null };
       }
-      return { data: rows.filter(match), error: null };
+      var hit = rows.filter(match);
+      return { data: hit, error: null, count: countOpt ? hit.length : null };
     }
     var api = {
-      select: function(){ op = op || 'select'; return api; },
+      select: function(c, o){ op = op || 'select'; if(o && o.count) countOpt = true; return api; },
       eq: function(c,v){ filters.push([c,v]); return api; },
       neq: function(c,v){ filters.push(function(r){ return r[c] !== v; }); return api; },
       gte: function(c,v){ filters.push(function(r){ var x = Date.parse(r[c]), y = Date.parse(v); return (isNaN(x) || isNaN(y)) ? r[c] >= v : x >= y; }); return api; },

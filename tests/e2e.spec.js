@@ -291,6 +291,26 @@ function check(name, ok, detail) {
     check('경로별 가입·다시 옴·7일 내 접속', JSON.stringify(rows) === JSON.stringify(['qr-cafe1|2|1|2', '(경로 없음)|1|1|0']), JSON.stringify(rows));
     const wide = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth);
     check('360px 에서 넘침 없음', !wide);
+
+    // 검수 대기 알림: 관리자에게만, 처리할 때까지
+    await page.evaluate(() => {
+      window.__SBSTUB.store.community_posts.push({ id: 'p-pend', owner_id: 'u-q1', author: '대기', text: '검수 기다리는 글', status: 'pending', created_at: new Date().toISOString() });
+      location.hash = '#home';
+    });
+    await page.waitForTimeout(2000);
+    const rv = await page.evaluate(() => ({ n: document.getElementById('home-bell-n').hidden ? '' : document.getElementById('home-bell-n').textContent,
+      link: document.getElementById('admin-link').textContent }));
+    check('관리자 종에 검수 대기 표시', rv.n !== '', JSON.stringify(rv));
+    check('MY 관리자 링크에 대기 수', rv.link.indexOf('검수 대기 1건') > -1, rv.link);
+    await page.click('#home-bell');
+    await page.waitForTimeout(300);
+    check('알림 창에 검수 대기 줄 → 관리자 화면', await page.evaluate(() => {
+      const a = Array.from(document.querySelectorAll('#modal-card a')).find(x => x.textContent.indexOf('검수 대기 1건') > -1);
+      return !!a && a.getAttribute('href') === '#admin';
+    }));
+    await page.click('#modal-card a[href="#admin"]');
+    await page.waitForTimeout(800);
+    check('누르면 창이 닫히고 관리자 화면', await page.evaluate(() => document.getElementById('modal-backdrop').hidden && location.hash === '#admin'));
     check('JS 오류 없음', errs.length === 0, errs.join('; '));
     await page.close();
   }

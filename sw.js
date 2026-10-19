@@ -59,6 +59,8 @@ self.addEventListener('fetch', (e) => {
   const isDoc = req.mode === 'navigate'
              || url.pathname.endsWith('/')
              || url.pathname.endsWith('index.html')
+             // 앱 코드(js)도 새로 받는다. cache-first 면 SW 버전(v)이 고정이라 index.html 만 새것이 되고 js 는 옛것으로 남는다.
+             || url.pathname.endsWith('.js')
              || url.pathname.endsWith('env.js');
 
   if (isDoc) {

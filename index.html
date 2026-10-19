@@ -485,6 +485,8 @@
         <span class="eyebrow" id="challenge-eyebrow">D-6 · 10~24개월 추천</span>
         <h1 class="display" style="font-size:24px;">첫걸음 챌린지</h1>
         <p style="font-size:13.5px; color:var(--text2); line-height:1.6;">걸음마 사진 한 장과 짧은 메모로 참여합니다. 10~24개월 아이가 대상입니다.</p>
+        <!-- shortcut: 경품 문구에 날짜를 직접 썼다. CHALLENGE_DEADLINE 을 바꾸면 여기(와 community.html)도 같이 고친다 -->
+        <p id="challenge-prize" style="font-size:13.5px; line-height:1.6; word-break:keep-all; background:var(--accent-soft); border-radius:14px; padding:12px 14px; margin:0;"><b>참가하면 추첨으로 4명에게 2만 원 상당 육아용품을 드려요.</b><br><span style="color:var(--text2);">11/30 마감 · 12/3 발표 · 당첨되면 가입한 이메일로 연락드려요</span></p>
       </div>
       <div class="row" style="align-items:center; justify-content:space-between; padding-top:4px;">
         <h2 class="display" style="font-size:16px;">참가작 <span id="entry-count" aria-live="polite">0</span>개</h2>
@@ -4544,8 +4546,8 @@
   function route(){
     var id = (location.hash || '').replace('#', '');
     var valid = ['onboarding','home','challenge','benefit','community','outing','growth','my','admin','policy','terms'];
-    // 로그인 없이 볼 수 있는 화면: 커뮤니티 글 열람과 약관뿐
-    var guestPages = ['onboarding','community','policy','terms'];
+    // 로그인 없이 볼 수 있는 화면: 커뮤니티 글, 챌린지·혜택(광고가 데려오는 곳, 참가·신청은 로그인 필요), 약관
+    var guestPages = ['onboarding','community','challenge','benefit','policy','terms'];
     if(valid.indexOf(id) === -1){
       location.hash = '#' + (state.onboarded ? 'home' : 'onboarding');
       return;
@@ -4874,6 +4876,8 @@
   function requireLogin(what){
     if(!sb) return true;                 // 오프라인/미설정 모드는 기존대로 로컬 저장
     if(authUser) return true;
+    var keep = window.DadamomCommunityFlow.keepReturn(location.href);   // 가입 뒤 이 화면으로
+    if(keep) history.replaceState(null, '', keep);
     openModal(loginRequiredHtml(what));
     return false;
   }
@@ -5436,7 +5440,7 @@
       var vid = vote.getAttribute('data-vote');
       var entry = state.entries.filter(function(x){ return x.id === vid; })[0];
       if(entry){
-        if(sb && !authUser){ showToast('로그인하면 응원할 수 있어요'); return; }
+        if(!requireLogin('응원')) return;
         // 즉시 반응 UI 는 그대로 두고, 서버가 거절하면 아래에서 되돌린다.
         var wasVoted = entry.liked, wasVotes = entry.votes;
         entry.liked = !entry.liked;

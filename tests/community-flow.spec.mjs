@@ -30,6 +30,11 @@ check('유효하지 않은 출처 제거', !new URL(flow.postUrl('a', base + '?f
 check('중복 출처 제거', !new URL(flow.postUrl('a', base + '?from=one&from=two')).search);
 check('인증 code/token 전달 금지', !/code=|token=/.test(flow.callbackUrl(base + 'index.html?code=secret&token=secret&returnTo=%23%2Fp%2Fa')));
 check('글쓰기 복귀 허용', flow.returnUrl(base + 'index.html?returnTo=%23%2Fwrite').endsWith('community.html#/write'));
+check('앱 챌린지 복귀 허용', flow.returnUrl(base + 'index.html?returnTo=%23challenge&from=meta-a') === base + 'index.html?from=meta-a#challenge');
+check('앱 혜택 복귀 허용', flow.returnUrl(base + 'index.html?returnTo=%23benefit') === base + 'index.html#benefit');
+check('그 밖의 앱 화면 복귀 차단', flow.returnUrl(base + 'index.html?returnTo=%23home') === '' && flow.returnUrl(base + 'index.html?returnTo=%23admin') === '');
+check('챌린지에서 복귀 표시 남김', new URL(flow.keepReturn(base + 'index.html?from=meta-a#challenge')).searchParams.get('returnTo') === '#challenge');
+check('다른 화면은 복귀 표시 안 남김', flow.keepReturn(base + 'index.html#home') === '' && flow.keepReturn(base + 'community.html#/p/a') === '');
 for(const id of ['', '../a', 'a/b', 'a?b', 'a#b']) check('잘못된 글 ID 차단 ' + id, !flow.postUrl(id, base));
 
 // 캔버스 줄바꿈은 실제 소스 함수를 읽어 경계값을 검증한다.

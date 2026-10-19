@@ -3,8 +3,10 @@
   'use strict';
   var FROM_RE = /^[A-Za-z0-9-]{1,32}$/;
   var POST_RE = /^[A-Za-z0-9-]{1,80}$/;
+  // 가입 뒤 돌아갈 수 있는 곳: 커뮤니티 글·글쓰기, 그리고 광고가 데려오는 앱의 챌린지·혜택(체험단) 화면
+  var APP_ROUTES = ['#challenge', '#benefit'];
   function returnRoute(value){
-    return typeof value === 'string' && (/^#\/p\/[A-Za-z0-9-]{1,80}$/.test(value) || value === '#/write') ? value : '';
+    return typeof value === 'string' && (/^#\/p\/[A-Za-z0-9-]{1,80}$/.test(value) || value === '#/write' || APP_ROUTES.indexOf(value) > -1) ? value : '';
   }
   function campaign(source, target){
     var values = source.searchParams.getAll('from');
@@ -37,12 +39,19 @@
     var source = new URL(href), values = source.searchParams.getAll('returnTo');
     var route = values.length === 1 ? returnRoute(values[0]) : '';
     if(!route) return '';
-    var target = new URL('./community.html', source);
+    var target = new URL(APP_ROUTES.indexOf(route) > -1 ? './index.html' : './community.html', source);
     campaign(source, target);
     target.hash = route;
     return target.href;
   }
-  var api = { postUrl:postUrl, authEntry:authEntry, callbackUrl:callbackUrl, returnUrl:returnUrl };
+  // 앱의 챌린지·혜택 화면에서 로그인을 요구할 때, 가입 뒤 이 화면으로 돌아오도록 주소에 남긴다. 해당 없으면 ''.
+  function keepReturn(href){
+    var url = new URL(href), route = APP_ROUTES.indexOf(url.hash) > -1 ? url.hash : '';
+    if(!route) return '';
+    url.searchParams.set('returnTo', route);
+    return url.href;
+  }
+  var api = { postUrl:postUrl, authEntry:authEntry, callbackUrl:callbackUrl, returnUrl:returnUrl, keepReturn:keepReturn };
   if(typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.DadamomCommunityFlow = api;
 })(typeof window !== 'undefined' ? window : globalThis);

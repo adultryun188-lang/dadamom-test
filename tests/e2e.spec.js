@@ -114,10 +114,16 @@ function check(name, ok, detail) {
     await page.goto(BASE, { waitUntil: 'load' });
     await page.waitForTimeout(3000);
     const cur = () => page.evaluate(() => Array.from(document.querySelectorAll('.screen')).filter(s => !s.hidden).map(s => s.id)[0]);
-    for (const h of ['home', 'challenge', 'benefit', 'outing', 'growth', 'my']) {
+    for (const h of ['home', 'outing', 'growth', 'my']) {
       await page.evaluate(x => { location.hash = '#' + x; }, h);
       await page.waitForTimeout(450);
       check('#' + h + ' 차단', (await cur()) === 'screen-onboarding');
+    }
+    // 광고가 데려오는 곳이라 비로그인도 본다 (참가·신청·응원은 로그인 필요)
+    for (const h of ['challenge', 'benefit']) {
+      await page.evaluate(x => { location.hash = '#' + x; }, h);
+      await page.waitForTimeout(600);
+      check('#' + h + ' 비로그인 열람 허용', (await cur()) === 'screen-' + h);
     }
     await page.evaluate(() => { location.hash = '#community'; });
     await page.waitForTimeout(1800);
@@ -311,6 +317,45 @@ function check(name, ok, detail) {
     await page.click('#modal-card a[href="#admin"]');
     await page.waitForTimeout(800);
     check('누르면 창이 닫히고 관리자 화면', await page.evaluate(() => document.getElementById('modal-backdrop').hidden && location.hash === '#admin'));
+    check('JS 오류 없음', errs.length === 0, errs.join('; '));
+    await page.close();
+  }
+
+  // ------------------------------------------------- 광고 착지: 챌린지 --
+  // 광고 → 비로그인으로 챌린지를 봄 → 참가를 누르면 로그인 안내 + 주소에 returnTo → 로그인 뒤 챌린지로 돌아옴
+  console.log(NL + '[광고 착지 — 챌린지·혜택]');
+  if (!USE_STUB) console.log('  SKIP  스텁에서만 로그인을 흉내낼 수 있음 (배포본은 손으로 확인)');
+  else {
+    const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+    await prep(page);
+    const errs = [];
+    page.on('pageerror', e => errs.push(e.message));
+    const cur = () => page.evaluate(() => Array.from(document.querySelectorAll('.screen')).filter(s => !s.hidden).map(s => s.id)[0]);
+
+    await page.goto(BASE + '?from=meta-test#challenge', { waitUntil: 'load' });
+    await page.waitForTimeout(2500);
+    check('광고 주소로 챌린지가 바로 열림', (await cur()) === 'screen-challenge', await cur());
+    const prize = await page.evaluate(() => (document.getElementById('challenge-prize') || {}).textContent || '');
+    check('경품 안내가 보임', prize.includes('4명') && prize.includes('12/3'), prize);
+
+    await page.click('[data-open-challenge-modal]');
+    await page.waitForTimeout(500);
+    const after = await page.evaluate(() => ({ modal: document.body.innerText.includes('로그인이 필요해요'), url: location.href }));
+    check('참가를 누르면 로그인 안내', after.modal);
+    check('주소에 돌아올 화면과 경로가 남음', /returnTo=%23challenge/.test(after.url) && /from=meta-test/.test(after.url), after.url);
+
+    // 이미 아이 정보까지 마친 계정으로 로그인하면 챌린지로 돌아온다
+    await page.evaluate(() => {
+      window.__SBSTUB.store.profiles.push({ id: 'u-ad', onboarded: true, nickname: '광고', kid_type: 'parenting', birth_month: '2025-06', region: '인천' });
+      window.__SBSTUB.signIn('u-ad', 'ad@dadamom.test');
+    });
+    await page.waitForTimeout(3000);
+    const back = await page.evaluate(() => ({ hash: location.hash, search: location.search }));
+    check('로그인 뒤 챌린지로 복귀', back.hash === '#challenge' && !/returnTo/.test(back.search) && /from=meta-test/.test(back.search), JSON.stringify(back));
+
+    await page.goto(BASE + '?from=meta-test#benefit', { waitUntil: 'load' });
+    await page.waitForTimeout(2500);
+    check('광고 주소로 혜택(체험단)이 바로 열림', (await cur()) === 'screen-benefit', await cur());
     check('JS 오류 없음', errs.length === 0, errs.join('; '));
     await page.close();
   }

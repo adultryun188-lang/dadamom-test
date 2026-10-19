@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>다다맘 QR 포스터</title>
+<!--
+  A4 한 장짜리 QR 포스터. 브라우저로 열고 위 칸에 경로 코드·글 ID 를 넣은 뒤 인쇄(Ctrl+P)합니다.
+  주소 뒤에 ?from=nd-cafe1&post=<글 ID> 를 붙여 열어도 됩니다.
+  QR 은 운영 웹 커뮤니티의 그 글로 갑니다: community.html?from=<코드>#/p/<글 ID>
+  글 ID 를 비우면 커뮤니티 첫 화면으로 갑니다 (가입 경로는 그대로 남음).
+-->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Jua&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  :root{ --bg:#FFFBF5; --text:#2B2118; --text2:#6E5F50; --accent:#FF7A59; --accent-strong:#C94318; --border:#F0E4D6; }
+  *{ box-sizing:border-box; margin:0; }
+  body{ background:#EDE6DD; color:var(--text); font-family:'Gowun Dodum',sans-serif; }
+  .controls{ max-width:210mm; margin:16px auto; padding:14px 16px; background:#fff; border-radius:14px;
+    display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end; font-size:14px; }
+  .controls label{ display:flex; flex-direction:column; gap:4px; flex:1 1 180px; }
+  .controls input{ font:inherit; padding:9px 11px; border:1px solid var(--border); border-radius:10px; }
+  .controls button{ font:inherit; font-weight:700; padding:10px 18px; border:0; border-radius:10px; background:var(--accent-strong); color:#fff; cursor:pointer; }
+  .warn{ flex-basis:100%; color:var(--accent-strong); font-size:13px; min-height:1em; }
+  .page{ width:210mm; height:297mm; margin:0 auto 24px; background:var(--bg); position:relative; overflow:hidden;
+    padding:26mm 22mm 18mm; display:flex; flex-direction:column; align-items:center; text-align:center;
+    background:radial-gradient(120mm 80mm at 0% 0%,#FFD3BF 0%,transparent 70%),
+               radial-gradient(120mm 90mm at 100% 100%,#FFE79E 0%,transparent 70%), var(--bg); }
+  .brand{ display:flex; align-items:center; gap:5mm; }
+  .mark{ width:20mm; height:20mm; border-radius:6.5mm; background:linear-gradient(140deg,#FF9A76,#FF7A59 55%,#F2A93B);
+    color:#fff; font-family:'Jua'; font-size:12mm; display:flex; align-items:center; justify-content:center; }
+  .name{ font-family:'Jua'; font-size:15mm; color:var(--accent-strong); }
+  .kicker{ margin-top:14mm; font-size:7mm; color:var(--text2); }
+  h1{ margin-top:4mm; font-family:'Jua'; font-weight:400; font-size:17mm; line-height:1.15; color:var(--text); word-break:keep-all; }
+  .qr{ margin-top:12mm; padding:6mm; background:#fff; border-radius:8mm; box-shadow:0 3mm 8mm rgba(120,60,20,.10); }
+  .qr #qr img, .qr #qr canvas{ display:block; width:70mm !important; height:70mm !important; }
+  .scan{ margin-top:7mm; font-family:'Jua'; font-size:9mm; color:var(--accent-strong); }
+  ul{ list-style:none; margin-top:9mm; padding:0; font-size:6.2mm; line-height:1.75; }
+  .foot{ margin-top:auto; padding-top:6mm; font-size:4.6mm; color:var(--text2); line-height:1.6; }
+  .url{ font-size:3.2mm; color:#9A8B7C; word-break:break-all; margin-top:2mm; }
+  @page{ size:A4; margin:0; }
+  @media print{ body{ background:none; } .controls{ display:none; } .page{ margin:0; } }
+</style>
+</head>
+<body>
+<div class="controls">
+  <label>경로 코드 (영문·숫자·하이픈 32자 이내)<input id="from" value="nd-cafe1" autocomplete="off"></label>
+  <label>글 ID (비우면 커뮤니티 첫 화면)<input id="post" placeholder="예: ccaccd16-3e5e-…" autocomplete="off"></label>
+  <button type="button" onclick="window.print()">인쇄</button>
+  <span class="warn" id="warn"></span>
+</div>
+
+<div class="page">
+  <div class="brand"><div class="mark">다</div><div class="name">다다맘</div></div>
+  <p class="kicker">같은 개월 수 엄마·아빠의 작은 자랑</p>
+  <h1>오늘은 나도<br>자랑할래</h1>
+  <div class="qr"><div id="qr"></div></div>
+  <p class="scan">QR 찍고 가입 없이 읽어 보기</p>
+  <ul>
+    <li>오늘 아이 때문에 웃었던 순간</li>
+    <li>혼자 해 보려던 작은 시도</li>
+    <li>부모인 내가 오늘 잘한 일</li>
+  </ul>
+  <div class="foot">
+    광고 없음 · 사진 없이 글만 써도 참여 · 글과 사진은 운영자 확인 뒤 공개<br>
+    다다란 · ryundaen@gmail.com
+    <p class="url" id="url"></p>
+  </div>
+</div>
+
+<script>
+  var BASE = 'https://adultryun188-lang.github.io/dadamom-app/community.html';
+  var FROM_RE = /^[A-Za-z0-9-]{1,32}$/, POST_RE = /^[A-Za-z0-9-]{1,80}$/;  // 앱(community-flow.js)과 같은 규칙
+  var q = new URLSearchParams(location.search);
+  var fromEl = document.getElementById('from'), postEl = document.getElementById('post');
+  if(q.get('from')) fromEl.value = q.get('from');
+  if(q.get('post')) postEl.value = q.get('post');
+  var qr = new QRCode(document.getElementById('qr'), { text: BASE, width: 600, height: 600, correctLevel: QRCode.CorrectLevel.M });
+
+  function update(){
+    var from = fromEl.value.trim(), post = postEl.value.trim(), warn = [];
+    if(!FROM_RE.test(from)){ warn.push('경로 코드가 규칙에 맞지 않아 가입 경로가 남지 않습니다.'); }
+    if(post && !POST_RE.test(post)){ warn.push('글 ID 모양이 이상합니다.'); post = ''; }
+    var url = BASE + (FROM_RE.test(from) ? '?from=' + from : '') + (post ? '#/p/' + post : '');
+    qr.makeCode(url);
+    document.getElementById('url').textContent = url;
+    document.getElementById('warn').textContent = warn.join(' ');
+  }
+  fromEl.addEventListener('input', update);
+  postEl.addEventListener('input', update);
+  update();
+</script>
+</body>
+</html>

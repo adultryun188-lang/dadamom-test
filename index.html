@@ -2856,7 +2856,8 @@
     var cSub = cClosed ? '이번 챌린지는 마감됐어요'
              : (cIneligible ? '육아 단계부터 참여할 수 있어요'
                             : '10~24개월 · 지금 ' + state.entries.length + '명 참여 중');
-    rows.push(
+    // 마감된 챌린지는 홈에 띄우지 않는다 (챌린지 탭에서는 결과를 계속 볼 수 있다)
+    if(!cClosed) rows.push(
       '<a href="#challenge" class="mission-row">' +
         '<div class="mission-ico" style="background:var(--chip-b);" aria-hidden="true">👣</div>' +
         '<div class="mission-main">' +
@@ -3021,7 +3022,9 @@
     document.getElementById('home-chip').textContent = profileSummary();
     renderBell();
     document.getElementById('home-status').innerHTML = homeStatusHtml();
-    document.getElementById('home-missions').innerHTML = homeMissionsHtml();
+    var missionsEl = document.getElementById('home-missions');
+    missionsEl.innerHTML = homeMissionsHtml();
+    missionsEl.parentElement.hidden = !missionsEl.innerHTML;   // 미션이 하나도 없으면 '오늘의 미션' 칸째 숨김
     document.getElementById('home-feedbar').innerHTML = homeFeedBarHtml();
     document.getElementById('home-feed').innerHTML = homeFeedHtml();
   }

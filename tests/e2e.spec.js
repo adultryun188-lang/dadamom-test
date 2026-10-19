@@ -206,6 +206,10 @@ function check(name, ok, detail) {
     const bell = await page.evaluate(() => ({ hidden: document.getElementById('home-bell').hidden, n: document.getElementById('home-bell-n').hidden ? '' : document.getElementById('home-bell-n').textContent }));
     check('로그인하면 홈에 알림 종', !bell.hidden);
     check('새 댓글 1개 표시', bell.n === '1', JSON.stringify(bell));
+    check('마감된 챌린지는 홈에 없음 (비면 칸째 숨김)', await page.evaluate(() => {
+      const m = document.getElementById('home-missions');
+      return !m.innerText.includes('마감됐어요') && (m.innerHTML !== '' || m.parentElement.hidden);
+    }));
     check('남의 글에만 스크랩 버튼', await page.evaluate(() =>
       !!document.querySelector('#home-feed [data-save-post="p-other"]') && !document.querySelector('[data-save-post="p-mine"]')));
 

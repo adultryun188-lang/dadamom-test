@@ -65,3 +65,19 @@ p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDBKm91D6b1soa7yDfMcSedMJLE4Z0Jb98JgVadoZ
 - 키 원문은 채팅·스크린샷·문서·저장소에 보내지 않는다. 다음 SMTP 비밀번호 입력·저장도 사용자가 직접 진행한다.
 - 양식 준비 증거(키 원문 없음): C:/Users/eodls/Documents/ChatGPT/어플계획/다다맘_Resend_API키_직접발급준비_2026-10-19.jpg
 - 현재 API 키 연결·SMTP 활성화·실제 메일 발송은 미완료이며, 회원 데이터 조회/수정·운영 로그인·SQL은 하지 않았다. 기존 사용자 변경은 보존했다.
+
+## 후속: 사용자 키 발급 보고 및 SMTP 양식 준비 (같은 날)
+
+- 사용자가 API 키 발급·안전 보관·결과 창 닫기 완료를 보고했다. 에이전트는 키 원문을 요청·조회·복사하지 않았다.
+- 사용자 요청에 따라 운영 Supabase의 Authentication > Emails > SMTP Settings에서 **저장 전 양식만 준비**했다. 서버의 기존 custom SMTP 스위치는 꺼짐으로 확인한 뒤, 입력 항목을 표시하도록 화면의 스위치를 켰다. 최종 Save changes는 누르지 않았다.
+- 준비한 비밀값 아닌 항목:
+  - Sender email address: no-reply@auth.dadamom.co.kr
+  - Sender name: 다다맘
+  - Host: smtp.resend.com
+  - Port number: 465 (기본값 유지)
+  - Username: resend
+- Password는 비워뒀다. **사용자가 보관한 Resend API 키를 Password에 직접 입력하고 Save changes까지 직접 실행**해야 한다. 다다맘 로그인 비밀번호나 Supabase 계정 비밀번호를 넣는 칸이 아니다.
+- 사용자에게 저장 성공 후 Templates 탭으로 이동해 비밀값 입력 화면을 벗어난 다음 완료를 알려달라고 안내한다. 입력된 키나 화면을 채팅으로 보내지 않는다.
+- 아직 SMTP 활성화 저장·연결 성공·실제 발송·네이버 메일 수신은 확인하지 않았다. 저장 성공과 실제 메일 도착은 별도로 검증해야 한다.
+- 회원 데이터 조회·수정·SQL·로그인·고객 메일 발송은 하지 않았다. 기본 URL·Redirect URLs·인증 확인 요구·발송 제한 등 다른 설정도 바꾸지 않았다.
+- 비밀값 입력 전 증거: C:/Users/eodls/Documents/ChatGPT/어플계획/다다맘_Supabase_SMTP_키입력전_2026-10-19.jpg

@@ -17,7 +17,7 @@
     var rows = store[name] || (store[name] = []);
     var filters = [];
     var op = null, payload = null;
-    function match(r){ return filters.every(function(f){ return r[f[0]] === f[1]; }); }
+    function match(r){ return filters.every(function(f){ return typeof f === 'function' ? f(r) : r[f[0]] === f[1]; }); }
     function run(){
       if(op === 'update'){
         rows.filter(match).forEach(function(r){ Object.assign(r, payload); });
@@ -33,6 +33,8 @@
     var api = {
       select: function(){ op = op || 'select'; return api; },
       eq: function(c,v){ filters.push([c,v]); return api; },
+      neq: function(c,v){ filters.push(function(r){ return r[c] !== v; }); return api; },
+      in: function(c,vs){ filters.push(function(r){ return (vs||[]).indexOf(r[c]) > -1; }); return api; },
       or: function(){ return api; },
       order: function(){ return api; },
       limit: function(){ return api; },

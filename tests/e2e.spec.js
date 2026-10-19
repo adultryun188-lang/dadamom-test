@@ -177,6 +177,78 @@ function check(name, ok, detail) {
     await page.close();
   }
 
+  // ------------------------------------------------- 스크랩·알림 --
+  // 스크랩 버튼은 홈 피드와 커뮤니티 양쪽에 있다. 한쪽만 다시 그리면 눌러도 안 바뀐 것처럼 보인다 (CLAUDE.md 8절).
+  console.log(NL + '[스크랩·알림]');
+  if (!USE_STUB) console.log('  SKIP  스텁에서만 데이터를 미리 넣을 수 있음 (배포본은 손으로 확인)');
+  else {
+    const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+    await prep(page);
+    const errs = [];
+    page.on('pageerror', e => errs.push(e.message));
+    await page.goto(BASE + '#onboarding', { waitUntil: 'load' });
+    await page.evaluate(() => {
+      const S = window.__SBSTUB.store, now = new Date().toISOString();
+      S.profiles.push({ id: 'u-sv', onboarded: true, nickname: '스크랩', kid_type: 'parenting', birth_month: '2026-01', region: '서울' });
+      S.community_posts.push(
+        { id: 'p-mine', owner_id: 'u-sv', author: '스크랩', text: '내 글 제목', status: 'approved', likes: 0, comments: 1, created_at: now },
+        { id: 'p-other', owner_id: 'u-ot', author: '남', text: '[질문] 남의 글 제목\n본문', status: 'approved', likes: 0, comments: 0, created_at: now });
+      S.post_comments.push({ id: 'c1', post_id: 'p-mine', owner_id: 'u-ot', author: '남', content: '댓글 알림 확인', created_at: now });
+      localStorage.setItem('dadamom_noti_seen::u-sv', '1');   // 예전에 한 번 봤다 → 위 댓글은 새 알림
+      window.__SBSTUB.signIn('u-sv', 'sv@dadamom.test');
+    });
+    await page.waitForTimeout(1500);
+    await page.evaluate(() => { location.hash = '#home'; });
+    await page.waitForTimeout(1500);
+    const st = (sel) => page.evaluate((s) => { const e = document.querySelector(s); return e ? e.getAttribute('aria-pressed') : null; }, sel);
+    const marks = () => page.evaluate(() => window.__SBSTUB.store.post_bookmarks.filter(r => r.post_id === 'p-other' && r.user_id === 'u-sv').length);
+
+    const bell = await page.evaluate(() => ({ hidden: document.getElementById('home-bell').hidden, n: document.getElementById('home-bell-n').hidden ? '' : document.getElementById('home-bell-n').textContent }));
+    check('로그인하면 홈에 알림 종', !bell.hidden);
+    check('새 댓글 1개 표시', bell.n === '1', JSON.stringify(bell));
+    check('남의 글에만 스크랩 버튼', await page.evaluate(() =>
+      !!document.querySelector('#home-feed [data-save-post="p-other"]') && !document.querySelector('[data-save-post="p-mine"]')));
+
+    await page.click('#home-feed [data-save-post="p-other"]');
+    await page.waitForTimeout(400);
+    check('홈에서 스크랩 → 서버 저장', (await marks()) === 1);
+    check('홈에서 스크랩 → 홈 버튼이 눌림으로', (await st('#home-feed [data-save-post="p-other"]')) === 'true');
+
+    await page.evaluate(() => { location.hash = '#community'; });
+    await page.waitForTimeout(1200);
+    check('커뮤니티에서도 눌림으로 보임', (await st('#screen-community [data-save-post="p-other"]')) === 'true');
+    await page.click('#screen-community [data-save-post="p-other"]');
+    await page.waitForTimeout(400);
+    check('커뮤니티에서 취소 → 서버에서 지움', (await marks()) === 0);
+    check('커뮤니티에서 취소 → 버튼이 풀림', (await st('#screen-community [data-save-post="p-other"]')) === 'false');
+
+    await page.click('#screen-community [data-save-post="p-other"]');
+    await page.waitForTimeout(400);
+    await page.evaluate(() => { location.hash = '#my'; });
+    await page.waitForTimeout(800);
+    await page.click('[data-open-saved]');
+    await page.waitForTimeout(600);
+    const saved = await page.evaluate(() => document.getElementById('modal-card').innerText);
+    check('MY 스크랩한 글에 제목(머리말 뺀 첫 줄)', saved.includes('남의 글 제목') && !saved.includes('[질문]'), saved.replace(/\s+/g, ' ').slice(0, 80));
+    await page.click('[data-close-modal]');
+
+    await page.evaluate(() => { location.hash = '#home'; });
+    await page.waitForTimeout(800);
+    await page.click('#home-bell');
+    await page.waitForTimeout(300);
+    const noti = await page.evaluate(() => ({ text: document.getElementById('modal-card').innerText, badge: document.getElementById('home-bell-n').hidden,
+      seen: Number(JSON.parse(localStorage.getItem('dadamom_noti_seen::u-sv'))) }));
+    check('알림에 댓글 내용', noti.text.includes('댓글 알림 확인'));
+    check('열면 읽음 (숫자 사라지고 사이트와 같은 키에 기록)', noti.badge && noti.seen > 1000, JSON.stringify({ badge: noti.badge, seen: noti.seen }));
+    await page.click('[data-close-modal]');
+
+    await page.evaluate(() => window.__SBSTUB.signOut());
+    await page.waitForTimeout(800);
+    check('로그아웃하면 종 숨김', await page.evaluate(() => document.getElementById('home-bell').hidden));
+    check('JS 오류 없음', errs.length === 0, errs.join('; '));
+    await page.close();
+  }
+
   // ------------------------------------------------- 이미 가입된 이메일 --
   // Supabase 는 이미 있는 이메일이면 성공처럼 답하고(identities 빈 배열) 메일을 안 보낸다.
   console.log(NL + '[가입 — 이미 가입된 이메일]');

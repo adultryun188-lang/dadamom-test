@@ -16,7 +16,12 @@ Deno.serve(async (req: Request) => {
   const p = body && body.resultcode === '00' && body.response;
   if (!p || !p.id) return json({ error: 'naver_bad_response' }, 502);
   const out: Record<string, unknown> = { sub: String(p.id) };
-  if (p.email) { out.email = String(p.email); out.email_verified = false; }   // 네이버 연락처 이메일은 확인됐다고 단정하지 않는다
+  if (p.email) {
+    out.email = String(p.email);
+    // @naver.com 은 그 네이버 계정 자체의 메일이라 본인 것이 확실하다. 다른 주소(연락처 이메일)는 확인됐다고 단정하지 않는다 —
+    // 확인됨으로 넘기면 같은 이메일의 기존 계정에 자동 연결되므로, 남의 주소를 적어 둔 사람이 그 계정을 가로챌 수 있다.
+    out.email_verified = /@naver\.com$/i.test(out.email as string);
+  }
   if (p.name) out.name = String(p.name);
   if (p.mobile) out.phone_number = String(p.mobile);
   return json(out, 200);

@@ -91,9 +91,9 @@ const html = (c, w = 1080, h = 1350) => `<!doctype html><html lang="ko"><meta ch
   // 2) 포스터 QR 이 넣은 값 그대로의 주소로 읽히는지 (jsQR 로 디코드)
   const cases = [
     { from: 'nd-cafe1', post: 'ccaccd16-3e5e-4242-b03d-3541b9491543',
-      want: 'https://adultryun188-lang.github.io/dadamom-app/community.html?from=nd-cafe1#/p/ccaccd16-3e5e-4242-b03d-3541b9491543' },
+      want: 'https://dadamom.co.kr/community.html?from=nd-cafe1#/p/ccaccd16-3e5e-4242-b03d-3541b9491543' },
     { from: 'friend', post: '',
-      want: 'https://adultryun188-lang.github.io/dadamom-app/community.html?from=friend' },
+      want: 'https://dadamom.co.kr/community.html?from=friend' },
   ];
   const pp = await browser.newPage({ viewport: { width: 900, height: 1300 } });
   for (const c of cases) {

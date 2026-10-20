@@ -6,7 +6,7 @@
   // 가입 뒤 돌아갈 수 있는 곳: 커뮤니티 글·글쓰기, 그리고 광고가 데려오는 앱의 챌린지·혜택(체험단) 화면
   var APP_ROUTES = ['#challenge', '#benefit'];
   function returnRoute(value){
-    return typeof value === 'string' && (/^#\/p\/[A-Za-z0-9-]{1,80}$/.test(value) || value === '#/write' || APP_ROUTES.indexOf(value) > -1) ? value : '';
+    return typeof value === 'string' && (/^#\/p\/[A-Za-z0-9-]{1,80}$/.test(value) || value === '#/write' || value === '#/' || APP_ROUTES.indexOf(value) > -1) ? value : '';
   }
   function campaign(source, target){
     var values = source.searchParams.getAll('from');

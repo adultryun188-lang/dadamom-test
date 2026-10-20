@@ -29,7 +29,8 @@ check('중복 복귀 파라미터 차단', !flow.returnUrl(base + 'index.html?re
 check('유효하지 않은 출처 제거', !new URL(flow.postUrl('a', base + '?from=bad_value')).search);
 check('중복 출처 제거', !new URL(flow.postUrl('a', base + '?from=one&from=two')).search);
 check('인증 code/token 전달 금지', !/code=|token=/.test(flow.callbackUrl(base + 'index.html?code=secret&token=secret&returnTo=%23%2Fp%2Fa')));
-check('글쓰기 복귀 허용', flow.returnUrl(base + 'index.html?returnTo=%23%2Fwrite').endsWith('community.html#/write'));
+check('커뮤니티 첫 화면 복귀 허용 (PC 소셜 로그인)', flow.returnUrl(base + 'index.html?returnTo=%23%2F').endsWith('community.html#/'));
+check('글쓰기 복귀 허용',flow.returnUrl(base + 'index.html?returnTo=%23%2Fwrite').endsWith('community.html#/write'));
 check('앱 챌린지 복귀 허용', flow.returnUrl(base + 'index.html?returnTo=%23challenge&from=meta-a') === base + 'index.html?from=meta-a#challenge');
 check('앱 혜택 복귀 허용', flow.returnUrl(base + 'index.html?returnTo=%23benefit') === base + 'index.html#benefit');
 check('그 밖의 앱 화면 복귀 차단', flow.returnUrl(base + 'index.html?returnTo=%23home') === '' && flow.returnUrl(base + 'index.html?returnTo=%23admin') === '');
@@ -157,6 +158,15 @@ try{
     await p.locator('#modal a').click(); await p.fill('#auth-email','flow@dadamom.test'); await p.fill('#auth-password','test-password');
     await p.click('#auth-password-submit'); await p.waitForURL(u=>u.pathname.endsWith('community.html')&&u.hash==='#/p/p-public');
     await p.locator('#cmt-form').waitFor(); check('로그인 후 원글 댓글 참여 가능',true);
+  });
+  await run('PC 소셜 로그인 복귀',fixture(false),async p=>{
+    // 운영처럼 카카오·구글·네이버가 다 켜진 환경
+    await p.route('**/env.js',r=>r.fulfill({contentType:'application/javascript',body:'window.DADAMOM_ENV={SUPABASE_URL:"https://example.invalid",SUPABASE_ANON_KEY:"k",NAVER_LOGIN:true};'}));
+    await p.goto(WEB+'?from=ig-01#/p/p-public'); await p.locator('#main [data-login]').click();
+    check('PC 로그인 창에 카카오·구글·네이버 + 이메일', (await p.$$eval('#modal [data-social]',a=>a.map(x=>x.dataset.social).join(',')))==='kakao,google,custom:naver' && await p.locator('#modal #l-email').isVisible());
+    await p.click('#modal [data-social="custom:naver"]'); await p.waitForFunction(()=>window.__SBSTUB.oauthArgs);
+    const a=await p.evaluate(()=>window.__SBSTUB.oauthArgs), u=new URL(a.options.redirectTo);
+    check('소셜 로그인 뒤 앱을 거쳐 원글로 복귀', a.provider==='custom:naver' && u.pathname.endsWith('/index.html') && u.searchParams.get('returnTo')==='#/p/p-public' && u.searchParams.get('from')==='ig-01');
   });
   await run('미완성 프로필 복귀',fixture(true,false),async p=>{
     await p.goto(APP+'?returnTo=%23%2Fp%2Fp-public#onboarding');

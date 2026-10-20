@@ -23,7 +23,8 @@ Deno.serve(async (req: Request) => {
     out.email_verified = /@naver\.com$/i.test(out.email as string);
   }
   if (p.name) out.name = String(p.name);
-  if (p.mobile) out.phone_number = String(p.mobile);
+  // Supabase 는 휴대전화를 `phone` 키로만 읽는다 (`phone_number` 는 버려짐). 확인됨(phone_verified)은 주지 않는다 — 로그인 전화번호로 쓰지 않고 정보로만 둔다.
+  if (p.mobile) out.phone = String(p.mobile);
   return json(out, 200);
 });
 

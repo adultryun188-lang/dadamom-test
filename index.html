@@ -1636,7 +1636,7 @@
                 '<span class="helper">' + escapeHtml(a.trial_key || '') + ' · ' + escapeHtml(a.region || '') + '</span>' +
               '</div>' +
               '<span class="helper" data-app-pii="' + a.id + '">' +
-                escapeHtml(a.contact_masked || '***') + ' · ' + escapeHtml(a.address_masked || '***') + '</span>' +
+                escapeHtml(a.name_masked || '***') + ' · ' + escapeHtml(a.contact_masked || '***') + ' · ' + escapeHtml(a.address_masked || '***') + '</span>' +
               '<div class="row" style="align-items:center; gap:8px;">' +
                 '<span class="helper" style="flex:1;">파기 예정 ' + escapeHtml(String(a.purge_after || '-')) + '</span>' +
                 '<button type="button" class="btn-ghost" style="flex:0 0 auto; height:32px; padding:0 12px; font-size:12px;" data-reveal-pii="' + a.id + '">배송지 열기</button>' +
@@ -4708,7 +4708,7 @@
       var row = rr.data[0];
       var box = document.querySelector('[data-app-pii="' + aid + '"]');
       if(box){
-        box.textContent = (row.contact || '(연락처 없음)') + ' · ' + (row.address || '(주소 없음)');
+        box.textContent = (row.recipient_name || '(이름 없음)') + ' · ' + (row.contact || '(연락처 없음)') + ' · ' + (row.address || '(주소 없음)');
         box.style.color = 'var(--text)';
         box.style.fontWeight = '700';
       }
@@ -5347,11 +5347,18 @@
     return (typeof p === 'string' && /^[0-9+\- ]{9,20}$/.test(p)) ? p : '';
   }
 
+  // 네이버 로그인 때 받은 이름(user_metadata.name). 받는 분 이름 칸을 미리 채우는 데만 쓴다.
+  function knownName(){
+    var n = authUser && authUser.meta && authUser.meta.name;
+    return (typeof n === 'string' && n.trim().length <= 30) ? n.trim() : '';
+  }
+
   function applyModalHtml(trial){
     return '<div class="modal-head"><h3 class="display">' + escapeHtml(trial.title) + '</h3><button class="modal-close" data-close-modal aria-label="닫기">✕</button></div>' +
       '<p class="modal-desc">' + escapeHtml(trial.brand) + ' · 마감 ' + trial.deadline + ' · 광고(협찬) 제품이에요.</p>' +
+      '<div class="field"><label for="apply-name">받는 분 이름 *</label><input type="text" id="apply-name" autocomplete="name" maxlength="30" placeholder="배송받으실 분 이름" value="' + escapeHtml(knownName()) + '"></div>' +
       '<div class="field"><label for="apply-contact">연락처 *</label><input type="tel" id="apply-contact" inputmode="tel" placeholder="010-0000-0000" value="' + escapeHtml(knownPhone()) + '">' +
-        (knownPhone() ? '<span class="helper">네이버 계정의 번호를 채워 뒀어요. 다른 번호로 받으려면 고쳐 주세요.</span>' : '') + '</div>' +
+        (knownPhone() ? '<span class="helper">네이버 계정의 이름·번호를 채워 뒀어요. 다른 분이 받으시면 고쳐 주세요.</span>' : '') + '</div>' +
       '<div class="field"><label for="apply-address">배송지 주소 *</label><input type="text" id="apply-address" placeholder="배송받으실 주소를 입력해주세요"></div>' +
       '<label class="check-row"><input type="checkbox" id="apply-consent"> 배송을 위해 연락처와 주소를 제공하는 것에 동의해요 *</label>' +
       '<label class="check-row"><input type="checkbox" id="apply-consent2"> 브랜드가 제 후기를 광고에 활용하는 것에 동의해요 (선택)</label>' +
@@ -6122,8 +6129,10 @@
       return;
     }
     var btn = document.getElementById('apply-submit');
+    var nameEl = document.getElementById('apply-name');
     var contactEl = document.getElementById('apply-contact');
     var addressEl = document.getElementById('apply-address');
+    var nameVal = nameEl ? nameEl.value.trim() : '';
     var contactVal = contactEl ? contactEl.value.trim() : '';
     var addressVal = addressEl ? addressEl.value.trim() : '';
     if(btn){ btn.disabled = true; btn.textContent = '접수 중...'; }
@@ -6155,7 +6164,7 @@
         return;
       }
       if(appId){
-        var pii = await sb.from('benefit_applications_pii').insert({ application_id: appId, contact: contactVal, address: addressVal });
+        var pii = await sb.from('benefit_applications_pii').insert({ application_id: appId, recipient_name: nameVal, contact: contactVal, address: addressVal });
         if(pii.error){
           // 배송지가 없으면 당첨돼도 보낼 수가 없다. 신청 자체를 되돌린다.
           console.error('benefit_applications_pii insert error', pii.error);
@@ -6180,12 +6189,13 @@
 
   // ---------- 성장기록 입력 ----------
   function updateApplySubmit(){
+    var name = document.getElementById('apply-name');
     var contact = document.getElementById('apply-contact');
     var address = document.getElementById('apply-address');
     var consent = document.getElementById('apply-consent');
     var btn = document.getElementById('apply-submit');
     if(!btn) return;
-    btn.disabled = !(contact && contact.value.trim() && address && address.value.trim() && consent && consent.checked);
+    btn.disabled = !(name && name.value.trim() && contact && contact.value.trim() && address && address.value.trim() && consent && consent.checked);
   }
 
   function updateGrowthSubmit(){
@@ -6413,7 +6423,7 @@
     }
     if(e.target.id === 'entry-note'){ updateEntrySubmit(); }
     if(e.target.id === 'post-text'){ updatePostSubmit(); }
-    if(e.target.id === 'apply-contact' || e.target.id === 'apply-address'){ updateApplySubmit(); }
+    if(e.target.id === 'apply-name' || e.target.id === 'apply-contact' || e.target.id === 'apply-address'){ updateApplySubmit(); }
     if(e.target.id === 'growth-height' || e.target.id === 'growth-weight'){ updateGrowthSubmit(); }
     if(e.target.id === 'comment-text'){
       var cbtn = document.getElementById('comment-submit');

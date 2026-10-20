@@ -5341,10 +5341,17 @@
       '<button class="btn-primary" id="post-submit" style="width:100%;" disabled>글 올리기</button>';
   }
 
+  // 네이버 로그인 때 받은 휴대전화(user_metadata.phone, 중계 함수 naver-userinfo). 체험단 연락처 칸을 미리 채우는 데만 쓴다.
+  function knownPhone(){
+    var p = authUser && authUser.meta && authUser.meta.phone;
+    return (typeof p === 'string' && /^[0-9+\- ]{9,20}$/.test(p)) ? p : '';
+  }
+
   function applyModalHtml(trial){
     return '<div class="modal-head"><h3 class="display">' + escapeHtml(trial.title) + '</h3><button class="modal-close" data-close-modal aria-label="닫기">✕</button></div>' +
       '<p class="modal-desc">' + escapeHtml(trial.brand) + ' · 마감 ' + trial.deadline + ' · 광고(협찬) 제품이에요.</p>' +
-      '<div class="field"><label for="apply-contact">연락처 *</label><input type="tel" id="apply-contact" inputmode="tel" placeholder="010-0000-0000"></div>' +
+      '<div class="field"><label for="apply-contact">연락처 *</label><input type="tel" id="apply-contact" inputmode="tel" placeholder="010-0000-0000" value="' + escapeHtml(knownPhone()) + '">' +
+        (knownPhone() ? '<span class="helper">네이버 계정의 번호를 채워 뒀어요. 다른 번호로 받으려면 고쳐 주세요.</span>' : '') + '</div>' +
       '<div class="field"><label for="apply-address">배송지 주소 *</label><input type="text" id="apply-address" placeholder="배송받으실 주소를 입력해주세요"></div>' +
       '<label class="check-row"><input type="checkbox" id="apply-consent"> 배송을 위해 연락처와 주소를 제공하는 것에 동의해요 *</label>' +
       '<label class="check-row"><input type="checkbox" id="apply-consent2"> 브랜드가 제 후기를 광고에 활용하는 것에 동의해요 (선택)</label>' +

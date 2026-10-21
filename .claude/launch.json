@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "dadamom-test",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "8000"],
+      "port": 8000
+    },
+    {
+      "name": "prod-candidate",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "8002", "--directory", "C:\\Users\\eodls\\AppData\\Local\\Temp\\p14\\cand9"],
+      "port": 8002
+    }
+  ]
+}

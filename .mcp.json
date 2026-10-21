@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "code-review-graph": {
+      "command": "C:\\Users\\eodls\\AppData\\Local\\Programs\\Python\\Python313\\python.exe",
+      "args": [
+        "-m",
+        "code_review_graph",
+        "serve"
+      ],
+      "cwd": "C:\\Users\\eodls\\Desktop\\코덱스 저장소\\dadamom-test",
+      "type": "stdio"
+    }
+  }
+}

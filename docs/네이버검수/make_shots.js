@@ -24,7 +24,7 @@ const TRIAL = "var TRIALS = [{key:'sample', brand:'예시 브랜드', title:'유
   });
   const p = await ctx.newPage();
   const shot = async (name, mark) => {
-    await p.addStyleTag({ content: '#test-banner{display:none !important}' });
+    await p.addStyleTag({ content: '#test-banner,#toast{display:none !important}' });
     if (mark) await p.evaluate((sel) => { const el = document.querySelector(sel); if (el) { el.scrollIntoView({ block: 'center' }); el.style.outline = '3px solid #03A94D'; el.style.outlineOffset = '3px'; } }, mark);
     await p.waitForTimeout(300);
     await p.screenshot({ path: path.join(OUT, name) });

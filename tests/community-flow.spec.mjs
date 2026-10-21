@@ -168,6 +168,19 @@ try{
     const a=await p.evaluate(()=>window.__SBSTUB.oauthArgs), u=new URL(a.options.redirectTo);
     check('소셜 로그인 뒤 앱을 거쳐 원글로 복귀', a.provider==='custom:naver' && u.pathname.endsWith('/index.html') && u.searchParams.get('returnTo')==='#/p/p-public' && u.searchParams.get('from')==='ig-01');
   });
+  for(const admin of [false, true]) await run('PC 작성자 바꾸기 ' + (admin ? '관리자' : '일반'),fixture(true),async p=>{
+    p.removeAllListeners('dialog'); p.on('dialog',d=>d.type()==='prompt' ? d.accept('바뀐이름') : d.accept());
+    await p.goto(WEB+'#/p/p-public'); await p.locator('#nav-posts').waitFor({state:'attached'});
+    if(admin){ await p.evaluate(()=>{ window.__SBSTUB.admin=true; window.__SBSTUB.signIn('u-flow','flow@dadamom.test'); }); }
+    await p.waitForTimeout(800);
+    const n=await p.locator('[data-admin-author]').count();
+    if(!admin){ check('일반 회원에게는 작성자 버튼 없음', n===0); return; }
+    check('관리자에게 작성자 버튼', n===1);
+    await p.click('[data-admin-author]');
+    await p.waitForFunction(()=>window.__SBSTUB.store.community_posts.find(x=>x.id==='p-public').author==='바뀐이름');
+    await p.waitForFunction(()=>document.querySelector('.post-meta .who').textContent.includes('바뀐이름'));
+    check('관리자 작성자 바꾸기 → DB·화면 반영', true);
+  });
   await run('팝업 배너',fixture(false),async p=>{
     await p.goto(WEB+'#/'); await p.locator('#popup-title').waitFor({state:'visible'});
     check('첫 화면에 팝업', (await p.textContent('#popup-title')).includes('첫걸음 챌린지') && await p.getAttribute('#modal-card','aria-labelledby')==='popup-title');

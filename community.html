@@ -878,6 +878,26 @@
 
   // ---------- 글 보기 ----------
   var current = null;
+  // 관리자 여부는 서버(is_admin)가 정한다. 버튼을 보여줄지만 여기서 정하고, 실제 수정은 DB 정책(cp_update_admin)이 막는다.
+  var isAdmin = false;
+  async function refreshAdmin(){
+    isAdmin = false;
+    if(!user) return;
+    try{ var r = await sb.rpc('is_admin'); isAdmin = !!(r && !r.error && r.data); }catch(e){}
+  }
+  async function editAuthor(){
+    if(!isAdmin || !current) return;
+    var next = window.prompt('작성자 이름을 바꿉니다 (20자 이내)', current.author || '');
+    if(next === null) return;
+    next = next.trim();
+    if(!next || next.length > 20){ alert('1~20자로 입력해주세요'); return; }
+    var r = null;
+    try{ r = await sb.from('community_posts').update({ author: next }).eq('id', current.id).select('author'); }catch(e){}
+    // RLS 가 막아도 204 라서 돌아온 값으로 확인
+    if(!r || r.error || !r.data || !r.data.length || r.data[0].author !== next){ alert('바꾸지 못했어요'); return; }
+    current.author = next;
+    render();
+  }
 
   async function renderPost(main, id){
     main.innerHTML = '<section class="panel"><div class="empty">불러오는 중…</div></section>';
@@ -919,6 +939,7 @@
         '<button class="link-btn" id="save-btn" aria-pressed="' + saved + '">' + (saved ? '⭐ 스크랩됨' : '☆ 스크랩') + '</button>' +
         (mine ? '<button class="link-btn" data-edit-post>✏️ 수정</button><button class="link-btn" data-del-post>🗑 삭제</button>'
               : '<button class="link-btn" data-report="post" data-id="' + p.id + '" data-owner="' + (p.owner_id || '') + '">🚨 신고</button>') +
+        (isAdmin ? '<button class="link-btn" data-admin-author>👤 작성자</button>' : '') +
         '<a class="link-btn" href="#/b/' + b.id + '">☰ 목록</a>' +
       '</div>' +
       '<nav class="nav-posts" id="nav-posts" aria-label="이전글 다음글"></nav>' +
@@ -1603,6 +1624,7 @@
     else if(t.id === 'save-btn'){ toggleSave(); }
     else if(t.id === 'bell-btn'){ openNoti(); }
     else if(t.hasAttribute('data-edit-post')){ openEdit(); }
+    else if(t.hasAttribute('data-admin-author')){ editAuthor(); }
     else if(t.hasAttribute('data-clear-recent')){ try{ localStorage.removeItem(RECENT_KEY); }catch(err){} renderRecent(); }
     else if(t.hasAttribute('data-clear-draft')){ clearDraft(); $('w-title').value = ''; $('w-body').value = ''; $('draft-note').textContent = ''; }
     else if(t.hasAttribute('data-clear-photo')){ $('w-photo').value = ''; $('w-preview').innerHTML = ''; }
@@ -1662,6 +1684,9 @@
       if(!user || user.id !== uid) return;
       profile = r.data || null;
     }
+    var wasAdmin = isAdmin;
+    await refreshAdmin();
+    if(wasAdmin !== isAdmin && route().seg[0] === 'p') render();   // 글을 먼저 그린 뒤 관리자로 확인된 경우
     renderMe();
     touchLastSeen();
   }

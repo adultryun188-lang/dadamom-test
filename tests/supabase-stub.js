@@ -21,7 +21,7 @@
     function run(){
       if(op === 'update'){
         rows.filter(match).forEach(function(r){ Object.assign(r, payload); });
-        return { data:null, error:null };
+        return { data: rows.filter(match).map(function(r){ return Object.assign({}, r); }), error:null };   // PostgREST update().select() 처럼 바뀐 행을 돌려준다
       }
       if(op === 'delete'){
         var keep = rows.filter(function(r){ return !match(r); });

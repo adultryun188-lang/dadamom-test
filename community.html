@@ -320,6 +320,11 @@
   .modal{ position:fixed; inset:0; background:rgba(43,33,24,.42); backdrop-filter:blur(3px); display:flex; align-items:center; justify-content:center; z-index:50; padding:16px; }
   .modal-card{ background:#fff; border-radius:24px; padding:26px; width:100%; max-width:410px; display:flex; flex-direction:column; gap:12px; box-shadow:0 30px 80px rgba(43,33,24,.25); }
   .modal-card h3{ margin:0; font-size:20px; }
+  .popup-hero{ margin:-26px -26px 0; padding:26px 26px 20px; border-radius:24px 24px 0 0; background:linear-gradient(135deg, var(--coral-soft), #FFF4E4); text-align:center; }
+  .popup-hero .emoji{ font-size:44px; line-height:1; display:block; margin-bottom:8px; }
+  .popup-hero p{ margin:8px 0 0; font-size:14px; line-height:1.6; color:var(--text2); word-break:keep-all; }
+  .popup-foot{ display:flex; justify-content:space-between; gap:8px; }
+  .popup-foot button{ background:none; border:none; padding:6px 2px; font-size:12.5px; color:var(--text2); cursor:pointer; }
   .modal-card input, .modal-card textarea{ width:100%; border:1px solid var(--border); border-radius:12px; padding:11px 13px; }
   .reasons{ display:flex; flex-wrap:wrap; gap:6px; }
   .toast{ position:fixed; left:50%; bottom:28px; transform:translateX(-50%) translateY(8px); background:var(--text); color:#fff; padding:11px 20px; border-radius:999px; font-size:13px; opacity:0; pointer-events:none; transition:opacity .2s, transform .2s; z-index:60; max-width:90%; text-align:center; box-shadow:var(--shadow-lg); }
@@ -1468,10 +1473,36 @@
     }).join('') : '<li class="helper" style="padding:10px 20px;">공지가 없어요</li>';
   }
 
+  // ---------- 팝업 배너 ----------
+  // 들어올 때 한 번 띄운다. "오늘 하루 보지 않기"는 이 기기에만 그날 날짜로 남긴다.
+  // 새 팝업은 id 를 새로 정해 앞에 추가한다 (id 가 같으면 이미 닫은 사람에게 다시 안 뜬다). until 이 지나면 자동으로 안 뜬다.
+  var POPUPS = [
+    { id:'first-step-2026', until: CHALLENGE_DEADLINE, emoji:'👣', title:'첫걸음 챌린지',
+      body:'걸음마 사진 한 장으로 참여하고<br><b>추첨 4명에게 2만 원 상당 육아용품</b>을 드려요.<br>10~24개월 · 11/30 마감 · 12/3 발표',
+      cta:'참여하러 가기', href:'#/challenge', hideOn:['challenge', 'p'] }
+  ];
+  var POPUP_KEY = 'dadamom.popup.';
+  function maybeShowPopup(){
+    if(!$('modal').hidden) return;
+    var seg = route().seg[0] || '', today = todayISO();
+    var p = POPUPS.filter(function(x){
+      if(x.until && today > x.until) return false;
+      if((x.hideOn || []).indexOf(seg) > -1 || seg === 'write') return false;   // 공유받은 글(p)·글쓰기 중에는 가리지 않는다
+      try{ if(localStorage.getItem(POPUP_KEY + x.id) === today) return false; }catch(e){}
+      return true;
+    })[0];
+    if(!p) return;
+    openModal('<div class="popup-hero"><span class="emoji" aria-hidden="true">' + p.emoji + '</span>' +
+        '<h3 class="display" id="popup-title">' + esc(p.title) + '</h3><p>' + p.body + '</p></div>' +
+      '<a class="btn primary" href="' + esc(p.href) + '" data-close style="padding:12px;">' + esc(p.cta) + '</a>' +
+      '<div class="popup-foot"><button type="button" data-popup-today="' + esc(p.id) + '">오늘 하루 보지 않기</button><button type="button" data-close>닫기</button></div>');
+    $('modal-card').setAttribute('aria-labelledby', 'popup-title');
+  }
+
   // ---------- 로그인 · 신고 모달 ----------
   var lastFocus = null;
   function openModal(html){ lastFocus = document.activeElement; $('modal-card').innerHTML = html; $('modal').hidden = false; var f = $('modal-card').querySelector('input,textarea,button'); if(f) f.focus(); }
-  function closeModal(){ $('modal').hidden = true; $('modal-card').innerHTML = ''; $('modal-card').classList.remove('lightbox'); if(lastFocus && lastFocus.focus) lastFocus.focus(); }
+  function closeModal(){ $('modal').hidden = true; $('modal-card').innerHTML = ''; $('modal-card').removeAttribute('aria-labelledby'); $('modal-card').classList.remove('lightbox'); if(lastFocus && lastFocus.focus) lastFocus.focus(); }
 
   // 카카오·구글은 운영에만 연결돼 있다(테스트는 SOCIAL_LOGIN:false). 네이버는 NAVER_LOGIN:true 인 곳만.
   function socialLoginHtml(){
@@ -1567,6 +1598,7 @@
     if(!t){ if(e.target === $('modal')) closeModal(); return; }
     if(t.hasAttribute('data-login')){ e.preventDefault(); openLogin(); }
     if(t.hasAttribute('data-social')){ socialLogin(t); return; }
+    if(t.hasAttribute('data-popup-today')){ try{ localStorage.setItem(POPUP_KEY + t.getAttribute('data-popup-today'), todayISO()); }catch(e){} closeModal(); return; }
     else if(t.hasAttribute('data-share')){ sharePost(); }
     else if(t.id === 'save-btn'){ toggleSave(); }
     else if(t.id === 'bell-btn'){ openNoti(); }
@@ -1666,6 +1698,7 @@
     if(ev === 'TOKEN_REFRESHED') return;
     setTimeout(async function(){
       await loadUser(session);
+      if(!booted){ setTimeout(maybeShowPopup, 800); }
       if(!booted || ev === 'SIGNED_IN' || ev === 'SIGNED_OUT'){ booted = true; render(); renderSide(); renderRecent(); }
       checkNoti();
     }, 0);

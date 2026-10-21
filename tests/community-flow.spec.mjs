@@ -168,6 +168,17 @@ try{
     const a=await p.evaluate(()=>window.__SBSTUB.oauthArgs), u=new URL(a.options.redirectTo);
     check('소셜 로그인 뒤 앱을 거쳐 원글로 복귀', a.provider==='custom:naver' && u.pathname.endsWith('/index.html') && u.searchParams.get('returnTo')==='#/p/p-public' && u.searchParams.get('from')==='ig-01');
   });
+  await run('팝업 배너',fixture(false),async p=>{
+    await p.goto(WEB+'#/'); await p.locator('#popup-title').waitFor({state:'visible'});
+    check('첫 화면에 팝업', (await p.textContent('#popup-title')).includes('첫걸음 챌린지') && await p.getAttribute('#modal-card','aria-labelledby')==='popup-title');
+    await p.click('[data-popup-today]'); check('오늘 하루 보지 않기 → 닫힘', await p.locator('#modal').isHidden());
+    await p.reload(); await p.waitForTimeout(1500); check('같은 날 다시 와도 안 뜸', await p.locator('#modal').isHidden());
+    await p.evaluate(()=>localStorage.clear()); await p.goto(WEB+'#/p/p-public'); await p.reload(); await p.waitForTimeout(1500);
+    check('공유받은 글에서는 안 뜸', await p.locator('#modal').isHidden());
+    await p.goto(WEB+'#/'); await p.reload(); await p.locator('#popup-title').waitFor({state:'visible'});
+    await p.click('#modal-card a.btn.primary'); await p.waitForURL(u=>u.hash==='#/challenge');
+    check('참여하러 가기 → 챌린지, 팝업 닫힘', await p.locator('#modal').isHidden() && !(await p.getAttribute('#modal-card','aria-labelledby')));
+  });
   await run('미완성 프로필 복귀',fixture(true,false),async p=>{
     await p.goto(APP+'?returnTo=%23%2Fp%2Fp-public#onboarding');
     await p.locator('[data-type-pick="parenting"]').waitFor({state:'visible'});

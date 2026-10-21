@@ -3037,6 +3037,7 @@
         ? '<button data-edit-post="' + p.id + '" aria-label="내 글 수정" style="display:flex; align-items:center; gap:4px; border:none; background:none; color:var(--text2); min-height:44px; font-size:11.5px;">수정</button>' +
           '<button data-delete-post="' + p.id + '" aria-label="내 글 삭제" style="display:flex; align-items:center; gap:4px; border:none; background:none; color:var(--text2); min-height:44px; font-size:11.5px;">삭제</button>'
         : '<button data-report-post="' + p.id + '" data-report-owner="' + (p.owner_id || '') + '" aria-label="신고하기" style="display:flex; align-items:center; gap:4px; border:none; background:none; color:var(--text2); min-height:44px; font-size:11.5px;">신고</button>') +
+      adminAuthorBtnHtml(p) +
       '</div></div>';
   }
 
@@ -3464,6 +3465,7 @@
             ? '<button data-edit-post="' + p.id + '" aria-label="내 글 수정" style="display:flex; align-items:center; gap:4px; border:none; background:none; color:var(--text2); min-height:44px; font-size:11.5px;">수정</button>' +
           '<button data-delete-post="' + p.id + '" aria-label="내 글 삭제" style="display:flex; align-items:center; gap:4px; border:none; background:none; color:var(--text2); min-height:44px; font-size:11.5px;">삭제</button>'
             : '<button data-report-post="' + p.id + '" data-report-owner="' + (p.owner_id || '') + '" aria-label="신고하기" style="display:flex; align-items:center; gap:4px; border:none; background:none; color:var(--text2); min-height:44px; font-size:11.5px;">신고</button>') +
+      adminAuthorBtnHtml(p) +
           '</div></div>';
       }).join('') : communityEmptyHtml();
 
@@ -5750,6 +5752,8 @@
       return;
     }
 
+    var adAuthor = e.target.closest('[data-admin-author]');
+    if(adAuthor){ handleAdminAuthorEdit(adAuthor.getAttribute('data-admin-author')); return; }
     var edPost = e.target.closest('[data-edit-post]');
     if(edPost){ handleOwnContentEdit('post', edPost.getAttribute('data-edit-post')); return; }
     var edEntry = e.target.closest('[data-edit-entry]');
@@ -6043,6 +6047,32 @@
   // 이 표에는 status(검수 상태)와 좋아요 수가 같이 있어서, 행 단위 UPDATE 를 열면
   // 작성자가 자기 글을 스스로 approved 로 바꿀 수 있습니다. 함수는 본문만 바꾸고
   // status 를 pending 으로 되돌립니다 — 승인받은 글을 나중에 갈아끼우지 못하게.
+  // 관리자만: 서버에 있는 글의 작성자 표시 이름을 바꾼다 (cp_update_admin 정책).
+  function adminAuthorBtnHtml(p){
+    if(!isAdminUser || !sb || /^[pe]\d{10,}$/.test(String(p.id))) return '';
+    return '<button data-admin-author="' + p.id + '" aria-label="작성자 이름 바꾸기" style="display:flex; align-items:center; gap:4px; border:none; background:none; color:var(--text2); min-height:44px; font-size:11.5px;">작성자</button>';
+  }
+
+  async function handleAdminAuthorEdit(id){
+    var row = state.posts.filter(function(x){ return String(x.id) === String(id); })[0];
+    if(!row || !isAdminUser) return;
+    var next = window.prompt('작성자 이름을 바꿉니다 (20자 이내)', row.author || '');
+    if(next === null) return;
+    next = next.trim();
+    if(!next || next.length > 20){ showToast('1~20자로 입력해주세요'); return; }
+    if(next === row.author) return;
+    var res;
+    try{ res = await sb.from('community_posts').update({ author: next }).eq('id', id).select('author'); }catch(e){ res = { error: e }; }
+    // PATCH 는 RLS 가 막아도 204 라서, 돌아온 행으로 확인한다
+    if(!res || res.error || !res.data || !res.data.length || res.data[0].author !== next){
+      showToast('바꾸지 못했어요');
+      return;
+    }
+    row.author = next;
+    save(); renderCommunity(); renderHome();
+    showToast('작성자를 바꿨어요');
+  }
+
   async function handleOwnContentEdit(kind, id){
     var isPost = kind === 'post';
     var list = isPost ? state.posts : state.entries;

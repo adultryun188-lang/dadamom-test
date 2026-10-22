@@ -15,6 +15,8 @@ const OUT = path.join(__dirname, 'assets');
 const ROOT = path.join(__dirname, '..', '..');
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
+// 앱 아이콘(사장님 로고)을 그대로 넣는다
+const ICON_SRC = 'data:image/png;base64,' + fs.readFileSync(path.join(__dirname, '..', '..', 'icons', 'icon-512.png')).toString('base64');
 const FEATURE_HTML = `<!doctype html><html lang="ko"><meta charset="utf-8">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Jua&display=swap">
 <style>
@@ -25,7 +27,7 @@ const FEATURE_HTML = `<!doctype html><html lang="ko"><meta charset="utf-8">
                linear-gradient(120deg,#FFE0D0 0%,#FFEBD8 45%,#FFF4CC 100%);}
   .wrap{position:relative;height:100%;padding:70px 80px;display:flex;flex-direction:column;justify-content:center;gap:22px}
   .brand{display:flex;align-items:center;gap:18px}
-  .mark{width:92px;height:92px;border-radius:30px;background:linear-gradient(140deg,#FF9A76,#FF7A59 55%,#F2A93B);
+  .mark{width:92px;height:92px;border-radius:30px;object-fit:cover;background:#FEFDF9;
     color:#fff;font-family:'Jua';font-size:54px;display:flex;align-items:center;justify-content:center;box-shadow:0 14px 30px rgba(255,122,89,.35)}
   h1{font-family:'Jua';font-weight:400;font-size:84px;color:#C94318;letter-spacing:-.02em;line-height:1}
   p{font-size:30px;line-height:1.45;max-width:560px}
@@ -38,7 +40,7 @@ const FEATURE_HTML = `<!doctype html><html lang="ko"><meta charset="utf-8">
   .deco span:nth-child(4){transform:translateY(22px);font-size:80px}
 </style>
 <div class="wrap">
-  <div class="brand"><div class="mark">다</div><h1>다다맘</h1></div>
+  <div class="brand"><img class="mark" src="ICON_SRC" alt=""><h1>다다맘</h1></div>
   <p>임신부터 육아까지,<br><b>엄마 아빠의 기록과 이야기</b></p>
   <div class="chips"><span>👶 성장 기록</span><span>💬 커뮤니티</span><span>🏆 챌린지</span></div>
   <div class="deco"><span>🍼</span><span>🧸</span><span>🌱</span><span>💛</span></div>
@@ -112,14 +114,14 @@ async function main() {
 
   // 1) 그래픽 이미지
   const fg = await browser.newPage({ viewport: { width: 1024, height: 500 } });
-  await fg.setContent(FEATURE_HTML, { waitUntil: 'networkidle' });
+  await fg.setContent(FEATURE_HTML.replace("ICON_SRC", ICON_SRC), { waitUntil: 'networkidle' });
   await fg.evaluate(() => document.fonts.ready);
   await fg.screenshot({ path: path.join(OUT, 'feature-graphic.png') });
   await fg.close();
 
   // 1-2) 링크 공유 미리보기 이미지 (og:image) 1200x630 — 같은 디자인, 사이트 icons/ 에 둔다
   const og = await browser.newPage({ viewport: { width: 1200, height: 630 } });
-  await og.setContent(FEATURE_HTML.replace('width:1024px;height:500px', 'width:1200px;height:630px'), { waitUntil: 'networkidle' });
+  await og.setContent(FEATURE_HTML.replace("ICON_SRC", ICON_SRC).replace('width:1024px;height:500px', 'width:1200px;height:630px'), { waitUntil: 'networkidle' });
   await og.evaluate(() => document.fonts.ready);
   await og.screenshot({ path: path.join(ROOT, 'icons', 'og-image.png') });
   await og.close();

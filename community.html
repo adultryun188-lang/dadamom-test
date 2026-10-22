@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="description" content="임신·육아 중인 엄마 아빠들의 커뮤니티 — 질문, 자랑, 고민, 정보를 나누고 챌린지·나들이 정보까지.">
 <meta name="theme-color" content="#FFF8F1">
+<link rel="icon" href="./favicon.ico" sizes="48x48">
+<link rel="icon" type="image/png" sizes="48x48" href="./icons/favicon-48.png">
 <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
 <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
 <link rel="manifest" href="./manifest.webmanifest">
@@ -61,7 +63,7 @@
   .top{ position:sticky; top:0; z-index:30; background:rgba(255,250,245,.82); backdrop-filter:saturate(1.4) blur(14px); -webkit-backdrop-filter:saturate(1.4) blur(14px); border-bottom:1px solid rgba(243,227,211,.8); }
   .top-row{ display:flex; align-items:center; gap:18px; height:68px; }
   .logo{ display:flex; align-items:center; gap:10px; white-space:nowrap; }
-  .logo-mark{ width:38px; height:38px; border-radius:13px; background:linear-gradient(140deg,#FF9A76,#FF7A59 55%,#F2A93B); display:flex; align-items:center; justify-content:center; color:#fff; font-size:20px; box-shadow:0 6px 16px rgba(255,122,89,.35); }
+  .logo-mark{ width:38px; height:38px; border-radius:13px; object-fit:cover; background:#FEFDF9; box-shadow:0 6px 16px rgba(255,122,89,.25); }
   .logo-text{ font-size:24px; color:var(--deep); line-height:1; }
   .logo-text small{ display:block; font-family:'Gowun Dodum',sans-serif; font-size:11px; color:var(--text3); margin-top:3px; letter-spacing:0; }
   .search{ flex:1; min-width:0; display:flex; align-items:center; max-width:480px; background:#fff; border:1px solid var(--border); border-radius:999px; padding:4px 4px 4px 6px; box-shadow:0 2px 10px rgba(201,67,24,.05); transition:border-color .15s, box-shadow .15s; }
@@ -418,7 +420,7 @@
 <header class="top">
   <div class="wrap top-row">
     <a href="#/" class="logo" aria-label="다다맘 커뮤니티 홈">
-      <span class="logo-mark display" aria-hidden="true">다</span>
+      <img class="logo-mark" src="./icons/icon-192.png" alt="" aria-hidden="true">
       <span class="logo-text display">다다맘<small>엄마 아빠 육아 커뮤니티</small></span>
     </a>
     <form class="search" id="search" role="search">

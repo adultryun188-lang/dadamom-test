@@ -130,7 +130,7 @@ async function run(name, f, fn){
   await ctx.route('**/*',async r=>{
     const u=new URL(r.request().url());
     if(u.href.includes('/supabase-js@2')) return r.fulfill({contentType:'application/javascript',body:stub});
-    if(u.hostname.includes('fonts.')) return r.fulfill({contentType:'text/css',body:''});
+    if(u.hostname.includes('fonts.') || u.pathname.includes('/pretendard')) return r.fulfill({contentType:'text/css',body:''});
     if(u.origin !== targetUrl.origin || (targetUrl.hostname==='adultryun188-lang.github.io' && !u.pathname.startsWith('/dadamom-test/'))){blocked.push(u.origin+u.pathname);return r.abort();}
     await r.continue();
   });

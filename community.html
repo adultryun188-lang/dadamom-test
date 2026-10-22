@@ -24,7 +24,7 @@
 <!-- 앱(index.html)과 같은 환경설정·같은 DB·같은 로그인 세션을 쓴다. -->
 <script src="./env.js"></script>
 <script src="./community-flow.js"></script>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Jua&display=swap">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <style>
   :root{
     --bg:#FFF8F1; --surface:#FFFFFF; --border:#F3E3D3; --line:#F8EEE4;
@@ -455,6 +455,119 @@
     .topic-card{ padding:14px 12px; }
   }
   @media (prefers-reduced-motion:reduce){ *{ transition:none !important; scroll-behavior:auto !important; } }
+
+  /* =====================================================================
+     디자인 2판 (2026-10-22) — 손글씨 글꼴·이모지 장식·그라데이션을 걷어내고
+     흰 카드 + 얇은 선 + 한 가지 강조색(코랄)으로 정돈. 아래 규칙이 위 규칙을 덮어쓴다.
+     ===================================================================== */
+  :root{
+    --bg:#F7F5F2; --surface:#FFFFFF; --border:#E9E4DE; --line:#F0ECE7;
+    --text:#1E1A17; --text2:#5C544D; --text3:#6F665E;
+    --coral:#E8613D; --coral-soft:#FDEEE8; --deep:#AE3D16;
+    --btn:#C94318; --shadow:0 1px 2px rgba(30,26,23,.04); --shadow-lg:0 8px 24px rgba(30,26,23,.08); --r:16px;
+  }
+  body{ font-family:'Pretendard Variable',Pretendard,-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif; background:var(--bg); font-size:14.5px; letter-spacing:-.01em; }
+  .display{ font-family:inherit; font-weight:700; letter-spacing:-.02em; }
+  .logo-text{ font-weight:800; font-size:22px; letter-spacing:-.03em; color:var(--text); }
+  .logo-text small{ font-family:inherit; font-weight:500; color:var(--text3); }
+  .top{ background:rgba(255,255,255,.92); border-bottom:1px solid var(--border); }
+  .search{ border-radius:10px; box-shadow:none; background:#F7F5F2; border-color:transparent; }
+  .search select{ border-radius:8px; background:#fff; color:var(--text2); }
+  .search button{ border-radius:8px; background:var(--text); }
+  .btn{ border-radius:10px; font-weight:600; box-shadow:none; }
+  .btn:hover{ background:#FAF8F6; box-shadow:none; }
+  .btn.primary{ background:var(--btn); box-shadow:none; }
+  .btn.primary:hover{ background:#A83B14; transform:none; box-shadow:none; }
+  .btn.soft{ background:var(--coral-soft); color:var(--deep); }
+  .nav-row{ height:52px; gap:2px; }
+  .nav-row a{ border-radius:0; padding:15px 14px 13px; font-weight:600; color:var(--text2); border-bottom:2px solid transparent; }
+  .nav-row a:hover{ background:none; color:var(--text); }
+  .nav-row a.on{ background:none; color:var(--text); border-bottom-color:var(--coral); }
+  .nav-row .app-link{ border-radius:8px; padding:7px 12px; border:none; background:var(--coral-soft); color:var(--deep); }
+  .panel{ border-radius:var(--r); box-shadow:var(--shadow); }
+  .panel-h{ padding:18px 22px; }
+  .panel-h h1{ font-size:21px; }
+  .panel-h h2{ font-size:16.5px; font-weight:700; }
+  .bubble, .hero-deco{ display:none !important; }
+  .more{ font-weight:600; color:var(--text3); }
+  .more:hover{ color:var(--deep); }
+  .chip{ border-radius:8px; font-weight:600; }
+  .chip.on{ background:var(--text); border-color:var(--text); }
+  .tag{ border-radius:6px; font-weight:700; }
+  .list tbody tr:hover{ background:#FAF8F6; }
+  .list .title a:visited{ color:#7A716A; }
+  .pcard{ border-color:var(--border); border-radius:12px; padding:16px 18px; transition:border-color .15s; }
+  .pcard:hover{ border-color:#D9D1C8; transform:none; box-shadow:none; }
+  .pcard .t{ font-weight:700; }
+  .empty .em{ font-size:30px; opacity:.8; }
+  .side li a:hover{ background:#FAF8F6; }
+  .rank{ border-radius:6px; background:#F1EDE8; color:var(--text2); }
+  .side li:nth-child(1) .rank, .side li:nth-child(2) .rank, .side li:nth-child(3) .rank{ background:var(--text); color:#fff; }
+  .me-card{ background:#fff; }
+  .me-card .avatar{ box-shadow:none; background:var(--coral-soft); }
+  .app-card{ background:#1E1A17; }
+  .rank, .stat b{ font-family:inherit; }
+  .gcard{ border-color:var(--border); border-radius:14px; }
+  .gcard:hover{ transform:none; box-shadow:var(--shadow-lg); }
+  .gcard .ph{ background:#F3EEE8; }
+  .cheer{ border-radius:8px; font-weight:700; }
+  .cheer[aria-pressed="true"]{ background:var(--btn); }
+  .dday{ background:var(--text); border-radius:6px; }
+  .ocard{ border-color:var(--border); border-radius:12px; }
+  .ocard .em{ background:#EEF6F1; border-radius:12px; }
+  .footer{ background:#fff; border-top:1px solid var(--border); }
+
+  /* 홈: 챌린지 대표 영역 */
+  .feature-ch{ display:grid; grid-template-columns:minmax(0,1.1fr) minmax(0,1fr); gap:0; background:#1E1A17; color:#fff; border-radius:20px; overflow:hidden; }
+  .feature-ch .fc-in{ padding:34px 34px 30px; display:flex; flex-direction:column; gap:14px; justify-content:center; }
+  .feature-ch .lbl{ display:inline-flex; align-self:flex-start; gap:8px; align-items:center; font-size:12.5px; font-weight:700; color:#FFB59E; letter-spacing:.02em; }
+  .feature-ch .lbl b{ background:var(--coral); color:#fff; border-radius:6px; padding:3px 8px; }
+  .feature-ch h1{ margin:0; font-size:32px; line-height:1.25; letter-spacing:-.03em; }
+  .feature-ch p{ margin:0; color:#D9D2CB; line-height:1.7; font-size:15px; }
+  .feature-ch .facts{ display:flex; flex-wrap:wrap; gap:8px; }
+  .feature-ch .facts span{ font-size:12.5px; font-weight:600; color:#F2ECE6; border:1px solid rgba(255,255,255,.18); border-radius:8px; padding:6px 10px; }
+  .feature-ch .facts span strong{ color:#fff; }
+  .feature-ch .cta{ display:flex; gap:8px; flex-wrap:wrap; margin-top:4px; }
+  .feature-ch .cta .btn{ border-color:rgba(255,255,255,.22); background:transparent; color:#fff; padding:11px 18px; }
+  .feature-ch .cta .btn.primary{ background:var(--coral); border-color:var(--coral); }
+  .feature-ch .cta .btn:hover{ background:rgba(255,255,255,.08); }
+  .feature-ch .cta .btn.primary:hover{ background:#D4532F; }
+  .feature-ch .mosaic{ display:grid; grid-template-columns:repeat(2,1fr); grid-template-rows:repeat(2,1fr); gap:3px; min-height:300px; background:#2A2420; }
+  .feature-ch .mosaic a, .feature-ch .mosaic span{ position:relative; display:flex; align-items:center; justify-content:center; overflow:hidden; background:linear-gradient(135deg,#3A322C,#2E2723); color:#A99E94; line-height:1.5; font-size:13px; text-align:center; padding:8px; }
+  .feature-ch .mosaic img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+  .feature-ch .mosaic .v{ position:absolute; left:8px; bottom:8px; z-index:1; font-size:11.5px; font-weight:700; background:rgba(0,0,0,.55); color:#fff; border-radius:6px; padding:2px 7px; }
+  .home-intro{ display:flex; align-items:center; gap:18px; flex-wrap:wrap; padding:20px 22px; }
+  .home-intro h2{ margin:0; font-size:18px; flex:1 1 280px; }
+  .home-intro h2 em{ font-style:normal; color:var(--deep); }
+  .home-intro .stats{ margin:0; gap:22px; }
+  .home-intro .stat{ background:none; border:none; padding:0; text-align:left; }
+  .home-intro .stat b{ font-size:20px; color:var(--text); }
+  .topic-grid{ gap:10px; }
+  .topic-card{ background:#fff !important; border:1px solid var(--border); border-radius:12px; padding:16px 18px; box-shadow:none; }
+  .topic-card:hover{ border-color:#D9D1C8; transform:none; box-shadow:none; }
+  .topic-card .em{ display:none; }
+  .topic-card b{ font-family:inherit; font-weight:700; font-size:15.5px; }
+  .topic-card.c-qna{ border-top:3px solid #4C7BD9; } .topic-card.c-brag{ border-top:3px solid #E8A33D; }
+  .topic-card.c-worry{ border-top:3px solid #8C6BD6; } .topic-card.c-info{ border-top:3px solid #3E9E6C; }
+  .home-mall .prod-grid{ grid-template-columns:repeat(4,minmax(0,1fr)); padding:0 22px 22px; }
+  /* 챌린지 화면 */
+  .ch-hero{ background:#1E1A17; color:#fff; padding:30px 30px 26px; }
+  .ch-hero h1{ color:#fff; font-size:28px; }
+  .ch-hero .helper{ color:#D9D2CB; font-size:13.5px; }
+  .ch-hero .dday{ background:var(--coral); }
+  .ch-steps{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; padding:18px 22px 4px; }
+  .ch-steps div{ border:1px solid var(--border); border-radius:12px; padding:14px 16px; }
+  .ch-steps b{ display:block; font-size:12px; color:var(--deep); margin-bottom:4px; }
+  .ch-steps span{ font-size:13.5px; color:var(--text2); line-height:1.55; }
+  @media (max-width:980px){ .home-mall .prod-grid{ grid-template-columns:repeat(2,minmax(0,1fr)); } }
+  @media (max-width:720px){
+    .feature-ch{ grid-template-columns:1fr; }
+    .feature-ch .fc-in{ padding:24px 20px; }
+    .feature-ch h1{ font-size:25px; }
+    .feature-ch .mosaic{ min-height:220px; }
+    .ch-steps{ grid-template-columns:1fr; }
+    .ch-hero{ padding:22px 20px; }
+  }
 </style>
 
 <header class="top">
@@ -531,10 +644,10 @@
   var REPORT_REASONS = ['욕설·비방', '음란물·선정성', '광고·스팸', '허위정보', '개인정보 노출', '기타'];
   var NAV = [
     { id:'home',      name:'홈',        href:'#/' },
-    { id:'community', name:'커뮤니티',   href:'#/b/all' },
     { id:'challenge', name:'챌린지',     href:'#/challenge' },
-    { id:'outing',    name:'나들이',     href:'#/outing' },
+    { id:'community', name:'커뮤니티',   href:'#/b/all' },
     { id:'brand',     name:'브랜드관',   href:'#/brand' },
+    { id:'outing',    name:'나들이',     href:'#/outing' },
     { id:'my',        name:'마이페이지', href:'#/my' }
   ];
   // 앱의 POST_TOPICS 와 같은 말머리. 글 본문 앞에 '[질문] ' 형태로 저장된다.
@@ -727,45 +840,64 @@
   // ---------- 홈 ----------
   async function renderHome(main){
     var greet = user && myName() ? '<em>' + esc(myName()) + '</em>님, 오늘 하루는 어땠나요?' : '육아는 함께할 때 <em>덜 힘들고 더 즐거워요</em>';
+    var left = Math.ceil((new Date(CHALLENGE_DEADLINE + 'T23:59:59') - Date.now()) / 86400000);
+    var open = left >= 0, dd = left > 0 ? 'D-' + left : left === 0 ? 'D-DAY' : '마감';
     main.innerHTML =
-      '<section class="hero">' +
-        '<div class="hero-deco" aria-hidden="true"><span>🍼</span><span>🧸</span><span>🌱</span><span>💛</span></div>' +
-        '<div class="hero-in">' +
-          '<span class="eyebrow">🌼 엄마 아빠들의 수다방</span>' +
-          '<h1 class="display">' + greet + '</h1>' +
-          '<p>' + (user && profileStageText() ? esc(profileStageText()) + ' 또래 부모님들의 이야기를 모아봤어요.' : '임신부터 육아까지, 같은 고민을 하는 부모들과 질문하고 자랑하고 정보를 나눠요.') + '</p>' +
-          '<div class="hero-cta"><a class="btn primary" href="#/write">✏️ 글쓰기</a><a class="btn" href="#/b/best">🔥 인기글 보기</a></div>' +
-          '<div class="stats"><div class="stat"><b id="st-today">–</b><span>오늘 새 글</span></div><div class="stat"><b id="st-week">–</b><span>이번 주 댓글</span></div><div class="stat"><b id="st-all">–</b><span>전체 이야기</span></div></div>' +
+      // 다다맘의 대표 기능인 챌린지를 맨 위에 크게
+      '<section class="feature-ch" aria-labelledby="fc-title">' +
+        '<div class="fc-in">' +
+          '<span class="lbl"><b>' + dd + '</b>다다맘 챌린지</span>' +
+          '<h1 class="display" id="fc-title">첫걸음 챌린지</h1>' +
+          '<p>아이의 첫걸음, 사진 한 장으로 남겨요. 참가작마다 또래 부모들의 응원이 모이고, 추첨으로 육아용품을 드려요.</p>' +
+          '<div class="facts"><span>대상 <strong>10~24개월</strong></span><span>마감 <strong>11/30</strong> · 발표 12/3</span><span>경품 <strong>4명</strong> · 2만 원 상당 육아용품</span><span id="fc-count">참가작 –</span></div>' +
+          '<div class="cta">' + (open ? '<a class="btn primary" href="./index.html#challenge">앱에서 참여하기</a>' : '') + '<a class="btn" href="#/challenge">참가작 보고 응원하기</a></div>' +
         '</div>' +
+        '<div class="mosaic" id="home-ch"><span>참가작을 불러오는 중…</span></div>' +
       '</section>' +
+      '<section class="panel home-intro"><h2 class="display">' + greet + '</h2>' +
+        '<div class="stats"><div class="stat"><b id="st-today">–</b><span>오늘 새 글</span></div><div class="stat"><b id="st-week">–</b><span>이번 주 댓글</span></div><div class="stat"><b id="st-all">–</b><span>전체 이야기</span></div></div>' +
+        '<a class="btn primary" href="#/write">글쓰기</a></section>' +
+      '<section class="panel"><div class="panel-h"><h2 class="display">지금 뜨는 이야기</h2><a class="more" href="#/b/best">인기글 더보기 ›</a></div><div class="post-cards" id="home-hot"><div class="helper">불러오는 중…</div></div></section>' +
       '<div class="topic-grid">' + BOARDS.filter(function(b){ return b.topic; }).map(function(b){
         return '<a class="topic-card ' + b.cls + '" href="#/b/' + b.id + '"><span class="em" aria-hidden="true">' + b.em + '</span><b>' + b.name + '</b><span>' + esc(b.desc) + '</span></a>';
       }).join('') + '</div>' +
-      '<section class="panel"><div class="panel-h"><h2 class="display"><span class="bubble" style="background:#FFE1D6;">🔥</span>지금 뜨는 이야기</h2><a class="more" href="#/b/best">더보기 ›</a></div><div class="post-cards" id="home-hot"><div class="helper">불러오는 중…</div></div></section>' +
-      '<section class="panel"><div class="panel-h line"><h2 class="display"><span class="bubble" style="background:#DDF1E6;">🆕</span>새로 올라온 글</h2><a class="more" href="#/b/all">전체보기 ›</a></div><div id="home-new"></div></section>' +
-      '<section class="panel"><div class="panel-h"><h2 class="display"><span class="bubble" style="background:#FFF0C2;">🏆</span>챌린지 참가작</h2><a class="more" href="#/challenge">응원하러 가기 ›</a></div><div class="strip" id="home-ch"></div></section>';
+      '<section class="panel"><div class="panel-h line"><h2 class="display">새로 올라온 글</h2><a class="more" href="#/b/all">전체보기 ›</a></div><div id="home-new"></div></section>' +
+      '<section class="panel home-mall" id="home-mall" hidden><div class="panel-h"><h2 class="display">브랜드관 추천</h2><a class="more" href="#/brand">브랜드관 가기 ›</a></div><div class="prod-grid" id="home-mall-list"></div></section>';
 
     var start = new Date(); start.setHours(0,0,0,0);
     var week = new Date(Date.now() - 7 * 86400000).toISOString();
     Promise.all([
       sb.from('community_posts').select('id', { count:'exact', head:true }).eq('status','approved').gte('created_at', start.toISOString()),
       sb.from('post_comments').select('id', { count:'exact', head:true }).gte('created_at', week),
-      sb.from('community_posts').select('id', { count:'exact', head:true }).eq('status','approved')
+      sb.from('community_posts').select('id', { count:'exact', head:true }).eq('status','approved'),
+      sb.from('challenge_entries').select('id', { count:'exact', head:true }).eq('status','approved')
     ]).then(function(r){
       if($('st-today')) $('st-today').textContent = (r[0].count || 0).toLocaleString();
       if($('st-week')) $('st-week').textContent = (r[1].count || 0).toLocaleString();
       if($('st-all')) $('st-all').textContent = (r[2].count || 0).toLocaleString();
+      if($('fc-count')) $('fc-count').innerHTML = '참가작 <strong>' + (r[3].count || 0).toLocaleString() + '</strong>개';
     });
+
+    var ch = await sb.from('challenge_entries').select('id,name,media_path,votes').eq('status','approved').order('votes', { ascending:false }).order('created_at', { ascending:false }).limit(4);
+    var urls = await signUrls((ch.data || []).map(function(e){ return e.media_path; }));
+    var tiles = (ch.data || []).map(function(e){
+      return '<a href="#/challenge" aria-label="' + esc(e.name || '참가작') + ' 응원 ' + (e.votes || 0) + '">' + (urls[e.media_path] ? '<img src="' + esc(urls[e.media_path]) + '" alt="" loading="lazy">' : esc(e.name || '참가작')) + '<span class="v">응원 ' + (e.votes || 0) + '</span></a>';
+    });
+    var firstEmpty = true;
+    while(tiles.length < 4){ tiles.push('<span>' + (firstEmpty ? '다음 주인공은<br>우리 아이?' : '') + '</span>'); firstEmpty = false; }
+    if($('home-ch')) $('home-ch').innerHTML = tiles.join('');
 
     var hot = await sb.from('community_posts').select(COLS).eq('status','approved').order('likes', { ascending:false }).order('comments', { ascending:false }).order('created_at', { ascending:false }).limit(4);
     if($('home-hot')) $('home-hot').innerHTML = (hot.data || []).length ? hot.data.map(postCardHtml).join('') : emptyHtml('🌱', '아직 글이 없어요. 첫 이야기를 들려주세요!');
     var rows = await sb.from('community_posts').select(COLS).eq('status','approved').order('created_at', { ascending:false }).limit(8);
     if($('home-new')) $('home-new').innerHTML = (rows.data || []).length ? listTableHtml(rows.data, 'all', 0, rows.data.length, true) : emptyHtml('📝', '아직 글이 없어요.');
-    var ch = await sb.from('challenge_entries').select('id,name,media_path,votes').eq('status','approved').order('votes', { ascending:false }).order('created_at', { ascending:false }).limit(4);
-    var urls = await signUrls((ch.data || []).map(function(e){ return e.media_path; }));
-    if($('home-ch')) $('home-ch').innerHTML = (ch.data || []).length ? ch.data.map(function(e){
-      return '<a href="#/challenge" aria-label="' + esc(e.name || '참가작') + ' 응원 ' + (e.votes || 0) + '">' + (urls[e.media_path] ? '<img src="' + esc(urls[e.media_path]) + '" alt="" loading="lazy">' : '👣') + '<span class="v">💛 ' + (e.votes || 0) + '</span></a>';
-    }).join('') : '<div class="helper" style="grid-column:1/-1; padding:10px 0;">아직 공개된 참가작이 없어요. 앱에서 첫 번째로 참여해 보세요!</div>';
+
+    // 브랜드관 추천 상품 4개 (등록된 게 있을 때만 보인다)
+    var mp = await sb.from('mall_products').select('*').eq('visible', true).order('sort_order', { ascending:true }).limit(8);
+    var mb = await sb.from('mall_brands').select('id,name').eq('visible', true);
+    var bmap = {}; (mb.data || []).forEach(function(b){ bmap[b.id] = b; });
+    var picks = (mp.data || []).filter(function(p){ return bmap[p.brand_id]; }).slice(0, 4);
+    if(picks.length && $('home-mall')){ $('home-mall-list').innerHTML = picks.map(function(p){ return prodHtml(p, bmap[p.brand_id]); }).join(''); $('home-mall').hidden = false; }
   }
 
   function postCardHtml(p){
@@ -1380,8 +1512,9 @@
     var dd = left > 0 ? 'D-' + left : left === 0 ? 'D-DAY' : '마감';
     main.innerHTML = '<section class="panel">' +
       '<div class="ch-hero"><div><span class="dday' + (left < 0 ? ' off' : '') + '">' + dd + '</span>' +
-        '<h1 class="display">👣 첫걸음 챌린지</h1><span class="helper">걸음마 사진 한 장과 짧은 메모로 참여해요 · 10~24개월 · <b>참가자 중 4명 추첨, 2만 원 상당 육아용품</b> (11/30 마감 · 12/3 발표)</span></div>' +
-        (left >= 0 ? '<a class="btn primary" href="./index.html#challenge">📸 앱에서 참여하기</a>' : '') + '</div>' +
+        '<h1 class="display">첫걸음 챌린지</h1><span class="helper">걸음마 사진 한 장과 짧은 메모로 참여해요 · 10~24개월 · <b>참가자 중 4명 추첨, 2만 원 상당 육아용품</b> (11/30 마감 · 12/3 발표)</span></div>' +
+        (left >= 0 ? '<a class="btn primary" href="./index.html#challenge">앱에서 참여하기</a>' : '') + '</div>' +
+      '<div class="ch-steps"><div><b>1단계</b><span>아이의 첫걸음 순간을 사진으로 찍어요</span></div><div><b>2단계</b><span>앱의 챌린지 탭에서 사진과 한 줄 메모를 올려요</span></div><div><b>3단계</b><span>검수 후 공개되면 또래 부모들의 응원을 받아요</span></div></div>' +
       '<div class="sub"><a class="chip on" href="#/challenge" id="ch-sort-new">최신순</a><a class="chip" href="#/challenge" id="ch-sort-pop">응원순</a><span class="helper" id="ch-count" style="margin-left:auto;"></span></div>' +
       '<div class="gallery" id="gallery"><div class="helper">불러오는 중…</div></div></section>';
     loadGallery('new');

@@ -53,7 +53,7 @@ const errors=[],blocked=[];
 await ctx.route('**/*',async r=>{
   const u=new URL(r.request().url());
   if((u.hostname.endsWith('.supabase.co')&&u.origin!==DB)||(u.hostname==='adultryun188-lang.github.io'&&!u.pathname.startsWith('/dadamom-test/'))){blocked.push(u.origin+u.pathname);return r.abort();}
-  if(u.hostname.includes('fonts.'))return r.fulfill({contentType:'text/css',body:''});
+  if(u.hostname.includes('fonts.') || u.pathname.includes('/pretendard'))return r.fulfill({contentType:'text/css',body:''});
   await r.continue();
 });
 await ctx.addInitScript(()=>{window.__copied='';Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText:async t=>{window.__copied=t;}}});});

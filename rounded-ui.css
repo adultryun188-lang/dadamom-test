@@ -125,7 +125,8 @@ button,input,select,textarea{font-weight:700;}
 .brand-mall .mall-products{grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:20px;}
 .brand-mall .mall-products[data-count="1"]{max-width:420px;margin-inline:auto;}
 .brand-mall .mall-products[data-count="2"]{grid-template-columns:repeat(2,minmax(0,1fr));}
-.brand-mall .prod{background:#FFFDF8;padding:14px;border-radius:26px;gap:10px;border-color:#E6D6C3;}
+.brand-mall .prod{position:relative;background:#FFFDF8;padding:14px;border-radius:26px;gap:10px;border-color:#E6D6C3;}
+.brand-mall .prod .deal{position:absolute;top:24px;left:24px;}
 .brand-mall .prod .ph{aspect-ratio:4/3;max-height:300px;border-radius:18px;background:#FFF0CB;}
 .brand-mall .prod:nth-child(4n+2) .ph{background:#F8E5E8;}
 .brand-mall .prod:nth-child(4n+3) .ph{background:#E8F0DD;}
@@ -138,7 +139,9 @@ button,input,select,textarea{font-weight:700;}
 .brand-mall .prod .nm{font-size:17px;font-weight:800;line-height:1.6;min-height:54px;}
 .brand-mall .prod .was{font-size:13px;}
 .brand-mall .prod .now{font-size:20px;font-weight:800;}
-.brand-mall .prod .buy{margin-top:auto;background:#FFF0E4;border:1px solid #EED6C1;border-radius:999px;justify-content:center;min-height:44px;font-size:14px;font-weight:800;}
+.product-price{display:flex;flex-direction:column;gap:6px;}
+.brand-mall .product-price{min-height:60px;justify-content:flex-end;margin-top:auto;}
+.brand-mall .prod .buy{margin-top:0;background:#FFF0E4;border:1px solid #EED6C1;border-radius:999px;justify-content:center;min-height:44px;font-size:14px;font-weight:800;}
 .brand-mall .mall-note{margin:0;background:#F0F5E8;border-color:#DAE4CD;padding:18px 22px;font-size:13px;}
 .mall-brand-detail{border:1px solid var(--border);border-radius:28px;background:#FFFDF8;overflow:hidden;}
 .mall-brand-detail .brand-head{padding:30px;background:#FFF0DF;}
@@ -166,6 +169,7 @@ button,input,select,textarea{font-weight:700;}
   .brand-mall .mall-products{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;}
   .brand-mall .mall-products[data-count="1"]{grid-template-columns:1fr;max-width:360px;}
   .brand-mall .prod{padding:10px;gap:8px;border-radius:20px;}
+  .brand-mall .prod .deal{top:18px;left:18px;}
   .brand-mall .prod .ph{aspect-ratio:1;border-radius:14px;}
   .brand-mall .prod .nm{font-size:14px;min-height:46px;}.brand-mall .prod .now{font-size:17px;}
   .brand-mall .prod .bn{font-size:12px;}.brand-mall .prod .buy{font-size:12px;min-height:42px;}

@@ -678,7 +678,7 @@
     .my-head > .btn{ width:100%; }
   }
 </style>
-<link rel="stylesheet" href="./rounded-ui.css?v=20261022-2">
+<link rel="stylesheet" href="./rounded-ui.css?v=20261022-3">
 
 <a class="skip-link" href="#main">본문 바로가기</a>
 <header class="top">
@@ -1714,8 +1714,8 @@
       (dealOn ? '<span class="deal">특가' + (p.deal_until ? ' ~' + esc(p.deal_until.slice(5).replace('-', '/')) : '') + '</span>' : '') +
       '<span class="bn">' + esc(brand ? brand.name : '') + (p.visible === false ? '<span class="hidden-tag">숨김</span>' : '') + '</span>' +
       '<span class="nm">' + esc(p.name) + '</span>' +
-      (sale ? '<span class="was">' + won(p.price) + '</span><span class="now"><span class="pct">' + pct + '%</span>' + won(p.sale_price) + '</span>'
-            : (p.price != null ? '<span class="now">' + won(p.price) + '</span>' : '')) +
+      '<span class="product-price">' + (sale ? '<span class="was">' + won(p.price) + '</span><span class="now"><span class="pct">' + pct + '%</span>' + won(p.sale_price) + '</span>'
+            : (p.price != null ? '<span class="now">' + won(p.price) + '</span>' : '')) + '</span>' +
       '<span class="buy">구매하러 가기 ↗</span></a>';
   }
   var MALL_NOTE = '<p class="mall-note">구매·결제·배송은 각 브랜드 스토어에서 진행돼요. 다다맘은 상품을 소개하는 곳이라 판매 당사자가 아니에요.</p>';

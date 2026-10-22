@@ -678,7 +678,7 @@
     .my-head > .btn{ width:100%; }
   }
 </style>
-<link rel="stylesheet" href="./rounded-ui.css?v=20261022-1">
+<link rel="stylesheet" href="./rounded-ui.css?v=20261022-2">
 
 <a class="skip-link" href="#main">본문 바로가기</a>
 <header class="top">
@@ -903,6 +903,7 @@
 
   async function render(){
     var r = route(), s0 = r.seg[0] || '', main = $('main');
+    document.querySelector('.layout').classList.toggle('is-brand', s0 === 'brand');
     if(s0 !== 'p') current = null;
     $('q').value = r.params.get('q') || '';
     $('q-scope').value = r.params.get('f') === 'author' ? 'author' : 'text';
@@ -1709,7 +1710,7 @@
     var pct = sale ? Math.round((1 - p.sale_price / p.price) * 100) : 0;
     var dealOn = p.is_deal && (!p.deal_until || p.deal_until >= todayISO());
     return '<a class="prod" href="' + esc(buy || '#/brand') + '"' + (buy ? ' target="_blank" rel="noopener noreferrer sponsored"' : '') + '>' +
-      '<span class="ph">' + (img ? '<img src="' + esc(img) + '" alt="" loading="lazy">' : '🧸') + '</span>' +
+      '<span class="ph">' + (img ? '<img src="' + esc(img) + '" alt="" loading="lazy">' : '<span class="product-placeholder"><svg viewBox="0 0 64 64" fill="none" aria-hidden="true"><path d="M15 22h34l4 32H11l4-32Z" fill="rgba(255,255,255,.65)" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/><path d="M23 24V17a9 9 0 0 1 18 0v7M25 38c4 4 10 4 14 0" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg><span>상품 사진 준비 중</span></span>') + '</span>' +
       (dealOn ? '<span class="deal">특가' + (p.deal_until ? ' ~' + esc(p.deal_until.slice(5).replace('-', '/')) : '') + '</span>' : '') +
       '<span class="bn">' + esc(brand ? brand.name : '') + (p.visible === false ? '<span class="hidden-tag">숨김</span>' : '') + '</span>' +
       '<span class="nm">' + esc(p.name) + '</span>' +
@@ -1719,13 +1720,19 @@
   }
   var MALL_NOTE = '<p class="mall-note">구매·결제·배송은 각 브랜드 스토어에서 진행돼요. 다다맘은 상품을 소개하는 곳이라 판매 당사자가 아니에요.</p>';
 
+  var mallRequest = 0;
+  function mallProductGrid(list, byId){
+    return '<div class="prod-grid mall-products" data-count="' + list.length + '">' + list.map(function(p){ return prodHtml(p, byId[p.brand_id]); }).join('') + '</div>';
+  }
   async function renderBrandMall(main, brandId, params){
+    var request = ++mallRequest;
     main.innerHTML = '<section class="panel"><div class="panel-h"><h1 class="display">🛍️ 브랜드관</h1><span class="helper">엄마 아빠가 믿고 고르는 육아 브랜드</span></div><div class="mall-sec"><div class="helper">불러오는 중…</div></div></section>';
     var res = await Promise.all([
       sb.from('mall_brands').select('*').order('sort_order', { ascending:true }).order('created_at', { ascending:true }),
       sb.from('mall_products').select('*').order('sort_order', { ascending:true }).order('created_at', { ascending:true }),
       brandId ? Promise.resolve({ data:[] }) : sb.from('mall_banners').select('*').order('sort_order', { ascending:true })
     ]);
+    if(request !== mallRequest || route().seg[0] !== 'brand') return;
     var brands = res[0].data || [], prods = res[1].data || [], banners = res[2].data || [];
     var byId = {}; brands.forEach(function(b){ byId[b.id] = b; });
     prods = prods.filter(function(p){ return byId[p.brand_id]; });
@@ -1737,13 +1744,13 @@
       var mine = prods.filter(function(p){ return p.brand_id === b.id; });
       var store = safeUrl(b.store_url);
       document.title = b.name + ' · 다다맘 브랜드관';
-      main.innerHTML = '<section class="panel"><div class="brand-head">' + brandLogoHtml(b) +
+      main.innerHTML = '<section class="brand-mall"><div class="mall-brand-detail"><div class="brand-head">' + brandLogoHtml(b) +
           '<div style="flex:1; min-width:200px;"><h1 class="display" style="margin:0; font-size:22px;">' + esc(b.name) + hiddenTag(b) + '</h1>' +
           (b.intro ? '<p class="helper" style="margin:6px 0 0; font-size:13.5px;">' + esc(b.intro) + '</p>' : '') + '</div>' +
           (store ? '<a class="btn primary" href="' + esc(store) + '" target="_blank" rel="noopener noreferrer sponsored">브랜드 스토어 가기 ↗</a>' : '') + '</div>' +
         '<div class="mall-sec"><h2>상품 ' + mine.length + '개</h2>' +
-          (mine.length ? '<div class="prod-grid">' + mine.map(function(p){ return prodHtml(p, b); }).join('') + '</div>' : emptyHtml('🧺', '아직 등록된 상품이 없어요.')) +
-        '</div>' + MALL_NOTE + '<div style="padding:0 20px 20px;"><a class="btn" href="#/brand">← 브랜드관</a></div></section>';
+          (mine.length ? mallProductGrid(mine, byId) : emptyHtml('🧺', '아직 등록된 상품이 없어요.')) +
+        '</div>' + MALL_NOTE + '<div style="padding:0 24px 24px;"><a class="btn" href="#/brand">← 브랜드관</a></div></div></section>';
       return;
     }
 
@@ -1751,12 +1758,13 @@
       main.innerHTML = panelMsg('브랜드관', '🛍️', '곧 엄마 아빠가 믿고 고를 수 있는 브랜드를 모아 열게요!', isAdmin ? '<a class="btn primary" href="#/mall-admin">⚙️ 브랜드 등록하기</a>' : '');
       return;
     }
-    var featured = brands.filter(function(b){ return b.is_featured; });
-    var pick = byId[params.get('b')] || featured[0] || brands[0];
+    var pick = byId[params.get('b')] || null;
     var today = todayISO();
-    var deals = prods.filter(function(p){ return p.is_deal && (!p.deal_until || p.deal_until >= today); });
-    var news = brands.filter(function(b){ return b.is_new; });
-    var chip = function(b, on, href){ return '<a class="brand-chip' + (on ? ' on' : '') + '" href="' + href + '"' + (on ? ' aria-current="true"' : '') + '>' + brandLogoHtml(b) + '<span>' + esc(b.name) + '</span>' + hiddenTag(b) + '</a>'; };
+    var dealOnly = params.get('tab') === 'deal';
+    var isDeal = function(p){ return p.is_deal && (!p.deal_until || p.deal_until >= today); };
+    var catalog = prods.filter(function(p){ return (!pick || p.brand_id === pick.id) && (!dealOnly || isDeal(p)); });
+    var filterHref = function(id, deal){ var q = new URLSearchParams(); if(id) q.set('b', id); if(deal) q.set('tab','deal'); return '#/brand' + (q.toString() ? '?' + q.toString() : '?tab=catalog'); };
+    var filter = function(label, href, on){ return '<a class="chip' + (on ? ' on' : '') + '" href="' + esc(href) + '"' + (on ? ' aria-current="true"' : '') + '>' + esc(label) + '</a>'; };
     var bannerHtml = banners.length ? '<div class="mall-banners" aria-label="기획전">' + banners.map(function(n){
         var img = safeUrl(n.image_url);
         var link = n.link_url && /^#\//.test(n.link_url) ? n.link_url : safeUrl(n.link_url);
@@ -1765,16 +1773,23 @@
         return '<a class="mall-banner' + (img ? ' img' : '') + '" style="' + style + '" href="' + esc(link || '#/brand') + '"' + (ext ? ' target="_blank" rel="noopener noreferrer"' : '') + '>' +
           '<b class="display">' + esc(n.title) + hiddenTag(n) + '</b>' + (n.subtitle ? '<span>' + esc(n.subtitle) + '</span>' : '') + '</a>';
       }).join('') + '</div>' : '';
-    main.innerHTML = '<section class="panel"><div class="panel-h line"><h1 class="display">🛍️ 브랜드관</h1>' + (isAdmin ? '<a class="btn soft" href="#/mall-admin">⚙️ 브랜드관 관리</a>' : '<span class="helper">엄마 아빠가 믿고 고르는 육아 브랜드</span>') + '</div>' + bannerHtml +
-      (news.length ? '<div class="mall-sec"><h2>🆕 새로 들어온 브랜드</h2><div class="brand-row">' + news.map(function(b){ return chip(b, false, '#/brand/' + b.id); }).join('') + '</div></div>' : '') +
-      (pick ? '<div class="mall-sec"><h2>⭐ 다다맘 추천 브랜드</h2><div class="brand-row">' + (featured.length ? featured : brands).map(function(b){ return chip(b, b.id === pick.id, '#/brand?b=' + b.id); }).join('') + '</div>' +
-        '<div style="display:flex; justify-content:space-between; align-items:center; margin:14px 0 10px;"><b>' + esc(pick.name) + '</b><a class="more" href="#/brand/' + pick.id + '">브랜드관 가기 ›</a></div>' +
-        (function(){ var list = prods.filter(function(p){ return p.brand_id === pick.id; }).slice(0, 8); return list.length ? '<div class="prod-grid">' + list.map(function(p){ return prodHtml(p, pick); }).join('') + '</div>' : emptyHtml('🧺', '아직 등록된 상품이 없어요.'); })() +
-        '</div>' : '') +
-      (deals.length ? '<div class="mall-sec" id="mall-deals"><h2>🔥 이번 주 특가</h2><div class="prod-grid">' + deals.map(function(p){ return prodHtml(p, byId[p.brand_id]); }).join('') + '</div></div>' : '') +
-      '<div class="mall-sec"><h2>🏷️ 전체 브랜드</h2><div class="brand-row" style="flex-wrap:wrap;">' + brands.map(function(b){ return chip(b, false, '#/brand/' + b.id); }).join('') + '</div></div>' +
-      MALL_NOTE + '</section>';
-    if(params.get('tab') === 'deal' && $('mall-deals')) $('mall-deals').scrollIntoView();
+    main.innerHTML = '<section class="brand-mall" aria-label="다다맘 브랜드관">' +
+      '<header class="mall-hero"><div class="mall-hero-copy"><span class="mall-eyebrow">다다맘 브랜드관</span>' +
+        '<h1 class="display">우리 가족의<br><em>다정한 선택.</em></h1><p>아이와 나의 하루에 필요한 작은 발견.<br>육아 브랜드와 상품을 한곳에서 만나보세요.</p>' +
+        '<div class="mall-hero-actions"><a class="btn primary" href="#/brand?tab=catalog">상품 둘러보기 <span aria-hidden="true">↗</span></a>' +
+          (isAdmin ? '<a class="btn" href="#/mall-admin">브랜드관 관리</a>' : '') + '</div></div>' +
+        '<div class="mall-hero-art" aria-hidden="true"><div class="mall-hero-poster"><img src="./icons/icon-192.png" alt=""><b>소중한 하루를<br>함께 고르다</b><span>DADAMOM SELECT</span></div><span class="mall-hero-sticker">작은 선택, 큰 행복</span></div></header>' +
+      (bannerHtml ? '<section aria-label="브랜드관 소식">' + bannerHtml + '</section>' : '') +
+      '<section aria-labelledby="mall-brands-title"><div class="mall-section-head"><div><h2 id="mall-brands-title">함께하는 브랜드</h2><p>브랜드를 만나고, 우리 가족에게 맞는 상품을 찾아보세요.</p></div><span class="helper">' + brands.length + '개 브랜드</span></div>' +
+        '<div class="brand-directory-grid">' + brands.map(function(b){ return '<a class="brand-card" href="#/brand/' + esc(encodeURIComponent(b.id)) + '">' + brandLogoHtml(b) +
+          '<span class="brand-card-copy"><span class="brand-card-labels">' + (b.is_new ? '<span class="tag">NEW</span>' : '') + (b.is_featured ? '<span class="tag">추천</span>' : '') + '</span><b>' + esc(b.name) + hiddenTag(b) + '</b><span>' + esc(b.intro || '브랜드 상품 만나보기') + '</span></span><span class="brand-card-arrow" aria-hidden="true">↗</span></a>'; }).join('') + '</div></section>' +
+      '<section class="mall-catalog" id="mall-catalog" aria-labelledby="mall-products-title"><div class="mall-section-head"><div><h2 id="mall-products-title">우리 가족을 위한 발견</h2><p>상품을 살펴보고 구매는 각 브랜드 스토어에서 진행해요.</p></div></div>' +
+        '<nav class="mall-filter" aria-label="상품 필터">' + filter('전체 상품',filterHref('',false),!pick && !dealOnly) +
+          brands.map(function(b){return filter(b.name,filterHref(b.id,false),!!pick && b.id===pick.id && !dealOnly);}).join('') +
+          filter('특가 모아보기',filterHref('',true),dealOnly) + '</nav>' +
+        '<div class="mall-catalog-summary"><span>' + esc(dealOnly ? '진행 중인 특가' : pick ? pick.name : '전체 상품') + '</span><span>상품 <b>' + catalog.length + '</b>개</span></div>' +
+        (catalog.length ? mallProductGrid(catalog,byId) : emptyHtml('🧺','조건에 맞는 상품이 아직 없어요.')) + '</section>' + MALL_NOTE + '</section>';
+    if(params.get('tab') === 'deal' || params.get('tab') === 'catalog' || pick) $('mall-catalog').scrollIntoView({block:'start'});
   }
 
   // ---------- 브랜드관 관리 (관리자) ----------

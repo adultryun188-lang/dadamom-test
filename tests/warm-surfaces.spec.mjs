@@ -37,16 +37,28 @@ function contrast(a,b){const x=lum(a),y=lum(b);return (Math.max(x,y)+.05)/(Math.
 async function setup(width,loggedIn=true){
   const ctx=await browser.newContext({viewport:{width,height:width<=430?720:900},serviceWorkers:'block',colorScheme:'dark'});
   const now=new Date().toISOString();
-  await ctx.addInitScript(f=>{window.__warmFixture=f;}, {
+  // 팝업 동작은 community-flow에서 별도 검증한다. 여기서는 모바일 필터를 가리지 않는다.
+  await ctx.addInitScript(f=>{
+    window.__warmFixture=f;
+    const d=new Date(),today=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+    localStorage.setItem('dadamom.popup.first-step-2026',today);
+  }, {
     session:loggedIn?{user:{id:'warm-user',email:'warm@dadamom.test'}}:null,
     store:{profiles:[{id:'warm-user',nickname:'햇살부모',onboarded:true,kid_type:'parenting',parent_role:'mom',birth_month:'2026-01',region:'서울'}],
       community_posts:[{id:'warm-post',owner_id:'other-user',author:'가상부모',text:'[질문] 아이와 따뜻한 하루를 보내는 방법이 궁금해요\n처음 맞는 작은 순간들을 함께 이야기하고 싶어요.',status:'approved',created_at:now,likes:0,comments:1,media_path:'other-user/test.png'}],
       post_comments:[{id:'warm-cmt',post_id:'warm-post',owner_id:'other-user',author:'봄빛부모',content:'오늘도 작은 한 걸음, 함께 응원해요.',created_at:now}],
       post_bookmarks:[],post_likes:[],entry_votes:[],challenge_entries:[],notices:[],
       outings:[{id:'warm-outing',title:'아이와 천천히 걷는 봄빛 공원',category:'spot',region:'서울',place:'가상 공원',description:'가족이 함께 산책하기 좋은 곳입니다.',sort_order:0}],
-      mall_brands:[{id:'warm-brand',name:'햇살 브랜드',intro:'가족의 따뜻한 일상을 위한 물건들',is_featured:true,is_new:true,visible:true,store_url:'',sort_order:0}],
-      mall_products:[{id:'warm-product',brand_id:'warm-brand',name:'포근한 하루를 위한 아이 담요',price:25000,sale_price:20000,is_deal:true,visible:true,sort_order:0}],
-      mall_banners:[{id:'warm-banner',title:'따뜻한 일상을 만나요',subtitle:'가족을 위한 작은 발견',bg:'#FFF3E4',link_url:'#/brand/warm-brand',visible:true}]
+      mall_brands:[{id:'warm-brand',name:'햇살 브랜드',intro:'가족의 따뜻한 일상을 위한 물건들',is_featured:true,is_new:true,visible:true,store_url:'https://example.com/store',sort_order:0},
+        {id:'mint-brand',name:'초록 식탁',intro:'함께하는 식사 시간',is_featured:true,visible:true,sort_order:1},
+        {id:'play-brand',name:'매일 놀이터',intro:'작은 발견이 가득한 하루',is_new:true,visible:true,sort_order:2}],
+      mall_products:[{id:'warm-product',brand_id:'warm-brand',name:'포근한 하루를 위한 아이 담요',price:25000,sale_price:20000,is_deal:true,visible:true,buy_url:'https://example.com/blanket',sort_order:0},
+        {id:'warm-product-2',brand_id:'warm-brand',name:'편안한 산책을 위한 모자',price:15000,visible:true,sort_order:1},
+        {id:'mint-product',brand_id:'mint-brand',name:'함께 먹는 아침 그릇',price:12000,visible:true,sort_order:2},
+        {id:'play-old',brand_id:'play-brand',name:'지난 특가 장난감',price:18000,is_deal:true,deal_until:'2000-01-01',visible:true,sort_order:3},
+        {id:'play-new',brand_id:'play-brand',name:'오늘의 작은 장난감',price:16000,sale_price:14000,is_deal:true,visible:true,sort_order:4}],
+      mall_banners:[{id:'warm-banner',title:'따뜻한 일상을 만나요',subtitle:'가족을 위한 작은 발견',bg:'#FFF3E4',link_url:'#/brand/warm-brand',visible:true},
+        {id:'warm-banner-2',title:'진행 중인 특가를 만나보세요',subtitle:'마감 전 상품 살펴보기',bg:'#EEF4DB',link_url:'#/brand?tab=deal',visible:true}]
     }
   });
   await ctx.route('**/*',async r=>{
@@ -62,7 +74,8 @@ async function noOverflow(page,label){
   await page.evaluate(async()=>{await document.fonts.ready;});
   const v=await page.evaluate(()=>({w:document.documentElement.clientWidth,s:document.documentElement.scrollWidth,bg:getComputedStyle(document.body).backgroundColor}));
   check(label+' 가로 넘침 없음',v.s<=v.w);check(label+' 밝은 바탕',lum(v.bg)>.85);
-  check(label+' 둥근 폰트 적용',await page.evaluate(()=>document.fonts.check('400 16px "NanumSquareRound"','따뜻한 이야기')&&getComputedStyle(document.body).fontFamily.startsWith('NanumSquareRound')));
+  check(label+' 둥근 폰트 적용',await page.evaluate(()=>document.fonts.check('700 16px "NanumSquareRound"','따뜻한 이야기')&&getComputedStyle(document.body).fontFamily.startsWith('NanumSquareRound')));
+  check(label+' 본문 굵기 보강',await page.evaluate(()=>Number(getComputedStyle(document.body).fontWeight)>=700));
 }
 async function brightButton(page,selector,label){
   const s=await page.locator(selector).first().evaluate(el=>{const s=getComputedStyle(el);return {bg:s.backgroundColor,ink:s.color};});
@@ -89,7 +102,26 @@ try{
       }
       if(hash==='#/brand'){
         await page.locator('.prod').first().waitFor();
-        check(width+' 브랜드 상품 존재',await page.locator('.prod').count()>0);
+        check(width+' 전체 상품 5개',await page.locator('.mall-products > .prod').count()===5);
+        check(width+' 중복 브랜드 목록 제거',await page.locator('.brand-directory-grid .brand-card').count()===3&&await page.locator('#main .brand-row').count()===0);
+        check(width+' 브랜드관 사이드 피드 제외',await page.locator('.side').isHidden());
+        const bounds=await page.locator('.mall-banners').evaluate(el=>{const p=el.getBoundingClientRect();return [...el.children].every(c=>{const r=c.getBoundingClientRect();return r.left>=p.left-1&&r.right<=p.right+1;});});
+        check(width+' 기획전 배너 잘림 없음',bounds);
+        check(width+' 상품 카드 폭 정렬',await page.locator('.mall-products > .prod').evaluateAll(els=>Math.max(...els.map(el=>el.getBoundingClientRect().width))-Math.min(...els.map(el=>el.getBoundingClientRect().width))<2));
+        check(width+' 사진 없는 상품 상태 표시',await page.locator('.product-placeholder').count()===5);
+        if(width===390||width===1440)await page.screenshot({path:path.join(out,'brand-'+width+'.png'),fullPage:true});
+        await page.locator('.mall-filter a[href="#/brand?b=warm-brand"]').click();await page.waitForFunction(()=>document.querySelectorAll('.mall-products > .prod').length===2);
+        check(width+' 브랜드 선택 필터 2개',await page.locator('.mall-filter .on').textContent()==='햇살 브랜드');
+        const buy=page.locator('.mall-products a[href="https://example.com/blanket"]');
+        check(width+' 외부 구매 링크 보호 유지',await buy.getAttribute('target')==='_blank'&&/noopener/.test(await buy.getAttribute('rel'))&&/sponsored/.test(await buy.getAttribute('rel')));
+        await page.locator('.mall-filter a[href="#/brand?tab=deal"]').click();await page.getByText('진행 중인 특가',{exact:true}).waitFor();
+        check(width+' 진행 중 특가만 2개',await page.locator('.mall-products > .prod').count()===2&&!(await page.locator('.mall-products').textContent()).includes('지난 특가 장난감'));
+        await page.locator('.mall-filter a[href="#/brand?tab=catalog"]').click();await page.waitForFunction(()=>document.querySelectorAll('.mall-products > .prod').length===5);
+        check(width+' 전체 상품 복구',await page.locator('.mall-filter .on').textContent()==='전체 상품');
+        await page.locator('.brand-card[href="#/brand/warm-brand"]').click();await page.locator('.brand-head h1').waitFor();
+        check(width+' 브랜드 상세 상품 2개',await page.locator('.mall-products > .prod').count()===2);
+        await page.locator('#nav a[href="#/outing"]').click();await page.locator('#out-list').waitFor();
+        check(width+' 다른 메뉴에서 사이드 복구',await page.locator('.side').isVisible());
       }
       if(hash==='#/brand/warm-brand')await page.locator('.brand-head h1').waitFor();
       if(width===390&&hash==='#/write')await page.screenshot({path:path.join(out,'write-390.png'),fullPage:true});
@@ -136,7 +168,7 @@ try{
   }
   await page.route(base+'/nested/missing-page',async r=>r.fulfill({contentType:'text/html; charset=utf-8',body:await fs.readFile(path.join(root,'404.html'),'utf8')}));
   await page.goto(base+'/nested/missing-page');await noOverflow(page,'중첩 경로 404');
-  check('404 스타일시트 루트 경로 복구',await page.locator('#rounded-ui-style').getAttribute('href')==='/rounded-ui.css?v=20261022-1');
+  check('404 스타일시트 루트 경로 복구',await page.locator('#rounded-ui-style').getAttribute('href')==='/rounded-ui.css?v=20261022-2');
   await page.goto(base+'/index.html#onboarding');await page.locator('#auth-email').waitFor();
   await page.evaluate(()=>document.documentElement.dataset.theme='dark');
   check('남은 다크 테마 속성도 밝게 유지',await page.evaluate(()=>getComputedStyle(document.documentElement).colorScheme==='light'));

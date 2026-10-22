@@ -63,7 +63,8 @@ try{
       const a=luminance(data.button),b=luminance(data.ink);
       check(width+' '+hash+' 버튼 대비 4.5 이상',(Math.max(a,b)+.05)/(Math.min(a,b)+.05)>=4.5);
       check(width+' '+hash+' 테스트 환경 표시',data.testVisible);
-      check(width+' '+hash+' 실제 둥근 폰트 로드',await page.evaluate(()=>document.fonts.check('400 16px "NanumSquareRound"','따뜻한 우리 아이')&&document.fonts.check('800 25px "NanumSquareRound"','첫걸음 챌린지')&&getComputedStyle(document.body).fontFamily.startsWith('NanumSquareRound')));
+      check(width+' '+hash+' 실제 둥근 폰트 로드',await page.evaluate(()=>document.fonts.check('700 16px "NanumSquareRound"','따뜻한 우리 아이')&&document.fonts.check('800 25px "NanumSquareRound"','첫걸음 챌린지')&&getComputedStyle(document.body).fontFamily.startsWith('NanumSquareRound')));
+      check(width+' '+hash+' 본문 굵기 보강',await page.evaluate(()=>Number(getComputedStyle(document.body).fontWeight)>=700));
       if(data.hero)check(width+' '+hash+' 어두운 히어로 없음',!data.hero.includes('30, 26, 23'));
       if(hash==='#/'){
         check(width+' 빈 칸 채우기용 타일 없음',await page.locator('#home-ch > *').count()===2);

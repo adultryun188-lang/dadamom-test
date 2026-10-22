@@ -23,7 +23,7 @@ const server=http.createServer(async(req,res)=>{
   if(pathname==='/env.js'){res.writeHead(200,{'Content-Type':'application/javascript'}).end(env);return;}
   const file=path.resolve(root,'.'+pathname);
   if(!file.startsWith(root+path.sep)||file.includes(path.sep+'.git')||file.includes(path.sep+'node_modules')){res.writeHead(403).end();return;}
-  try{const bytes=await fs.readFile(file);res.writeHead(200,{'Content-Type':({'.html':'text/html; charset=utf-8','.js':'application/javascript','.png':'image/png','.ico':'image/x-icon'})[path.extname(file)]||'application/octet-stream'}).end(bytes);}catch{res.writeHead(404).end();}
+  try{const bytes=await fs.readFile(file);res.writeHead(200,{'Content-Type':({'.html':'text/html; charset=utf-8','.js':'application/javascript','.css':'text/css','.woff2':'font/woff2','.png':'image/png','.ico':'image/x-icon'})[path.extname(file)]||'application/octet-stream'}).end(bytes);}catch{res.writeHead(404).end();}
 });
 await new Promise(r=>server.listen(0,'127.0.0.1',r));
 const base='http://127.0.0.1:'+server.address().port;
@@ -49,6 +49,7 @@ try{
       await page.goto(base+'/community.html'+hash);
       await page.locator('#main h1, #main h2').first().waitFor();
       if(hash==='#/') await page.locator('.fc-invite').waitFor();
+      await page.evaluate(async()=>{await document.fonts.ready;});
       const data=await page.evaluate(()=>{
         const button=document.querySelector('.btn.primary');const s=button&&getComputedStyle(button);
         const hero=document.querySelector('.feature-ch, .ch-hero');const h=hero&&getComputedStyle(hero);
@@ -62,17 +63,28 @@ try{
       const a=luminance(data.button),b=luminance(data.ink);
       check(width+' '+hash+' 버튼 대비 4.5 이상',(Math.max(a,b)+.05)/(Math.min(a,b)+.05)>=4.5);
       check(width+' '+hash+' 테스트 환경 표시',data.testVisible);
+      check(width+' '+hash+' 실제 둥근 폰트 로드',await page.evaluate(()=>document.fonts.check('400 16px "NanumSquareRound"','따뜻한 우리 아이')&&document.fonts.check('800 25px "NanumSquareRound"','첫걸음 챌린지')&&getComputedStyle(document.body).fontFamily.startsWith('NanumSquareRound')));
       if(data.hero)check(width+' '+hash+' 어두운 히어로 없음',!data.hero.includes('30, 26, 23'));
       if(hash==='#/'){
         check(width+' 빈 칸 채우기용 타일 없음',await page.locator('#home-ch > *').count()===2);
         check(width+' 사진 없는 참가작 제목',await page.locator('.fc-entry-name').textContent()==='우리 아이');
+        check(width+' 알약형 참여 버튼',await page.locator('.feature-ch .cta .btn.primary').evaluate(el=>parseFloat(getComputedStyle(el).borderTopLeftRadius)>=24));
+        check(width+' 둥근 선택 메뉴',await page.locator('#nav .on').evaluate(el=>parseFloat(getComputedStyle(el).borderTopLeftRadius)>=24));
         if(width<=430){
           const rect=await page.locator('.feature-ch .cta .btn.primary').boundingBox();check(width+' 모바일 참여 버튼 44px',rect.height>=44);
+        }
+        if(width===390||width===1440)await page.screenshot({path:path.join(out,'home-'+width+'.png'),fullPage:true});
+        if(width===1440){
+          const btn=page.locator('.feature-ch .cta .btn.primary');await btn.hover();
+          await page.waitForFunction(()=>getComputedStyle(document.querySelector('.feature-ch .cta .btn.primary')).transform!=='none');
+          check('마우스 올림 반응',await btn.evaluate(el=>getComputedStyle(el).boxShadow!=='none'));
+          const r=await btn.boundingBox();await page.mouse.move(r.x+r.width/2,r.y+r.height/2);await page.mouse.down();
+          await page.waitForFunction(()=>getComputedStyle(document.querySelector('.feature-ch .cta .btn.primary')).transform.match(/matrix\(([^,]+)/)?.[1]<1);
+          check('누르면 들어가는 반응',await btn.evaluate(el=>el.matches(':active')));await page.mouse.move(0,0);await page.mouse.up();
         }
         await page.locator('.skip-link').focus();await page.locator('.skip-link').press('Enter');
         check(width+' 본문 이동 시 SPA 경로 유지',new URL(page.url()).hash==='#/');
         check(width+' 본문 키보드 초점',await page.locator('#main').evaluate(el=>el===document.activeElement));
-        if(width===390||width===1440)await page.screenshot({path:path.join(out,'home-'+width+'.png'),fullPage:true});
       }
     }
     // 참가작이 없을 때도 빈 그리드 대신 한 개의 안내 카드만 보여준다.

@@ -65,7 +65,7 @@ const server = http.createServer((req,res) => {
   if(file === root) file = path.join(root,'index.html');
   if(file.includes(path.sep + '.git') || file.includes(path.sep + 'node_modules')){ res.writeHead(403).end(); return; }
   if(path.basename(file) === 'env.js'){ res.writeHead(200,{'Content-Type':'application/javascript'}).end(env); return; }
-  const mime = {'.html':'text/html; charset=utf-8','.js':'application/javascript','.png':'image/png','.webmanifest':'application/manifest+json'};
+  const mime = {'.html':'text/html; charset=utf-8','.js':'application/javascript','.css':'text/css','.woff2':'font/woff2','.png':'image/png','.webmanifest':'application/manifest+json'};
   fs.readFile(file,(error,data) => { res.writeHead(error ? 404 : 200,{'Content-Type':mime[path.extname(file)] || 'application/octet-stream'}).end(error ? '' : data); });
 });
 await new Promise(r => server.listen(0,'127.0.0.1',r));

@@ -25,7 +25,7 @@ const server=http.createServer(async(req,res)=>{
   if(pathname==='/env.js'){res.writeHead(200,{'Content-Type':'application/javascript'}).end(env);return;}
   const file=path.resolve(root,'.'+pathname);
   if(!file.startsWith(root+path.sep)||file.includes(path.sep+'.git')||file.includes(path.sep+'node_modules')){res.writeHead(403).end();return;}
-  try{const bytes=await fs.readFile(file);res.writeHead(200,{'Content-Type':({'.html':'text/html; charset=utf-8','.js':'application/javascript','.png':'image/png','.ico':'image/x-icon'})[path.extname(file)]||'application/octet-stream'}).end(bytes);}catch{res.writeHead(404).end();}
+  try{const bytes=await fs.readFile(file);res.writeHead(200,{'Content-Type':({'.html':'text/html; charset=utf-8','.js':'application/javascript','.css':'text/css','.woff2':'font/woff2','.png':'image/png','.ico':'image/x-icon'})[path.extname(file)]||'application/octet-stream'}).end(bytes);}catch{res.writeHead(404).end();}
 });
 await new Promise(r=>server.listen(0,'127.0.0.1',r));
 const base='http://127.0.0.1:'+server.address().port;
@@ -59,8 +59,10 @@ async function setup(width,loggedIn=true){
   const page=await ctx.newPage();page.on('pageerror',e=>errors.push(e.message));return {ctx,page};
 }
 async function noOverflow(page,label){
+  await page.evaluate(async()=>{await document.fonts.ready;});
   const v=await page.evaluate(()=>({w:document.documentElement.clientWidth,s:document.documentElement.scrollWidth,bg:getComputedStyle(document.body).backgroundColor}));
   check(label+' 가로 넘침 없음',v.s<=v.w);check(label+' 밝은 바탕',lum(v.bg)>.85);
+  check(label+' 둥근 폰트 적용',await page.evaluate(()=>document.fonts.check('400 16px "NanumSquareRound"','따뜻한 이야기')&&getComputedStyle(document.body).fontFamily.startsWith('NanumSquareRound')));
 }
 async function brightButton(page,selector,label){
   const s=await page.locator(selector).first().evaluate(el=>{const s=getComputedStyle(el);return {bg:s.backgroundColor,ink:s.color};});
@@ -132,9 +134,18 @@ try{
   for(const file of ['404.html','offline.html','delete-account.html']){
     await page.goto(base+'/'+file);await noOverflow(page,file);await brightButton(page,file==='404.html'?'a.primary':file==='offline.html'?'button':'a.btn',file);
   }
+  await page.route(base+'/nested/missing-page',async r=>r.fulfill({contentType:'text/html; charset=utf-8',body:await fs.readFile(path.join(root,'404.html'),'utf8')}));
+  await page.goto(base+'/nested/missing-page');await noOverflow(page,'중첩 경로 404');
+  check('404 스타일시트 루트 경로 복구',await page.locator('#rounded-ui-style').getAttribute('href')==='/rounded-ui.css?v=20261022-1');
   await page.goto(base+'/index.html#onboarding');await page.locator('#auth-email').waitFor();
   await page.evaluate(()=>document.documentElement.dataset.theme='dark');
   check('남은 다크 테마 속성도 밝게 유지',await page.evaluate(()=>getComputedStyle(document.documentElement).colorScheme==='light'));
+  await page.emulateMedia({reducedMotion:'reduce'});
+  check('움직임 줄이기 설정 존중',await page.locator('#screen-onboarding .btn-primary').first().evaluate(el=>getComputedStyle(el).transitionDuration==='0s'));
+  for(const weight of ['R','B','EB']){
+    const bytes=await fs.readFile(path.join(root,'assets/fonts/NanumSquareRound'+weight+'.woff2'));
+    check(weight+' 원본 WOFF2 형식',bytes.subarray(0,4).toString()==='wOF2');
+  }
   await ctx.close();check('런타임 오류 없음',errors.length===0);check('외부 DB·운영 요청 없음',blocked.length===0);
   console.log('완료: '+passed+'개 검증 통과. 실제 DB·회원 데이터 변경 없음.');
   console.log('화면: '+out);

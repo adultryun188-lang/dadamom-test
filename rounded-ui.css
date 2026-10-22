@@ -1,0 +1,80 @@
+/* 다다맘의 둥근 글꼴과 클릭 표면. 동작/인증/데이터 로직에는 관여하지 않는다.
+   이 파일을 바꿔 배포할 때 HTML의 ?v= 값도 갱신한다(SW cache-first 대응).
+   NanumSquareRound: NAVER Corporation, SIL OFL 1.1 (assets/fonts/OFL.txt). */
+@font-face{font-family:'NanumSquareRound';src:url('./assets/fonts/NanumSquareRoundR.woff2') format('woff2');font-style:normal;font-weight:400;font-display:swap;}
+@font-face{font-family:'NanumSquareRound';src:url('./assets/fonts/NanumSquareRoundB.woff2') format('woff2');font-style:normal;font-weight:700;font-display:swap;}
+@font-face{font-family:'NanumSquareRound';src:url('./assets/fonts/NanumSquareRoundEB.woff2') format('woff2');font-style:normal;font-weight:800;font-display:swap;}
+:root{--font-ui:'NanumSquareRound',-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;--soft-edge:#EFCDB9;--soft-lift:0 4px 12px rgba(150,95,60,.08);}
+body{font-family:var(--font-ui);letter-spacing:0;}
+button,input,select,textarea,.display,.logo-text small,.brand b,.brand .mark,.tag,.rank,.stat b,.kid .v{font-family:var(--font-ui);}
+.display,h1,h2,h3{letter-spacing:-.025em;}
+.display,h1{font-weight:800;}
+.post-body{line-height:1.95;}
+.btn,.btn-primary,.btn-ghost,.chip,.chip-f,.cheer,.link-btn,.brand-chip,.topic-card,.pcard,.prod,.gcard,.ocard,.feature-ch .mosaic > a,.navbar button,.pager a{
+  transition:background-color .16s ease,border-color .16s ease,box-shadow .16s ease,transform .16s ease;
+}
+/* 클릭하는 표면은 둥글게, 정적인 정보 칩은 차분하게 구분한다. */
+.btn,.btn.primary,.btn.soft,.feature-ch .cta .btn,.feature-ch .cta .btn.primary,.btn-primary,.btn-ghost{
+  border-radius:999px;min-height:46px;font-weight:700;line-height:1.45;padding:11px 20px;
+}
+.btn.primary,.feature-ch .cta .btn.primary,.btn-primary{
+  background:#FFE0CF;border-color:#EDBFA5;color:#773B26;box-shadow:inset 0 1px 0 rgba(255,255,255,.8),0 3px 8px rgba(150,95,60,.06);
+}
+.btn:not(.primary):not(.soft),.btn-ghost{background:#FFFDF9;border-color:var(--soft-edge);}
+.chip,.chip-f,.cheer,.pager a,.pager span{border-radius:999px;font-weight:700;}
+.chip,.chip-f{padding:10px 16px;}
+.chip.on,.chip-f[aria-pressed="true"],.brand-chip.on{
+  border-color:#E8B99D;box-shadow:inset 0 1px 0 #FFFDF9,0 2px 7px rgba(150,95,60,.05);
+}
+.search{border-radius:999px;padding:5px 6px 5px 8px;min-height:54px;}
+.search select,.search button{border-radius:999px;}
+.search button{min-height:42px;padding:9px 19px;font-weight:800;}
+.nav-row{gap:6px;}
+.nav-row a{border:1px solid transparent;border-radius:999px;padding:10px 16px;min-height:44px;margin-block:4px;}
+.nav-row a.on{border:1px solid #EFCDB9;border-radius:999px;background:#FFF0E7;box-shadow:inset 0 1px 0 #FFFDF9;color:var(--deep);}
+.nav-row .app-link{border-radius:999px;padding:9px 14px;}
+.board-tabs{gap:6px;padding-bottom:10px;}
+.board-tabs a{border:1px solid transparent;border-radius:999px;padding:10px 16px;min-height:44px;}
+.board-tabs a.on{border:1px solid #EFCDB9;background:#FFF0E7;}
+.feature-ch{border-radius:28px;}
+.feature-ch .facts span{border-radius:14px;padding:7px 11px;line-height:1.5;}
+.feature-ch .cta{gap:12px;}
+.feature-ch .mosaic > a,.feature-ch .mosaic > span{border-radius:24px;}
+.feature-ch .mosaic .fc-invite{border-color:#E8CDA8;}
+.feature-ch .lbl b,.dday,.tag{border-radius:999px;}
+.topic-card,.pcard,.gcard,.ocard,.prod{border-radius:22px;}
+.brand-chip{border-radius:24px;}
+.bell{border-radius:50%;min-width:44px;min-height:44px;}
+.link-btn{border-radius:999px;}
+.vote button{border-radius:26px;}
+.form input[type=text],.form textarea,.c-form textarea,.modal-card input,.modal-card textarea,.ma-form select{border-radius:18px;}
+.form input[type=file]::file-selector-button{border-radius:999px;}
+.form input[type=file]{font-family:var(--font-ui);}
+.modal-card{border-radius:28px;}
+.popup-hero{border-radius:28px 28px 0 0;}
+.segmented{border-radius:999px;background:#F8EEE4;gap:4px;}
+.segmented button{border-radius:999px;}
+.navbar button.active{border-radius:18px;}
+.box a,.box button{border-radius:999px;}
+.btn-primary:disabled,.btn:disabled{transform:none;box-shadow:none;}
+/* hover는 마우스에서만: 휴대폰 탭 뒤에 떠 있는 상태가 남지 않는다. */
+@media (hover:hover) and (pointer:fine){
+  .btn:not(:disabled):hover,.btn.primary:not(:disabled):hover,.btn-primary:not(:disabled):hover,.btn-ghost:not(:disabled):hover{transform:translateY(-2px);box-shadow:var(--soft-lift);}
+  .chip:hover,.chip-f:hover,.link-btn:hover,.pager a:hover{background:#FFF0E7;border-color:#E8B99D;}
+  .topic-card:hover,.pcard:hover,.prod:hover,.brand-chip:hover,.gcard:hover,.feature-ch .mosaic > a:hover{transform:translateY(-2px);box-shadow:var(--soft-lift);border-color:#E8B99D;}
+}
+.btn:not(:disabled):active,.btn.primary:not(:disabled):active,.btn-primary:not(:disabled):active,.btn-ghost:not(:disabled):active,.chip:not(:disabled):active,.chip-f:not(:disabled):active,.cheer:not(:disabled):active,.nav-row a:active,.board-tabs a:active,.navbar button:active,.brand-chip:active,.topic-card:active,.pcard:active,.prod:active,.pager a:active{
+  transform:translateY(1px) scale(.985);box-shadow:inset 0 2px 4px rgba(150,95,60,.08);
+}
+@media (max-width:720px){
+  .btn,.btn.primary,.btn-primary,.btn-ghost{min-height:48px;}
+  .nav-row a,.board-tabs a{padding-inline:14px;}
+  .feature-ch{border-radius:26px;}
+  .feature-ch .fc-in{padding:26px 22px;}
+  .feature-ch .cta .btn{padding:13px 20px;}
+}
+@media (min-width:960px){.navbar button,.nav-site{border-radius:18px;}}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{transition:none !important;animation:none !important;scroll-behavior:auto !important;}
+  .btn:active,.btn.primary:active,.btn-primary:active,.btn-ghost:active,.chip:active,.chip-f:active,.cheer:active,.nav-row a:active,.board-tabs a:active,.navbar button:active,.brand-chip:active,.topic-card:active,.pcard:active,.prod:active,.pager a:active{transform:none !important;}
+}

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="다다맘 테스트 앱 — 운영 데이터와 분리된 검증용 환경입니다.">
 <link rel="manifest" href="./manifest.webmanifest">
-<meta name="theme-color" content="#C94318">
+<meta name="theme-color" content="#FFFBF7">
 <!-- 공유 미리보기 -->
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="다다맘">
@@ -38,47 +38,33 @@
     location.replace('./community.html' + (onlyFrom ? location.search : ''));
   }
 </script>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Jua&display=swap">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <style>
-  :root{
+  :root, :root[data-theme="dark"]{
     color-scheme: light;
-    --bg:#FFFBF5; --surface:#FFFFFF; --border:#F0E4D6;
-    --text:#2B2118; --text2:#6E5F50;
-    --accent:#FF7A59; --accent-ink:#FFFFFF; --accent-soft:#FFF3EE;
-    --accent-strong:#C94318;
+    --bg:#FFFBF7; --surface:#FFFFFF; --border:#F1E2D8;
+    --text:#44362F; --text2:#6B584D;
+    --accent:#A34429; --accent-ink:#773B26; --accent-soft:#FFF0E7;
+    --accent-strong:#A34429;
     --accent2:#8A6512; --accent2-soft:#FFF3D6;
     --chip-a:#FFF3D6; --chip-a-ink:#8A6512;
     --chip-b:#FFE8DE; --chip-b-ink:#B84B2E;
     --chip-c:#EAF2E9; --chip-c-ink:#3F6B49;
-    --pill-bg:#F0E4D6; --track:#F0E4D6;
-    --shadow: 0 10px 24px rgba(43,33,24,0.10);
-    --overlay: rgba(28,20,14,0.45);
+    --pill-bg:#F6ECE1; --track:#F6ECE1;
+    --shadow:0 8px 24px rgba(150,95,60,.06);
+    --overlay:rgba(101,77,59,.22);
   }
-  /* 항상 밝고 산뜻한 라이트 테마로 고정 (기기의 다크모드 설정과 무관) */
-  :root[data-theme="dark"]{
-    color-scheme: dark;
-    --bg:#1C1712; --surface:#25201A; --border:#3A2F24;
-    --text:#F5EDE3; --text2:#C2B3A2;
-    --accent:#FF8B6B; --accent-ink:#241812; --accent-soft:#3A2A20;
-    --accent-strong:#FF8B6B;
-    --accent2:#E0B355; --accent2-soft:#3A2E17;
-    --chip-a:#3A2E17; --chip-a-ink:#E7C067;
-    --chip-b:#3A2620; --chip-b-ink:#F0937A;
-    --chip-c:#22301F; --chip-c-ink:#94D19E;
-    --pill-bg:#332A22; --track:#332A22;
-    --shadow: 0 10px 24px rgba(0,0,0,0.35);
-    --overlay: rgba(0,0,0,0.55);
-  }
+  /* 기기 설정이나 남아 있는 테마 속성과 무관하게 밝은 테마를 유지한다. */
 
   *{box-sizing:border-box;}
   [hidden]{ display:none !important; }
   html,body{height:100%;}
   body{
     margin:0; background:var(--bg); color:var(--text);
-    font-family:'Gowun Dodum','Apple SD Gothic Neo',sans-serif;
+    font-family:'Pretendard Variable',Pretendard,-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
     -webkit-tap-highlight-color:transparent;
   }
-  .display{font-family:'Jua','Gowun Dodum','Apple SD Gothic Neo',sans-serif; letter-spacing:-0.01em;}
+  .display{font-family:inherit; font-weight:700; letter-spacing:-0.02em;}
   button{font-family:inherit; cursor:pointer;}
   a{color:inherit;}
   h1,h2,p{margin:0;}
@@ -299,40 +285,55 @@
   /* ── 웹 커뮤니티(community.html)와 같은 톤 ──
      배치는 건드리지 않고 색·그림자·버튼·메뉴 표현만 바꾼다. */
   :root{
-    --btn-grad: linear-gradient(135deg,#D2491C 0%,#B53A12 100%);
-    --card-shadow: 0 1px 2px rgba(120,60,20,.04), 0 8px 24px rgba(201,67,24,.07);
+    --btn-grad:#FFE0CF;
+    --card-shadow:0 2px 10px rgba(150,95,60,.04);
   }
   :root:not([data-theme="dark"]) body,
   :root:not([data-theme="dark"]) .app{
-    background:
-      radial-gradient(520px 300px at 0% -6%, #FFE2D3 0%, transparent 62%),
-      radial-gradient(460px 280px at 100% 2%, #FFF1C9 0%, transparent 62%),
-      radial-gradient(560px 360px at 50% 106%, #FDE6EE 0%, transparent 62%),
-      var(--bg);
+    background:var(--bg);
   }
   :root:not([data-theme="dark"]) .card{ border-color:#F3E3D3; box-shadow:var(--card-shadow); }
   :root:not([data-theme="dark"]) #home-status > .card:first-child,
   :root:not([data-theme="dark"]) #screen-my > .scroll > .card:first-child{
-    background:linear-gradient(120deg,#FFE0D0 0%,#FFEBD8 45%,#FFF4CC 100%); border-color:#FBDCC7;
+    background:linear-gradient(120deg,#FFF0E3,#FFF8DE); border-color:#F3DDC8;
   }
-  .btn-primary{ background:var(--btn-grad); box-shadow:0 6px 16px rgba(201,67,24,.25); transition:transform .12s, box-shadow .12s; }
-  .btn-primary:not(:disabled):hover{ transform:translateY(-1px); box-shadow:0 10px 22px rgba(201,67,24,.3); }
+  .btn-primary{ background:var(--btn-grad); border:1px solid #F1B99E; box-shadow:none; transition:background .12s; }
+  .btn-primary:not(:disabled):hover{ background:#FFD3BA; }
   .btn-ghost{ transition:box-shadow .12s, background .12s; }
   .btn-ghost:hover{ background:#FFFBF7; box-shadow:0 4px 12px rgba(201,67,24,.08); }
-  .chip.on, .chip-f[aria-pressed="true"]{ border:1px solid var(--text); background:var(--text); color:var(--bg); }
-  .segmented button[aria-selected="true"]{ box-shadow:0 2px 8px rgba(120,60,20,.10); }
+  .chip.on, .chip-f[aria-pressed="true"]{ border:1px solid #EDBFA5; background:var(--accent-soft); color:var(--accent-strong); }
+  .segmented button[aria-selected="true"]{ box-shadow:0 2px 8px rgba(120,60,20,.06); color:var(--accent-strong); }
   .mission-go{ background:var(--accent-soft); color:#B53A12; }   /* accent-strong 은 이 배경에서 4.49:1 로 기준(4.5) 미달 */
-  #home-fab, #fab{ background:var(--btn-grad) !important; box-shadow:0 10px 24px rgba(201,67,24,.32) !important; }
+  #home-fab, #fab{ background:var(--btn-grad) !important; border:1px solid #EDBFA5 !important; box-shadow:0 6px 18px rgba(150,95,60,.12) !important; }
   .navbar{ background:rgba(255,255,255,.88); backdrop-filter:saturate(1.4) blur(14px); -webkit-backdrop-filter:saturate(1.4) blur(14px); }
-  .navbar button.active{ color:var(--accent-strong); }
+  .navbar button.active{ color:var(--accent-strong); background:#FFF0E7; border-radius:14px; }
   .nav-site{ display:none; }
   .share-chip{ display:flex; align-items:center; justify-content:center; gap:8px; font-weight:700; color:var(--text); }
   .share-chip svg{ flex:0 0 auto; display:block; }
   .badge-match{ white-space:nowrap; }
   :root:not([data-theme="dark"]) .my-avatar{ background:#fff !important; box-shadow:0 4px 14px rgba(201,67,24,.16); display:flex; align-items:center; justify-content:center; }
   :root:not([data-theme="dark"]) .my-avatar::before{ content:'🙂'; font-size:28px; }
-  .modal-card{ box-shadow:0 -10px 40px rgba(43,33,24,.12); }
+  .modal-card{ background:#FFFDF9; border:1px solid #EDDDCF; box-shadow:0 -10px 40px rgba(111,76,47,.10); overscroll-behavior:contain; }
   .field input:focus, .field select:focus, .field textarea:focus{ outline:none; border-color:var(--accent); box-shadow:0 0 0 4px rgba(255,122,89,.14); }
+  .field input, .field select, .field textarea{ background:#FFFEFC; font-size:16px; line-height:1.6; }
+  .field input::placeholder, .field textarea::placeholder{ color:#78665A; opacity:1; }
+  *:focus-visible{ outline:3px solid var(--accent-strong); outline-offset:3px; }
+  .field input:focus-visible, .field select:focus-visible, .field textarea:focus-visible{ outline:2px solid var(--accent-strong); outline-offset:2px; }
+  .modal-close{ min-width:44px; min-height:44px; }
+  .segmented button{ min-height:44px; }
+  .test-banner{ background:#FFF0D6; color:#78501E; border-bottom:1px solid #E9CFAC; }
+  .test-banner .env{ opacity:1; }
+  .hero{ background:linear-gradient(120deg,#FFE9DD,#FFF3DC 60%,#FFF9EC); color:var(--text); border:1px solid #F1D8C8; }
+  .hero-eyebrow{ background:#FFFDF8; color:var(--accent-strong); border:1px solid #F1D8C8; }
+  .hero-cta{ color:var(--accent-strong); }
+  .mission-banner{ border:1px solid #F1D8C8; background:linear-gradient(120deg,#FFF2E8,#FFF8E7); }
+  .mission-banner-dday{ background:#FFE0CF; color:var(--accent-ink); }
+  #home-bell-n{ background:#FFE0CF !important; color:var(--accent-ink) !important; }
+  .toast{ background:#FFF7E5; color:var(--text); border:1px solid #EAD5B1; }
+  #screen-challenge > .scroll > .col:first-of-type{ background:linear-gradient(120deg,#FFF0E3,#FFF8DE); border:1px solid #F1D8C8; border-radius:20px; padding:20px; }
+  #challenge-prize{ background:#FFFDF8 !important; }
+  .legal{ line-height:1.85; }
+  @media (prefers-reduced-motion:reduce){ *, *::before, *::after{ scroll-behavior:auto !important; transition:none !important; animation:none !important; } }
 
   /* PC 화면: 하단 탭바를 왼쪽 메뉴로 옮기고 본문은 가운데 읽기 폭으로 둔다. 모바일은 위 규칙 그대로. */
   @media (min-width:960px){
@@ -344,10 +345,10 @@
       flex-direction:column; align-items:stretch; justify-content:flex-start; gap:4px;
       border-top:none; border-right:1px solid var(--border); padding:28px 14px;
     }
-    .navbar::before{ content:'다다맘'; font-family:'Jua',sans-serif; font-size:26px; color:var(--accent-strong); padding:0 14px 18px; }
+    .navbar::before{ content:'다다맘'; font-family:inherit; font-weight:800; font-size:26px; color:var(--accent-strong); padding:0 14px 18px; }
     .navbar button{ flex:0 0 auto; flex-direction:row; gap:12px; font-size:15px; padding:12px 14px; border-radius:14px; }
     .navbar button:hover{ background:rgba(255,122,89,.08); color:var(--text); }
-    .navbar button.active{ background:var(--text); color:var(--bg); }
+    .navbar button.active{ background:#FFF0E7; color:var(--accent-strong); }
     .nav-site{ display:flex; align-items:center; gap:10px; margin-top:auto; padding:14px; border-radius:16px;
       background:linear-gradient(150deg,#FFF1E8,#FFF8E6); border:1px solid #F6DCCB; color:var(--accent-strong);
       font-size:14px; font-weight:700; text-decoration:none; }
@@ -3213,7 +3214,7 @@
           '<div class="col" style="gap:6px;"><div style="height:6px; border-radius:999px; background:var(--track); overflow:hidden;">' +
           '<div style="height:100%; width:' + pct + '%; background:var(--accent);"></div></div>' +
           '<span style="font-size:11.5px; color:var(--text2);">' + count + ' / ' + t.total + '명 신청</span></div>' +
-          '<button data-open-apply="' + t.key + '" ' + (btnDisabled ? 'disabled' : '') + ' style="height:44px; border-radius:16px; border:none; font-size:14px; font-weight:700; background:' + (btnDisabled ? 'var(--pill-bg)' : 'var(--accent-strong)') + '; color:' + (btnDisabled ? 'var(--text2)' : 'var(--accent-ink)') + ';">' + btnLabel + '</button>' +
+          '<button data-open-apply="' + t.key + '" ' + (btnDisabled ? 'disabled' : '') + ' style="height:44px; border-radius:16px; border:none; font-size:14px; font-weight:700; background:' + (btnDisabled ? 'var(--pill-bg)' : 'var(--btn-grad)') + '; color:' + (btnDisabled ? 'var(--text2)' : 'var(--accent-ink)') + ';">' + btnLabel + '</button>' +
           '</div>';
       }).join('');
     } else {
@@ -3366,7 +3367,7 @@
       var ds = d ? (d.getFullYear() + '.' + ('0'+(d.getMonth()+1)).slice(-2) + '.' + ('0'+d.getDate()).slice(-2)) : '';
       return '<div class="card col" style="gap:9px; padding:16px;">' +
         '<div class="row" style="align-items:center; gap:7px;">' +
-          (n.pinned ? '<span style="font-size:11px; font-weight:800; color:#fff; background:var(--accent-strong); padding:2px 8px; border-radius:999px;">중요</span>' : '') +
+          (n.pinned ? '<span style="font-size:11px; font-weight:800; color:var(--accent-strong); background:var(--accent-soft); padding:2px 8px; border-radius:999px;">중요</span>' : '') +
           '<span style="font-size:14px; font-weight:800; line-height:1.4; flex:1; min-width:0;">' + escapeHtml(n.title || '') + '</span>' +
         '</div>' +
         '<p style="font-size:13.5px; line-height:1.7; color:var(--text2); margin:0; white-space:pre-wrap;">' + escapeHtml(n.body || '') + '</p>' +

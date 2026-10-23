@@ -360,7 +360,7 @@
     .toast{ bottom:40px; }
   }
 </style>
-<link rel="stylesheet" href="./rounded-ui.css?v=20261023-1">
+<link rel="stylesheet" href="./rounded-ui.css?v=20261023-2">
 
 <div class="app" id="app">
   <div class="test-banner" id="test-banner" role="status" hidden>
@@ -468,7 +468,8 @@
       <nav class="quick-grid" aria-label="바로가기">
         <a href="#growth" class="quick-tile"><span class="quick-ico" aria-hidden="true">🍼</span><span>육아기록</span></a>
         <a href="#challenge" class="quick-tile"><span class="quick-ico" aria-hidden="true">👣</span><span>챌린지</span></a>
-        <a href="#outing" class="quick-tile"><span class="quick-ico" aria-hidden="true">🧺</span><span>나들이</span></a>
+        <!-- 브랜드관은 웹 화면을 그대로 연다(같은 주소라 앱 안에서 열림). 웹을 고치면 앱도 같이 바뀐다. 나들이는 아래 탭에 있다 -->
+        <a href="./community.html#/brand" class="quick-tile"><span class="quick-ico" aria-hidden="true">🛍️</span><span>브랜드관</span></a>
         <button type="button" data-open-compose class="quick-tile"><span class="quick-ico" aria-hidden="true">✏️</span><span>글쓰기</span></button>
       </nav>
 
@@ -554,10 +555,18 @@
 
   <!-- COMMUNITY -->
   <section class="screen" id="screen-community">
-    <div class="pad row" style="flex:0 0 auto; padding-block-start:28px; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
-      <div class="col" style="gap:2px;">
-        <h1 class="display" style="font-size:22px;">커뮤니티</h1>
-        <a href="./community.html" class="link-quiet" style="font-size:12px;">게시판·검색은 웹 커뮤니티에서 ↗</a>
+    <!-- 웹 커뮤니티(community.html)와 같은 머리. page-hero 계열 스타일은 공용 rounded-ui.css 에 있어 웹을 고치면 같이 바뀐다 -->
+    <div class="scroll pad" style="position:relative;">
+      <div class="col app-community-head" style="gap:14px;">
+      <div class="warm-page">
+        <header class="page-hero community-hero">
+          <div class="page-hero-copy">
+            <span class="mall-eyebrow">다다맘 커뮤니티</span>
+            <h1 class="display">함께 나누는 <em>이야기</em></h1>
+            <p class="page-hero-desc">궁금한 일도, 자랑하고 싶은 순간도 함께 나눠요.</p>
+            <a href="./community.html" class="link-quiet app-web-link">게시판·검색은 웹 커뮤니티에서 ↗</a>
+          </div>
+        </header>
       </div>
       <div class="segmented round" role="tablist" aria-label="커뮤니티 종류" id="community-tabs">
         <button data-community-tab="notice" role="tab">공지</button>
@@ -565,7 +574,8 @@
         <button data-community-tab="qna" role="tab">Q&amp;A</button>
       </div>
     </div>
-    <div class="scroll pad" id="community-body" style="position:relative;"></div>
+      <div class="col" id="community-body" style="gap:20px;"></div>
+    </div>
     <button id="fab" data-open-compose aria-label="새 글쓰기" style="position:absolute; z-index:20; right:20px; bottom:96px; width:52px; height:52px; border-radius:999px; background:var(--accent); border:none; box-shadow:0 8px 18px rgba(255,122,89,0.35); display:flex; align-items:center; justify-content:center;">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent-ink)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
     </button>
@@ -3470,7 +3480,7 @@
           ? mediaTag(p.media_url, 'width:100%; height:160px; object-fit:cover; border-radius:16px;')
           : (p.img ? '<div style="height:160px; border-radius:16px; background:' + p.bg + ';" role="img" aria-label="게시물 사진"></div>' : '');
         return '<div class="card col" style="gap:12px; padding:16px;">' +
-          '<div class="row" style="align-items:center; gap:8px;"><div style="width:32px; height:32px; border-radius:999px; background:var(--border);" aria-hidden="true"></div>' +
+          '<div class="row" style="align-items:center; gap:8px;"><div class="feed-avatar" style="background:' + avatarBg(p.author) + ';" aria-hidden="true">' + escapeHtml(String(p.author || '?').charAt(0)) + '</div>' +
           '<span style="font-size:12.5px; font-weight:700;">' + escapeHtml(p.author) + '</span>' + myStatusBadge(p) + '<span style="font-size:11px; color:var(--text2);">' + escapeHtml(p.time) + '</span></div>' +
           media +
           postTextHtml(p.text) +

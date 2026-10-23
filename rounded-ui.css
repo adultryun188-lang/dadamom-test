@@ -373,6 +373,14 @@ button,input,select,textarea{font-weight:700;}
 #screen-home #home-missions{border-radius:24px;border-color:var(--w-line);background:var(--w-cream);}
 #screen-home #home-feed > .card{border-radius:24px;border-color:var(--w-line);}
 .feed-avatar{width:34px;height:34px;border-radius:999px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#6B4A3A;border:1px solid #EBDFD1;}
+/* ── 앱 커뮤니티 (index.html #screen-community) — 웹 커뮤니티 머리(page-hero)를 그대로 쓰고 폰 폭에 맞게 줄인다 ── */
+#screen-community .warm-page .page-hero{grid-template-columns:1fr;border-radius:26px;}
+#screen-community .page-hero-copy{padding:22px 20px;gap:10px;}
+#screen-community .warm-page .page-hero h1{font-size:26px;line-height:1.35;}
+#screen-community .page-hero-desc{font-size:13.5px;line-height:1.7;}
+#screen-community .app-web-link{font-size:12.5px;font-weight:800;color:var(--w-em);background:#fff;border:1px solid #E9D6C3;border-radius:999px;padding:9px 14px;min-height:40px;display:inline-flex;align-items:center;}
+#screen-community #community-tabs{align-self:flex-start;}
+#screen-community #community-body > .card,#screen-community #community-body .col > .card{border-radius:24px;border-color:var(--w-line);}
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{transition:none !important;animation:none !important;scroll-behavior:auto !important;}
   .btn:active,.btn.primary:active,.btn-primary:active,.btn-ghost:active,.chip:active,.chip-f:active,.cheer:active,.nav-row a:active,.board-tabs a:active,.navbar button:active,.brand-chip:active,.topic-card:active,.pcard:active,.prod:active,.pager a:active{transform:none !important;}

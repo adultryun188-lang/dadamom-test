@@ -64,9 +64,10 @@ self.addEventListener('fetch', (e) => {
              || url.pathname.endsWith('env.js');
 
   if (isDoc) {
-    // network-first
+    // network-first. no-cache: GitHub Pages 의 10분 HTTP 캐시를 건너뛰고 서버에 바뀌었는지 묻는다(안 바뀌면 304 라 가볍다).
+    // 이게 없으면 배포 직후 앱을 다시 켜도 10분 동안 옛 화면이 나온다.
     e.respondWith(
-      fetch(req)
+      fetch(req, { cache: 'no-cache' })
         .then((res) => {
           const copy = res.clone();
           caches.open(CACHE).then((c) => c.put(req, copy)).catch(() => {});

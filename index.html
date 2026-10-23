@@ -739,7 +739,7 @@
               <h1 class="display">육아<em>기록</em></h1>
               <div class="hh-art" aria-hidden="true"><span>🍼</span></div>
             </div>
-            <p class="page-hero-desc">돌봄기록·성장곡선·예방접종은 이 기기에만 저장돼요. 가족 공유를 켜면 가족과 함께 보도록 서버에 저장됩니다. 성장 앨범 사진은 본인 계정의 비공개 저장소에 보관됩니다.</p>
+            <p class="page-hero-desc">돌봄기록·성장곡선·예방접종은 내 계정에 저장돼 휴대폰을 바꿔도 이어져요. 나만 볼 수 있어요. 가족 공유를 켜면 가족과 함께 봐요.</p>
           </div>
         </header>
       </div>
@@ -848,7 +848,7 @@
     <nav class="navbar" data-nav aria-label="주요 메뉴"></nav>
   </section>
 
-  <!-- PREP: 출산 준비물 체크리스트 · 선물 장부 (이 기기에만 저장) -->
+  <!-- PREP: 출산 준비물 체크리스트 · 선물 장부 (내 계정 user_app_data 에 저장) -->
   <section class="screen" id="screen-prep">
     <div class="scroll pad">
       <div class="warm-page">
@@ -885,7 +885,7 @@
     <div class="scroll pad">
       <button type="button" class="link-quiet" data-legal-back style="background:none; border:none; padding:2px 0; font-size:12.5px;">← 돌아가기</button>
       <h1 class="display" style="font-size:20px; margin:8px 0 4px;">개인정보처리방침</h1>
-      <span class="helper">시행일: 2026년 9월 28일</span>
+      <span class="helper">시행일: 2026년 10월 23일</span>
       <div class="legal" style="margin-top:16px;" id="policy-body"></div>
       <div id="policy-footer"></div>
     </div>
@@ -1636,7 +1636,7 @@
         '<li>작성한 커뮤니티 글과 댓글</li>' +
         '<li>미션 인증 기록과 체험단 신청 내역</li>' +
         '<li>업로드한 사진·영상</li>' +
-        '<li>이 기기에 저장된 돌봄기록·성장기록</li>' +
+        '<li>돌봄기록·성장기록·예방접종, 준비물·선물 장부, 찜, 나만 보기 글</li>' +
         '<li>가족 공유 참여 (마지막 구성원이면 가족 기록도 삭제)</li>' +
       '</ul>' +
       '<div class="field"><label for="delete-confirm-input">계속하려면 <strong>탈퇴</strong> 를 입력해주세요</label>' +
@@ -2278,7 +2278,7 @@
       viewMineOnly:null,
       careLog:[],
       growthRecords:[],
-      // 출산 준비물 체크·선물 장부 — 이 기기에만 저장 (서버 프로필로 보내지 않는다)
+      // 출산 준비물 체크·선물 장부 — 서버 프로필이 아니라 user_app_data(본인만)로 동기화
       prepChecked:{},
       wishProducts:[],
       prepCustom:[],
@@ -2339,7 +2339,106 @@
     }
     try{ localStorage.setItem(storageKey(), JSON.stringify(state)); }catch(e){}
     scheduleProfileSync();
+    scheduleAppDataPush();
   }
+
+  // ---------- 내 기록 서버 보관 (0024 user_app_data) ----------
+  // 기기를 바꿔도 이어지도록 내 기록을 계정에 한 덩어리로 올리고 받는다. 본인만 읽고 쓴다(RLS), 탈퇴하면 함께 지워진다.
+  // state.appDataRev  : 마지막으로 서버와 맞춘 시각(서버 updated_at)
+  // state.appDataHash : 그때 올린/받은 내용(JSON). 지금 내용과 같으면 기기에서 바뀐 게 없다는 뜻.
+  var APPDATA_FIELDS = ['careLog', 'growthRecords', 'vaccines', 'prepChecked', 'prepCustom', 'gifts', 'wishProducts'];
+  function appDataSnapshot(){
+    var d = {};
+    APPDATA_FIELDS.forEach(function(k){ d[k] = state[k]; });
+    // '나만 보기' 글은 글자만. 기기 안 사진(data:)은 커서 빼고, 서버 사진 주소는 짧게 열리는 주소라 뺀다.
+    d.privatePosts = (state.posts || []).filter(function(p){ return p.visibility === 'private'; }).map(function(p){
+      var c = Object.assign({}, p); delete c.media_url; delete c.img; return c;
+    });
+    return d;
+  }
+  function appDataKeyOf(x){ return x && typeof x === 'object' ? (x.id != null ? 'id:' + x.id : 'v:' + JSON.stringify(x)) : 'v:' + JSON.stringify(x); }
+  function unionList(a, b){   // b(기기) 를 우선으로 합친다
+    var seen = {}, out = [];
+    (b || []).concat(a || []).forEach(function(x){ var k = appDataKeyOf(x); if(!seen[k]){ seen[k] = 1; out.push(x); } });
+    return out;
+  }
+  function applyAppData(d, mergeLocal){
+    if(!d || typeof d !== 'object') return;
+    var local = mergeLocal ? appDataSnapshot() : null;
+    ['careLog', 'growthRecords', 'prepCustom', 'gifts', 'wishProducts'].forEach(function(k){
+      var srv = Array.isArray(d[k]) ? d[k] : [];
+      state[k] = mergeLocal ? unionList(srv, local[k]) : srv;
+    });
+    ['vaccines', 'prepChecked'].forEach(function(k){
+      var srv = (d[k] && typeof d[k] === 'object' && !Array.isArray(d[k])) ? d[k] : {};
+      state[k] = mergeLocal ? Object.assign({}, srv, local[k] || {}) : Object.assign({}, srv);
+    });
+    if(Array.isArray(d.privatePosts)){
+      var have = {}; (state.posts || []).forEach(function(p){ have[p.id] = 1; });
+      d.privatePosts.forEach(function(p){ if(p && p.id && !have[p.id]){ state.posts.push(p); if(state.myPosts.indexOf(p.id) < 0) state.myPosts.push(p.id); } });
+      state.posts.sort(function(a, b){ return (b.createdAt || 0) - (a.createdAt || 0); });
+    }
+    state.careLog = state.careLog.filter(function(e){ return Date.now() - e.ts < 14 * 86400000; });   // 앱이 원래 2주치만 둔다
+  }
+  function saveLocalOnly(){ try{ localStorage.setItem(storageKey(), JSON.stringify(state)); }catch(e){} }
+  var appDataTimer = null, appDataBusy = false, appDataLastPull = 0;
+  function scheduleAppDataPush(){
+    if(!sb || !authUser) return;
+    if(appDataTimer) clearTimeout(appDataTimer);
+    appDataTimer = setTimeout(function(){ appDataTimer = null; appDataPush(); }, 1500);
+  }
+  async function appDataPush(){
+    if(!sb || !authUser || appDataBusy) return;
+    var uid = authUser.id, owner = state, snap = appDataSnapshot(), json = JSON.stringify(snap);
+    if(state.appDataHash === json) return;   // 바뀐 게 없다
+    appDataBusy = true;
+    try{
+      // 다른 기기가 먼저 올렸으면 받아서 합친 뒤 올린다 (덮어써서 지우지 않게)
+      var cur = await sb.from('user_app_data').select('data,updated_at').eq('user_id', uid).maybeSingle();
+      if(!authUser || authUser.id !== uid || state !== owner) return;
+      if(cur.error){ console.warn('[내 기록] 서버 확인 실패', cur.error); return; }
+      var merged = !!(cur.data && cur.data.updated_at !== state.appDataRev);
+      if(merged){
+        applyAppData(cur.data.data, true);
+        snap = appDataSnapshot(); json = JSON.stringify(snap);
+      }
+      var r = await sb.from('user_app_data').upsert({ user_id: uid, data: snap }, { onConflict: 'user_id' }).select('updated_at').single();
+      if(!authUser || authUser.id !== uid || state !== owner) return;
+      // RLS 가 막아도 200/204 가 올 수 있어, 돌아온 행이 있는지로 확인한다
+      if(r.error || !r.data){ console.warn('[내 기록] 서버 저장 실패', r.error); return; }
+      state.appDataRev = r.data.updated_at; state.appDataHash = json;
+      saveLocalOnly();
+      if(merged) renderAll((location.hash || '').replace('#', ''));
+    }catch(e){ console.warn('[내 기록] 서버 저장 실패', e); }
+    finally{ appDataBusy = false; }
+  }
+  async function appDataPull(){
+    if(!sb || !authUser || appDataBusy) return;
+    var uid = authUser.id, owner = state;
+    appDataLastPull = Date.now();
+    try{
+      var r = await sb.from('user_app_data').select('data,updated_at').eq('user_id', uid).maybeSingle();
+      if(!authUser || authUser.id !== uid || state !== owner) return;
+      if(r.error){ console.warn('[내 기록] 불러오기 실패', r.error); return; }
+      var localJson = JSON.stringify(appDataSnapshot());
+      if(!r.data){ if(localJson !== state.appDataHash) appDataPush(); return; }   // 처음: 이 기기 기록을 올린다
+      if(r.data.updated_at === state.appDataRev){ if(localJson !== state.appDataHash) appDataPush(); return; }
+      var localChanged = !!state.appDataHash ? localJson !== state.appDataHash : localJson !== JSON.stringify(appDataSnapshotOf(defaultState()));
+      applyAppData(r.data.data, localChanged);
+      if(localChanged){ saveLocalOnly(); appDataPush(); }
+      else{ state.appDataRev = r.data.updated_at; state.appDataHash = JSON.stringify(appDataSnapshot()); saveLocalOnly(); }
+      renderAll((location.hash || '').replace('#', ''));
+      if(location.hash === '#growth') renderGrowthScreen();
+      if(location.hash === '#prep') renderPrep();
+    }catch(e){ console.warn('[내 기록] 불러오기 실패', e); }
+  }
+  function appDataSnapshotOf(s){
+    var d = {}; APPDATA_FIELDS.forEach(function(k){ d[k] = s[k]; }); d.privatePosts = []; return d;
+  }
+  // 앱을 다시 열면(다른 기기에서 고쳤을 수 있으니) 1분에 한 번까지 받아온다
+  document.addEventListener('visibilitychange', function(){
+    if(!document.hidden && authUser && Date.now() - appDataLastPull > 60000) appDataPull();
+  });
 
   // 프로필을 고칠 때마다 서버에 밀어넣되, 연타는 한 번으로 묶는다
   var profileSyncTimer = null;
@@ -3393,7 +3492,7 @@
   }
 
   // ---------- 출산 준비물 체크리스트 · 선물 장부 (#prep) ----------
-  // 둘 다 이 기기에만 저장한다(state → localStorage). 서버 프로필에는 보내지 않는다.
+  // 둘 다 state → localStorage, 로그인하면 user_app_data(본인만 읽기)로 동기화한다.
   var PREP_LIST = [
     { cat:'수유', emoji:'🍼', items:['젖병 2~3개', '젖병 세정제·솔', '분유 (분유·혼합 수유라면)', '수유 쿠션', '유축기', '수유 패드'] },
     { cat:'목욕·위생', emoji:'🛁', items:['아기 욕조', '목욕 타월·가제 손수건', '아기 바디워시·로션', '신생아 기저귀', '물티슈', '아기 손톱가위', '체온계'] },
@@ -3437,7 +3536,7 @@
         state.prepCustom.map(function(c){ return prepRow('custom::' + c.id, c.name, '<button type="button" class="prep-del" data-prep-del="' + escapeHtml(c.id) + '" aria-label="' + escapeHtml(c.name) + ' 지우기">✕</button>'); }).join('') +
         '<form class="prep-add" data-prep-add><div class="field" style="flex:1;"><label for="prep-new" class="sr-only">추가할 준비물</label><input type="text" id="prep-new" maxlength="40" placeholder="예: 손소독제" autocomplete="off"></div>' +
         '<button type="submit" class="btn-ghost" style="height:48px; padding:0 16px; flex:0 0 auto;">추가</button></form></section>' +
-      '<p class="helper" style="margin:0;">흔히 챙기는 목록이에요. 집 상황에 맞게 빼고 더하세요. 체크한 내용은 이 기기에만 저장돼요.</p>';
+      '<p class="helper" style="margin:0;">흔히 챙기는 목록이에요. 집 상황에 맞게 빼고 더하세요. 체크한 내용은 내 계정에 저장돼요.</p>';
   }
   function giftHtml(){
     var list = state.gifts.slice().sort(function(a, b){ return (b.date || '').localeCompare(a.date || '') || b.ts - a.ts; });
@@ -3461,7 +3560,7 @@
           '<button type="button" class="prep-del" data-gift-del="' + escapeHtml(g.id) + '" aria-label="' + escapeHtml(g.who) + ' 기록 지우기">✕</button></div>';
       }).join('') + '</div>'
         : '<div class="card col" style="padding:18px; align-items:center;"><span class="helper">아직 기록한 선물이 없어요</span></div>') +
-      '<p class="helper" style="margin:0;">이 장부는 이 기기에만 저장돼요. 다른 사람에게 보이지 않아요.</p>';
+      '<p class="helper" style="margin:0;">이 장부는 내 계정에 저장되고 나만 볼 수 있어요.</p>';
   }
   function prepId(){ return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
   document.addEventListener('click', function(e){
@@ -4828,9 +4927,10 @@
     '<tr><td>프로필 설정</td><td>닉네임, 거주 지역, 아이의 생년월 또는 출산예정일, 보호자 구분(엄마·아빠·보호자)</td><td>온보딩 단계에서 직접 입력</td></tr>' +
     '<tr><td>체험단 신청</td><td>받는 분 이름, 연락처, 배송지 주소</td><td>체험단을 신청할 때</td></tr>' +
     '<tr><td>챌린지 경품 당첨</td><td>받는 분 이름, 연락처, 배송지 주소</td><td>당첨 안내 메일에 회신할 때</td></tr>' +
+    '<tr><td>내 기록</td><td>수유·수면 등 돌봄기록, 키·몸무게, 예방접종 체크, 출산 준비물 체크, 선물 장부(보낸 분·선물·금액), 찜한 상품, 나만 보기 글</td><td>로그인한 상태에서 직접 기록할 때</td></tr>' +
     '<tr><td>콘텐츠 등록</td><td>게시글·댓글 내용, 첨부한 사진 및 영상</td><td>커뮤니티 글 또는 챌린지 참가작을 올릴 때</td></tr>' +
     '<tr><td>자동 수집</td><td>서비스 이용 기록, 접속 로그</td><td>서비스 이용 과정에서 자동 생성</td></tr></table>' +
-    '<div class="note">육아 기록(수유·수면·기저귀 등), 성장곡선, 예방접종, 타임라인 등 개인 기록 기능의 데이터는 서버로 전송되지 않고 <strong>이용자의 기기 내부(브라우저 저장소)에만 저장</strong>됩니다. 회사는 해당 정보를 열람할 수 없습니다.</div>' +
+    '<div class="note"><strong>내 기록</strong>(수유·수면 등 돌봄기록, 키·몸무게, 예방접종 체크, 출산 준비물 체크, 선물 장부의 보낸 분·선물·금액, 찜한 상품, \'나만 보기\' 글)은 기기를 바꿔도 이어지도록 <strong>이용자 계정에 연결해 서버에 보관</strong>됩니다. <strong>본인 계정으로만 읽고 쓸 수 있도록 접근이 제한</strong>되며, 다른 이용자와 운영자 화면에는 표시되지 않습니다. 회원 탈퇴 시 함께 삭제됩니다.</div>' +
     '<div class="note"><strong>체험단 배송 정보</strong>(받는 분 이름·연락처·배송지)는 다른 신청 정보와 <strong>분리된 저장소</strong>에 보관되며, 운영자 화면에서도 기본적으로 가려져 표시됩니다. 배송 등 실제 처리가 필요할 때만 사유를 남기고 열람하며, <strong>열람 기록이 서버에 남습니다.</strong> 신청일로부터 <strong>90일이 지나면 배송 정보는 파기</strong>되고, 신청 이력(닉네임·지역)만 남습니다.</div>' +
     '<div class="note"><strong>동의 이력</strong>(언제 어떤 항목에 동의·철회했는지)은 별도의 기록으로 서버에 보관됩니다. 이 기록은 추가만 가능하며 사후에 수정·삭제되지 않습니다. 회원 탈퇴 시에는 함께 삭제됩니다.</div>' +
     '<div class="note"><strong>성장 앨범</strong>에 올린 사진은 예외적으로 서버(비공개 저장소)에 보관됩니다. 기기를 바꿔도 사진이 유지되도록 하기 위한 것이며, <strong>본인 계정으로만 열람할 수 있도록 접근이 제한</strong>됩니다. 공개 링크가 생성되지 않고, 다른 이용자는 물론 검색엔진에도 노출되지 않습니다. 회원 탈퇴 시 사진도 함께 삭제됩니다.</div>' +
@@ -4848,6 +4948,7 @@
     '<p>원칙적으로 개인정보 수집·이용 목적이 달성되면 지체 없이 파기합니다. 다만 다음의 경우에는 명시한 기간 동안 보관합니다.</p>' +
     '<table><tr><th>구분</th><th>보유 기간</th><th>근거</th></tr>' +
     '<tr><td>회원 정보</td><td>회원 탈퇴 시까지</td><td>서비스 제공</td></tr>' +
+    '<tr><td>내 기록<br>(돌봄·성장·준비물·선물 장부·찜)</td><td>회원 탈퇴 시까지</td><td>기기 변경 시 기록 유지</td></tr>' +
     '<tr><td>체험단 배송 정보<br>(이름·연락처·주소)</td><td>신청일로부터 90일 (매일 자동 파기)</td><td>체험단 선정·배송</td></tr>' +
     '<tr><td>챌린지 경품 배송 정보<br>(이름·연락처·주소)</td><td>배송 완료 후 30일</td><td>배송 확인·분실 대응</td></tr>' +
     '<tr><td>계약 또는 청약철회 기록</td><td>5년</td><td>전자상거래법</td></tr>' +
@@ -4893,7 +4994,7 @@
     '</ul>' +
 
     '<h2>9. 쿠키 및 기기 저장소의 운영</h2>' +
-    '<p>서비스는 로그인 상태 유지와 개인 기록 저장을 위해 브라우저 저장소(localStorage 등)를 사용합니다. 이용자는 브라우저 설정에서 저장을 거부할 수 있으나, 이 경우 일부 기능 이용이 제한될 수 있습니다.</p>' +
+    '<p>서비스는 로그인 상태 유지와 개인 기록을 빠르게 보여주기 위해 브라우저 저장소(localStorage 등)를 사용합니다. 로그인한 경우 개인 기록은 계정에도 함께 보관됩니다. 이용자는 브라우저 설정에서 저장을 거부할 수 있으나, 이 경우 일부 기능 이용이 제한될 수 있습니다.</p>' +
 
     '<h2>10. 개인정보 보호책임자</h2>' +
     '<table><tr><th>구분</th><th>내용</th></tr>' +
@@ -5361,6 +5462,7 @@
     famLastPull = 0;
     famRevision = 0; famEdits = Object.create(null);
     if(authUser) setTimeout(function(){ famPull(true); }, 0);
+    if(authUser) setTimeout(function(){ appDataPull(); }, 0);
     // 방금 로그인한 사람이 온보딩 화면에 서 있으면 홈으로 보낸다
     // (MY에서 프로필을 고치러 들어온 경우는 로그인 상태가 바뀌지 않으므로 해당 없음)
     if(authUser && state.onboarded){

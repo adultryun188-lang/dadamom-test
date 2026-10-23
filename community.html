@@ -883,17 +883,31 @@
     return out;
   }
 
-  // 앱이 이 기기에 저장한 내 기록 (같은 사이트 주소라 localStorage 를 같이 쓴다). 읽기만 한다.
+  // 내 기록: 계정(user_app_data, 본인만)에 있는 것을 먼저 쓰고, 없으면 이 브라우저의 앱 저장분(localStorage)을 쓴다.
+  // 웹은 찜만 고친다. 앱은 서버 값이 바뀐 걸 보고 받아 간다.
+  var srvApp = null;
+  async function loadAppData(){
+    srvApp = null;
+    if(!user) return;
+    var r = await sb.from('user_app_data').select('data').eq('user_id', user.id).maybeSingle();
+    if(!r.error && r.data) srvApp = r.data.data || {};
+  }
   function wishList(){ var st = appLocalState(); return (st && Array.isArray(st.wishProducts)) ? st.wishProducts : []; }
-  function toggleWish(id){
+  async function toggleWish(id){
     if(!user){ openLogin(); return; }
-    var key = 'dadamom_v2::' + user.id, st;
-    try{ st = JSON.parse(localStorage.getItem(key) || 'null') || {}; }catch(e){ st = {}; }
-    var list = Array.isArray(st.wishProducts) ? st.wishProducts : [];
+    // shortcut: 다른 기기의 앱이 같은 순간 올리면 마지막 저장이 이긴다. 충돌이 보이면 서버 함수로 바꾼다.
+    var cur = await sb.from('user_app_data').select('data').eq('user_id', user.id).maybeSingle();
+    if(cur.error){ alert('찜을 저장하지 못했어요. 잠시 후 다시 눌러주세요.'); return; }
+    var data;
+    if(cur.data) data = cur.data.data || {};
+    else { data = Object.assign({}, appLocalState() || {}); delete data.appDataRev; delete data.appDataHash; }
+    var list = Array.isArray(data.wishProducts) ? data.wishProducts.slice() : [];
     var i = list.indexOf(id);
     if(i > -1) list.splice(i, 1); else list.push(id);
-    st.wishProducts = list;
-    try{ localStorage.setItem(key, JSON.stringify(st)); }catch(e){ alert('찜을 저장하지 못했어요'); return; }
+    data.wishProducts = list;
+    var w = await sb.from('user_app_data').upsert({ user_id: user.id, data: data }, { onConflict: 'user_id' }).select('user_id');
+    if(w.error || !w.data || !w.data.length){ alert('찜을 저장하지 못했어요. 잠시 후 다시 눌러주세요.'); return; }
+    srvApp = data;
     document.querySelectorAll('[data-wish="' + id + '"]').forEach(function(b){
       b.setAttribute('aria-pressed', i > -1 ? 'false' : 'true'); b.textContent = i > -1 ? '♡' : '♥';
       b.setAttribute('aria-label', (i > -1 ? '찜하기' : '찜 해제'));
@@ -903,6 +917,7 @@
 
   function appLocalState(){
     if(!user) return null;
+    if(srvApp) return srvApp;
     try{ return JSON.parse(localStorage.getItem('dadamom_v2::' + user.id) || 'null'); }catch(e){ return null; }
   }
 
@@ -2045,13 +2060,13 @@
     }).join('') : '<li class="helper" style="padding:0 20px 18px;">아직 쓴 댓글이 없어요.</li>';
   }
 
-  // 앱의 growthRecords · careLog · vaccines (이 기기 저장분)
+  // 앱의 growthRecords · careLog · vaccines (계정 저장분, 없으면 이 기기 저장분)
   function kidRecordHtml(st){
     var g = st && Array.isArray(st.growthRecords) ? st.growthRecords.slice().sort(function(a,b){ return a.ts - b.ts; }) : [];
     var care = st && Array.isArray(st.careLog) ? st.careLog : [];
     var vac = st && st.vaccines ? Object.keys(st.vaccines).filter(function(k){ return st.vaccines[k]; }).length : 0;
     if(!g.length && !care.length && !vac){
-      return emptyHtml('📱', '이 기기에 저장된 앱 기록이 없어요. 앱에서 키·몸무게, 수유·수면을 기록하면 여기서도 보여요.', '<a class="btn primary" href="./index.html#growth">앱에서 기록 시작</a>');
+      return emptyHtml('📱', '아직 기록이 없어요. 앱에서 키·몸무게, 수유·수면을 기록하면 여기서도 보여요.', '<a class="btn primary" href="./index.html#growth">앱에서 기록 시작</a>');
     }
     var w = g.filter(function(x){ return x.weight != null; }), h = g.filter(function(x){ return x.height != null; });
     var lw = w[w.length - 1], lh = h[h.length - 1];
@@ -2334,6 +2349,7 @@
     if(ev === 'TOKEN_REFRESHED') return;
     setTimeout(async function(){
       await loadUser(session);
+      try{ await loadAppData(); }catch(e){ srvApp = null; }
       if(!booted){ setTimeout(maybeShowPopup, 800); }
       if(!booted || ev === 'SIGNED_IN' || ev === 'SIGNED_OUT'){ booted = true; render(); renderSide(); renderRecent(); }
       checkNoti();

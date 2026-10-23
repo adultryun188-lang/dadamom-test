@@ -463,6 +463,27 @@ button,input,select,textarea{font-weight:700;}
 #screen-challenge #entries > .card:nth-child(3n+2){background:#FFFBF5;}
 #screen-challenge #entries > .card > div[role="img"]{width:76px !important;height:76px !important;border-radius:18px !important;background:var(--w-leaf) !important;}
 #screen-challenge > .pad:has(> [data-open-challenge-modal]){background:var(--w-cream) !important;border-top-color:var(--w-line) !important;}
+/* ── 앱 혜택·나들이·육아기록 공통 머리 (index.html .app-sub-hero) — 챌린지와 같은 크림 카드 + 초록 그림판 ── */
+.app-sub-hero.page-hero,.warm-page .app-sub-hero.page-hero{grid-template-columns:1fr;border-radius:26px;background:var(--w-sun);}
+.app-sub-hero .page-hero-copy{padding:20px;gap:10px;align-items:stretch;}
+.app-sub-hero .page-hero-copy .mall-eyebrow{align-self:flex-start;}
+.warm-page .app-sub-hero.page-hero h1{font-size:27px;line-height:1.3;}
+.app-sub-hero .page-hero-desc{font-size:13px;line-height:1.7;}
+.growth-hero .page-hero-desc{font-size:12px;}
+.outing-hero .hh-art{background:#E3EFE6;}
+.benefit-hero .hh-art{background:#F7E9DA;}
+/* 목록 카드: 웹 브랜드관 카드와 같은 테두리·색 */
+#outing-body > .card,#benefit-body > .card,#screen-growth .scroll > .card{border-radius:24px;border-color:var(--w-line);background:var(--w-cream);box-shadow:none;}
+#outing-body > button.card:nth-child(3n+2){background:var(--w-peach);}
+#outing-body > button.card:nth-child(3n){background:var(--w-leaf);}
+#screen-growth #carelog-card{background:var(--w-leaf);border-color:#D9E4C8;}
+#screen-growth #growth-card{background:var(--w-sun);border-color:#EAD8C6;}
+#screen-growth #vax-card{background:var(--w-peach);}
+#screen-growth [data-care-log].card{background:#fff;border-color:#DCE6CD;border-radius:20px;}
+#screen-growth [data-care-log].card svg{width:24px;height:24px;}
+#screen-growth .scroll > .col > h2.display{font-size:18px;font-weight:800;}
+#screen-growth #timeline-list > .card{border-radius:22px;border-color:var(--w-line);}
+#screen-outing #outing-region-group .chip{min-height:38px;padding:7px 14px;font-size:13px;}
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{transition:none !important;animation:none !important;scroll-behavior:auto !important;}
   .btn:active,.btn.primary:active,.btn-primary:active,.btn-ghost:active,.chip:active,.chip-f:active,.cheer:active,.nav-row a:active,.board-tabs a:active,.navbar button:active,.brand-chip:active,.topic-card:active,.pcard:active,.prod:active,.pager a:active{transform:none !important;}

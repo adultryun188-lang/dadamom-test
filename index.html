@@ -360,7 +360,7 @@
     .toast{ bottom:40px; }
   }
 </style>
-<link rel="stylesheet" href="./rounded-ui.css?v=20261023-5">
+<link rel="stylesheet" href="./rounded-ui.css?v=20261023-6">
 
 <div class="app" id="app">
   <div class="test-banner" id="test-banner" role="status" hidden>
@@ -539,30 +539,55 @@
 
   <!-- BENEFIT -->
   <section class="screen" id="screen-benefit">
-    <div class="pad" style="flex:0 0 auto; padding-block-start:28px;">
-      <h1 class="display" style="font-size:22px; margin-bottom:16px;">혜택</h1>
+    <!-- 2026-10-23: 다른 화면과 같은 크림 머리. 모양은 공용 rounded-ui.css -->
+    <div class="scroll pad">
+      <div class="warm-page">
+        <header class="page-hero app-sub-hero benefit-hero">
+          <div class="page-hero-copy">
+            <span class="mall-eyebrow">다다맘 혜택</span>
+            <div class="hh-top">
+              <h1 class="display">체험단과 <em>이벤트</em></h1>
+              <div class="hh-art" aria-hidden="true"><span>🎁</span></div>
+            </div>
+            <p class="page-hero-desc">먼저 써 보고 솔직하게 나누는 육아템 체험단과 이벤트를 모았어요.</p>
+          </div>
+        </header>
+      </div>
       <div class="segmented" role="tablist" aria-label="혜택 종류" id="benefit-tabs">
         <button data-benefit-tab="trial" role="tab">체험단</button>
         <button data-benefit-tab="event" role="tab">이벤트</button>
       </div>
+      <div class="col" id="benefit-body" style="gap:14px;"></div>
     </div>
-    <div class="scroll pad" id="benefit-body"></div>
     <nav class="navbar" data-nav aria-label="주요 메뉴"></nav>
   </section>
 
   <!-- OUTING -->
   <section class="screen" id="screen-outing">
-    <div class="pad" style="flex:0 0 auto; padding-block-start:28px;">
-      <h1 class="display" style="font-size:22px; margin-bottom:4px;">나들이</h1>
-      <p style="font-size:12.5px; color:var(--text2); margin-bottom:14px;">아이와 갈 수 있는 행사와 장소</p>
-      <div class="segmented" role="tablist" aria-label="나들이 종류" id="outing-tabs">
-        <button data-outing-tab="all" role="tab">전체</button>
-        <button data-outing-tab="event" role="tab">행사</button>
-        <button data-outing-tab="spot" role="tab">놀거리</button>
+    <!-- 2026-10-23: 다른 화면과 같은 크림 머리. 모양은 공용 rounded-ui.css -->
+    <div class="scroll pad">
+      <div class="warm-page">
+        <header class="page-hero app-sub-hero outing-hero">
+          <div class="page-hero-copy">
+            <span class="mall-eyebrow">아이와 나들이</span>
+            <div class="hh-top">
+              <h1 class="display">이번 주 <em>어디 갈까?</em></h1>
+              <div class="hh-art" aria-hidden="true"><span>🧺</span></div>
+            </div>
+            <p class="page-hero-desc">아이와 갈 수 있는 행사와 놀거리를 지역별로 모았어요.</p>
+          </div>
+        </header>
       </div>
-      <div class="row" style="flex-wrap:wrap; gap:8px; margin-top:12px;" id="outing-region-group"></div>
+      <div class="col" style="gap:10px;">
+        <div class="segmented" role="tablist" aria-label="나들이 종류" id="outing-tabs">
+          <button data-outing-tab="all" role="tab">전체</button>
+          <button data-outing-tab="event" role="tab">행사</button>
+          <button data-outing-tab="spot" role="tab">놀거리</button>
+        </div>
+        <div class="row" style="flex-wrap:wrap; gap:8px;" id="outing-region-group"></div>
+      </div>
+      <div class="col" id="outing-body" style="gap:14px;"></div>
     </div>
-    <div class="scroll pad" id="outing-body"></div>
     <nav class="navbar" data-nav aria-label="주요 메뉴"></nav>
   </section>
 
@@ -679,11 +704,20 @@
   </section>
 
   <section class="screen" id="screen-growth">
-    <div class="pad" style="flex:0 0 auto; padding-block:18px 10px;">
-      <h1 class="display" style="font-size:22px;">성장기록</h1>
-      <span class="helper">돌봄기록·성장곡선·예방접종은 이 기기에만 저장돼요. 가족 공유를 켜면 가족과 함께 보도록 서버에 저장됩니다. 성장 앨범 사진은 본인 계정의 비공개 저장소에 보관됩니다.</span>
-    </div>
-    <div class="scroll pad" style="padding-top:4px;">
+    <!-- 2026-10-23: 다른 화면과 같은 크림 머리. 모양은 공용 rounded-ui.css -->
+    <div class="scroll pad">
+      <div class="warm-page">
+        <header class="page-hero app-sub-hero growth-hero">
+          <div class="page-hero-copy">
+            <span class="mall-eyebrow">우리 아이 기록</span>
+            <div class="hh-top">
+              <h1 class="display">육아<em>기록</em></h1>
+              <div class="hh-art" aria-hidden="true"><span>🍼</span></div>
+            </div>
+            <p class="page-hero-desc">돌봄기록·성장곡선·예방접종은 이 기기에만 저장돼요. 가족 공유를 켜면 가족과 함께 보도록 서버에 저장됩니다. 성장 앨범 사진은 본인 계정의 비공개 저장소에 보관됩니다.</p>
+          </div>
+        </header>
+      </div>
       <div id="growth-profile-banner"></div>
       <div class="card col" id="carelog-card" style="gap:14px; padding:18px;">
         <div class="row" style="align-items:center; justify-content:space-between;">

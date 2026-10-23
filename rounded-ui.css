@@ -128,9 +128,9 @@ button,input,select,textarea{font-weight:700;}
 .brand-mall .prod{position:relative;background:#FFFDF8;padding:14px;border-radius:26px;gap:10px;border-color:#E6D6C3;}
 .brand-mall .prod .deal{position:absolute;top:24px;left:24px;}
 .brand-mall .prod .ph{aspect-ratio:4/3;max-height:300px;border-radius:18px;background:#FFF0CB;}
-.brand-mall .prod:nth-child(4n+2) .ph{background:#F8E5E8;}
-.brand-mall .prod:nth-child(4n+3) .ph{background:#E8F0DD;}
-.brand-mall .prod:nth-child(4n+4) .ph{background:#F5E2CC;}
+.brand-mall .prod-wrap:nth-child(4n+2) .ph{background:#F8E5E8;}
+.brand-mall .prod-wrap:nth-child(4n+3) .ph{background:#E8F0DD;}
+.brand-mall .prod-wrap:nth-child(4n+4) .ph{background:#F5E2CC;}
 .brand-mall .prod .ph img{object-fit:contain;padding:12px;}
 .product-placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;width:100%;height:100%;color:#8B7051;}
 .product-placeholder svg{width:58px;height:58px;}
@@ -244,7 +244,7 @@ button,input,select,textarea{font-weight:700;}
 [data-page="home"] .home-mall .prod-grid{gap:14px;}
 [data-page="home"] .home-mall .prod{padding:10px;border-radius:20px;background:#FFFDF8;}
 [data-page="home"] .home-mall .prod .ph{background:#FFF0CB;border-radius:14px;}
-[data-page="home"] .home-mall .prod:nth-child(2n) .ph{background:#E8F0DD;}
+[data-page="home"] .home-mall .prod-wrap:nth-child(2n) .ph{background:#E8F0DD;}
 /* 커뮤니티: 시기/정렬을 분리하고 표의 의미는 유지하며 카드형 행으로 보인다. */
 .community-page .board-panel{border-radius:26px;box-shadow:none;background:#FFFDF8;}
 .community-page .board-tabs{padding:20px 20px 14px;gap:7px;border-bottom:1px solid #EEE0CF;}
@@ -581,6 +581,18 @@ button.app-mall-banner{text-align:left;font-family:var(--font-ui);cursor:pointer
 .hb-card.img{position:relative;overflow:hidden;}
 .hb-card.img::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(255,251,247,.94),rgba(255,251,247,.55) 70%,rgba(255,251,247,.1));}
 .hb-card.img > *{position:relative;}
+/* ── 웹 브랜드관 상품 찜 · 사진 게시판 ── */
+.prod-wrap{position:relative;min-width:0;display:flex;}
+.prod-wrap > .prod{flex:1;min-width:0;}
+.prod-wrap > .wish-btn{top:12px;right:12px;z-index:1;}
+.web-photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,190px),1fr));gap:12px;padding:16px 18px;}
+.web-photo-tile{position:relative;display:block;aspect-ratio:1;border-radius:22px;overflow:hidden;background:var(--w-sun);border:1px solid var(--w-line);color:var(--text);text-decoration:none;}
+.web-photo-tile img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .2s ease;}
+.web-photo-tile .ph-wait{display:flex;align-items:center;justify-content:center;height:100%;font-size:40px;}
+.web-photo-tile .cap{position:absolute;left:0;right:0;bottom:0;display:flex;flex-direction:column;gap:2px;padding:28px 12px 10px;background:linear-gradient(180deg,rgba(255,251,247,0),rgba(255,251,247,.95) 45%);}
+.web-photo-tile .cap b{font-size:13.5px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.web-photo-tile .cap span{font-size:12px;color:var(--text2);}
+@media (hover:hover) and (pointer:fine){.web-photo-tile:hover img{transform:scale(1.03);}}
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{transition:none !important;animation:none !important;scroll-behavior:auto !important;}
   .btn:active,.btn.primary:active,.btn-primary:active,.btn-ghost:active,.chip:active,.chip-f:active,.cheer:active,.nav-row a:active,.board-tabs a:active,.navbar button:active,.brand-chip:active,.topic-card:active,.pcard:active,.prod:active,.pager a:active{transform:none !important;}

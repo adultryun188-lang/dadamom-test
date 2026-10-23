@@ -102,26 +102,26 @@ try{
       }
       if(hash==='#/brand'){
         await page.locator('.prod').first().waitFor();
-        check(width+' 전체 상품 5개',await page.locator('.mall-products > .prod').count()===5);
+        check(width+' 전체 상품 5개',await page.locator('.mall-products > .prod-wrap').count()===5);
         check(width+' 중복 브랜드 목록 제거',await page.locator('.brand-directory-grid .brand-card').count()===3&&await page.locator('#main .brand-row').count()===0);
         check(width+' 브랜드관 사이드 피드 제외',await page.locator('.side').isHidden());
         const bounds=await page.locator('.mall-banners').evaluate(el=>{const p=el.getBoundingClientRect();return [...el.children].every(c=>{const r=c.getBoundingClientRect();return r.left>=p.left-1&&r.right<=p.right+1;});});
         check(width+' 기획전 배너 잘림 없음',bounds);
-        check(width+' 상품 카드 폭 정렬',await page.locator('.mall-products > .prod').evaluateAll(els=>Math.max(...els.map(el=>el.getBoundingClientRect().width))-Math.min(...els.map(el=>el.getBoundingClientRect().width))<2));
-        check(width+' 정가·할인가 기준선 정렬',await page.locator('.mall-products > .prod').evaluateAll(els=>{const top=els[0].getBoundingClientRect().top,values=els.filter(el=>Math.abs(el.getBoundingClientRect().top-top)<2).map(el=>el.querySelector('.now').getBoundingClientRect().bottom);return Math.max(...values)-Math.min(...values)<2;}));
-        check(width+' 특가 배지가 상품명 위치를 밀지 않음',await page.locator('.mall-products > .prod').evaluateAll(els=>{const top=els[0].getBoundingClientRect().top,values=els.filter(el=>Math.abs(el.getBoundingClientRect().top-top)<2).map(el=>el.querySelector('.nm').getBoundingClientRect().top);return Math.max(...values)-Math.min(...values)<2;}));
+        check(width+' 상품 카드 폭 정렬',await page.locator('.mall-products > .prod-wrap').evaluateAll(els=>Math.max(...els.map(el=>el.getBoundingClientRect().width))-Math.min(...els.map(el=>el.getBoundingClientRect().width))<2));
+        check(width+' 정가·할인가 기준선 정렬',await page.locator('.mall-products > .prod-wrap').evaluateAll(els=>{const top=els[0].getBoundingClientRect().top,values=els.filter(el=>Math.abs(el.getBoundingClientRect().top-top)<2).map(el=>el.querySelector('.now').getBoundingClientRect().bottom);return Math.max(...values)-Math.min(...values)<2;}));
+        check(width+' 특가 배지가 상품명 위치를 밀지 않음',await page.locator('.mall-products > .prod-wrap').evaluateAll(els=>{const top=els[0].getBoundingClientRect().top,values=els.filter(el=>Math.abs(el.getBoundingClientRect().top-top)<2).map(el=>el.querySelector('.nm').getBoundingClientRect().top);return Math.max(...values)-Math.min(...values)<2;}));
         check(width+' 사진 없는 상품 상태 표시',await page.locator('.product-placeholder').count()===5);
         if(width===390||width===1440)await page.screenshot({path:path.join(out,'brand-'+width+'.png'),fullPage:true});
-        await page.locator('.mall-filter a[href="#/brand?b=warm-brand"]').click();await page.waitForFunction(()=>document.querySelectorAll('.mall-products > .prod').length===2);
+        await page.locator('.mall-filter a[href="#/brand?b=warm-brand"]').click();await page.waitForFunction(()=>document.querySelectorAll('.mall-products > .prod-wrap').length===2);
         check(width+' 브랜드 선택 필터 2개',await page.locator('.mall-filter .on').textContent()==='햇살 브랜드');
         const buy=page.locator('.mall-products a[href="https://example.com/blanket"]');
         check(width+' 외부 구매 링크 보호 유지',await buy.getAttribute('target')==='_blank'&&/noopener/.test(await buy.getAttribute('rel'))&&/sponsored/.test(await buy.getAttribute('rel')));
         await page.locator('.mall-filter a[href="#/brand?tab=deal"]').click();await page.getByText('진행 중인 특가',{exact:true}).waitFor();
-        check(width+' 진행 중 특가만 2개',await page.locator('.mall-products > .prod').count()===2&&!(await page.locator('.mall-products').textContent()).includes('지난 특가 장난감'));
-        await page.locator('.mall-filter a[href="#/brand?tab=catalog"]').click();await page.waitForFunction(()=>document.querySelectorAll('.mall-products > .prod').length===5);
+        check(width+' 진행 중 특가만 2개',await page.locator('.mall-products > .prod-wrap').count()===2&&!(await page.locator('.mall-products').textContent()).includes('지난 특가 장난감'));
+        await page.locator('.mall-filter a[href="#/brand?tab=catalog"]').click();await page.waitForFunction(()=>document.querySelectorAll('.mall-products > .prod-wrap').length===5);
         check(width+' 전체 상품 복구',await page.locator('.mall-filter .on').textContent()==='전체 상품');
         await page.locator('.brand-card[href="#/brand/warm-brand"]').click();await page.locator('.brand-head h1').waitFor();
-        check(width+' 브랜드 상세 상품 2개',await page.locator('.mall-products > .prod').count()===2);
+        check(width+' 브랜드 상세 상품 2개',await page.locator('.mall-products > .prod-wrap').count()===2);
         await page.locator('#nav a[href="#/outing"]').click();await page.locator('#out-list').waitFor();
         check(width+' 다른 메뉴에서 사이드 복구',await page.locator('.side').isVisible());
       }
@@ -170,7 +170,7 @@ try{
   }
   await page.route(base+'/nested/missing-page',async r=>r.fulfill({contentType:'text/html; charset=utf-8',body:await fs.readFile(path.join(root,'404.html'),'utf8')}));
   await page.goto(base+'/nested/missing-page');await noOverflow(page,'중첩 경로 404');
-  check('404 스타일시트 루트 경로 복구',await page.locator('#rounded-ui-style').getAttribute('href')==='/rounded-ui.css?v=20261023-9');
+  check('404 스타일시트 루트 경로 복구',await page.locator('#rounded-ui-style').getAttribute('href')==='/rounded-ui.css?v=20261023-10');
   await page.goto(base+'/index.html#onboarding');await page.locator('#auth-email').waitFor();
   await page.evaluate(()=>document.documentElement.dataset.theme='dark');
   check('남은 다크 테마 속성도 밝게 유지',await page.evaluate(()=>getComputedStyle(document.documentElement).colorScheme==='light'));

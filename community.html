@@ -679,7 +679,7 @@
     .my-head > .btn{ width:100%; }
   }
 </style>
-<link rel="stylesheet" href="./rounded-ui.css?v=20261023-9">
+<link rel="stylesheet" href="./rounded-ui.css?v=20261023-10">
 
 <a class="skip-link" href="#main">본문 바로가기</a>
 <header class="top">
@@ -768,6 +768,7 @@
   var BOARDS = [
     { id:'all',    name:'전체',  em:'🗂️' },
     { id:'best',   name:'인기글', em:'🔥' },
+    { id:'photo',  name:'사진',  em:'📷', desc:'아이 사진과 육아템 자랑을 크게 모아 봐요' },
     { id:'qna',    name:'질문',  em:'🙋', topic:'질문', cls:'c-qna',   desc:'궁금한 건 먼저 키운 선배 엄마 아빠에게' },
     { id:'brag',   name:'자랑',  em:'🌟', topic:'자랑', cls:'c-brag',  desc:'첫 걸음, 첫 마디, 오늘의 귀여움' },
     { id:'worry',  name:'고민',  em:'💭', topic:'고민', cls:'c-worry', desc:'혼자 끙끙 앓지 말고 같이 나눠요' },
@@ -883,6 +884,23 @@
   }
 
   // 앱이 이 기기에 저장한 내 기록 (같은 사이트 주소라 localStorage 를 같이 쓴다). 읽기만 한다.
+  function wishList(){ var st = appLocalState(); return (st && Array.isArray(st.wishProducts)) ? st.wishProducts : []; }
+  function toggleWish(id){
+    if(!user){ openLogin(); return; }
+    var key = 'dadamom_v2::' + user.id, st;
+    try{ st = JSON.parse(localStorage.getItem(key) || 'null') || {}; }catch(e){ st = {}; }
+    var list = Array.isArray(st.wishProducts) ? st.wishProducts : [];
+    var i = list.indexOf(id);
+    if(i > -1) list.splice(i, 1); else list.push(id);
+    st.wishProducts = list;
+    try{ localStorage.setItem(key, JSON.stringify(st)); }catch(e){ alert('찜을 저장하지 못했어요'); return; }
+    document.querySelectorAll('[data-wish="' + id + '"]').forEach(function(b){
+      b.setAttribute('aria-pressed', i > -1 ? 'false' : 'true'); b.textContent = i > -1 ? '♡' : '♥';
+      b.setAttribute('aria-label', (i > -1 ? '찜하기' : '찜 해제'));
+    });
+    var wc = $('wish-count'); if(wc) wc.textContent = list.length;
+  }
+
   function appLocalState(){
     if(!user) return null;
     try{ return JSON.parse(localStorage.getItem('dadamom_v2::' + user.id) || 'null'); }catch(e){ return null; }
@@ -1125,6 +1143,7 @@
     else qb = qb.eq('status', 'approved');
     if(meta.topic) qb = qb.like('text', '[' + meta.topic + ']%');
     if(board === 'best') qb = qb.gte('likes', HOT_MIN);
+    if(board === 'photo') qb = qb.not('media_path', 'is', null);
     if(stage === 'preg') qb = qb.eq('stage', 'pregnant');
     if(stage === 'm12') qb = qb.eq('stage', 'parenting').lte('age_value', 12);
     if(stage === 'm24') qb = qb.eq('stage', 'parenting').gte('age_value', 13).lte('age_value', 24);
@@ -1147,8 +1166,22 @@
     if(!rows.length){
       body.innerHTML = q ? emptyHtml('🔎', '검색 결과가 없어요. 다른 단어로 찾아보세요.')
         : board === 'best' ? emptyHtml('🔥', '추천을 ' + HOT_MIN + '개 이상 받은 글이 여기에 모여요.')
+        : board === 'photo' ? emptyHtml('📷', '아직 사진 글이 없어요. 아이 사진이나 육아템을 자랑해 보세요!', '<a class="btn primary" href="#/write?t=' + encodeURIComponent('자랑') + '">사진 올리기</a>')
         : board === 'mine' ? emptyHtml('📝', '아직 쓴 글이 없어요.', '<a class="btn primary" href="#/write">첫 글 쓰기</a>')
         : emptyHtml('🌱', '아직 글이 없어요. 첫 글을 남겨보세요!', '<a class="btn primary" href="#/write' + (meta.topic ? '?t=' + encodeURIComponent(meta.topic) : '') + '">글쓰기</a>');
+      return;
+    }
+    if(board === 'photo'){
+      // 사진 게시판은 표 대신 큰 사진 바둑판. 사진 주소는 짧게 열리는 서명 주소.
+      var purls = await signUrls(rows.map(function(r){ return r.media_path; }));
+      if(!$('list-body')) return;
+      body.innerHTML = '<div class="web-photo-grid">' + rows.map(function(r){
+          var pp = parsePost(r.text), u = purls[r.media_path];
+          return '<a class="web-photo-tile" href="#/p/' + r.id + '" aria-label="' + esc(pp.title) + ', 추천 ' + (r.likes || 0) + '">' +
+            (u ? '<img src="' + esc(u) + '" alt="" loading="lazy">' : '<span class="ph-wait" aria-hidden="true">📷</span>') +
+            '<span class="cap"><b>' + esc(pp.title) + '</b><span>👍 ' + (r.likes || 0) + ' · 💬 ' + (r.comments || 0) + '</span></span></a>';
+        }).join('') + '</div>' +
+        '<div class="foot"><div class="pager">' + pagerHtml(board, keep, page, Math.ceil(total / PAGE)) + '</div><span class="helper">사진 글 ' + total.toLocaleString() + '개</span></div>';
       return;
     }
     body.innerHTML = listTableHtml(rows, board, from, total, false, { q:q, scope:scope, pinned:pinned }) +
@@ -1762,14 +1795,17 @@
     var sale = p.sale_price != null && p.price != null && p.sale_price < p.price;
     var pct = sale ? Math.round((1 - p.sale_price / p.price) * 100) : 0;
     var dealOn = p.is_deal && (!p.deal_until || p.deal_until >= todayISO());
-    return '<a class="prod" href="' + esc(buy || '#/brand') + '"' + (buy ? ' target="_blank" rel="noopener noreferrer sponsored"' : '') + '>' +
+    var wished = wishList().indexOf(p.id) > -1;
+    // 찜 버튼은 링크 밖 형제로 (링크 안 버튼은 누를 때 스토어가 같이 열린다)
+    return '<div class="prod-wrap"><button type="button" class="wish-btn" data-wish="' + esc(p.id) + '" aria-pressed="' + wished + '" aria-label="' + (wished ? '찜 해제' : '찜하기') + '">' + (wished ? '♥' : '♡') + '</button>' +
+      '<a class="prod" href="' + esc(buy || '#/brand') + '"' + (buy ? ' target="_blank" rel="noopener noreferrer sponsored"' : '') + '>' +
       '<span class="ph">' + (img ? '<img src="' + esc(img) + '" alt="" loading="lazy">' : '<span class="product-placeholder"><svg viewBox="0 0 64 64" fill="none" aria-hidden="true"><path d="M15 22h34l4 32H11l4-32Z" fill="rgba(255,255,255,.65)" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/><path d="M23 24V17a9 9 0 0 1 18 0v7M25 38c4 4 10 4 14 0" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg><span>상품 사진 준비 중</span></span>') + '</span>' +
       (dealOn ? '<span class="deal">특가' + (p.deal_until ? ' ~' + esc(p.deal_until.slice(5).replace('-', '/')) : '') + '</span>' : '') +
       '<span class="bn">' + esc(brand ? brand.name : '') + (p.visible === false ? '<span class="hidden-tag">숨김</span>' : '') + '</span>' +
       '<span class="nm">' + esc(p.name) + '</span>' +
       '<span class="product-price">' + (sale ? '<span class="was">' + won(p.price) + '</span><span class="now"><span class="pct">' + pct + '%</span>' + won(p.sale_price) + '</span>'
             : (p.price != null ? '<span class="now">' + won(p.price) + '</span>' : '')) + '</span>' +
-      '<span class="buy">구매하러 가기 ↗</span></a>';
+      '<span class="buy">구매하러 가기 ↗</span></a></div>';
   }
   var MALL_NOTE = '<p class="mall-note">구매·결제·배송은 각 브랜드 스토어에서 진행돼요. 다다맘은 상품을 소개하는 곳이라 판매 당사자가 아니에요.</p>';
 
@@ -1814,8 +1850,10 @@
     var pick = byId[params.get('b')] || null;
     var today = todayISO();
     var dealOnly = params.get('tab') === 'deal';
+    var wishOnly = params.get('tab') === 'wish';
+    var wishIds = wishList();
     var isDeal = function(p){ return p.is_deal && (!p.deal_until || p.deal_until >= today); };
-    var catalog = prods.filter(function(p){ return (!pick || p.brand_id === pick.id) && (!dealOnly || isDeal(p)); });
+    var catalog = prods.filter(function(p){ return wishOnly ? wishIds.indexOf(p.id) > -1 : (!pick || p.brand_id === pick.id) && (!dealOnly || isDeal(p)); });
     var filterHref = function(id, deal){ var q = new URLSearchParams(); if(id) q.set('b', id); if(deal) q.set('tab','deal'); return '#/brand' + (q.toString() ? '?' + q.toString() : '?tab=catalog'); };
     var filter = function(label, href, on){ return '<a class="chip' + (on ? ' on' : '') + '" href="' + esc(href) + '"' + (on ? ' aria-current="true"' : '') + '>' + esc(label) + '</a>'; };
     var bannerHtml = banners.length ? '<div class="mall-banners" aria-label="기획전">' + banners.map(function(n){
@@ -1837,12 +1875,12 @@
         '<div class="brand-directory-grid">' + brands.map(function(b){ return '<a class="brand-card" href="#/brand/' + esc(encodeURIComponent(b.id)) + '">' + brandLogoHtml(b) +
           '<span class="brand-card-copy"><span class="brand-card-labels">' + (b.is_new ? '<span class="tag">NEW</span>' : '') + (b.is_featured ? '<span class="tag">추천</span>' : '') + '</span><b>' + esc(b.name) + hiddenTag(b) + '</b><span>' + esc(b.intro || '브랜드 상품 만나보기') + '</span></span><span class="brand-card-arrow" aria-hidden="true">↗</span></a>'; }).join('') + '</div></section>' +
       '<section class="mall-catalog" id="mall-catalog" aria-labelledby="mall-products-title"><div class="mall-section-head"><div><h2 id="mall-products-title">우리 가족을 위한 발견</h2><p>상품을 살펴보고 구매는 각 브랜드 스토어에서 진행해요.</p></div></div>' +
-        '<nav class="mall-filter" aria-label="상품 필터">' + filter('전체 상품',filterHref('',false),!pick && !dealOnly) +
+        '<nav class="mall-filter" aria-label="상품 필터">' + filter('전체 상품',filterHref('',false),!pick && !dealOnly && !wishOnly) +
           brands.map(function(b){return filter(b.name,filterHref(b.id,false),!!pick && b.id===pick.id && !dealOnly);}).join('') +
-          filter('특가 모아보기',filterHref('',true),dealOnly) + '</nav>' +
-        '<div class="mall-catalog-summary"><span>' + esc(dealOnly ? '진행 중인 특가' : pick ? pick.name : '전체 상품') + '</span><span>상품 <b>' + catalog.length + '</b>개</span></div>' +
-        (catalog.length ? mallProductGrid(catalog,byId) : emptyHtml('🧺','조건에 맞는 상품이 아직 없어요.')) + '</section>' + MALL_NOTE + '</section>';
-    if(params.get('tab') === 'deal' || params.get('tab') === 'catalog' || pick) $('mall-catalog').scrollIntoView({block:'start'});
+          filter('특가 모아보기',filterHref('',true),dealOnly) + '<a class="chip' + (wishOnly ? ' on' : '') + '" href="#/brand?tab=wish"' + (wishOnly ? ' aria-current="true"' : '') + '>♥ 찜한 상품 <span id="wish-count">' + wishIds.length + '</span></a></nav>' +
+        '<div class="mall-catalog-summary"><span>' + esc(wishOnly ? '찜한 상품' : dealOnly ? '진행 중인 특가' : pick ? pick.name : '전체 상품') + '</span><span>상품 <b>' + catalog.length + '</b>개</span></div>' +
+        (catalog.length ? mallProductGrid(catalog,byId) : emptyHtml(wishOnly ? '♡' : '🧺', wishOnly ? (user ? '찜한 상품이 없어요. 상품의 ♡ 를 눌러 모아 보세요.' : '로그인하면 찜한 상품을 모아 볼 수 있어요. 앱과 같은 목록이에요.') : '조건에 맞는 상품이 아직 없어요.')) + '</section>' + MALL_NOTE + '</section>';
+    if(params.get('tab') === 'deal' || params.get('tab') === 'catalog' || wishOnly || pick) $('mall-catalog').scrollIntoView({block:'start'});
   }
 
   // ---------- 브랜드관 관리 (관리자) ----------
@@ -2184,6 +2222,7 @@
     else if(t.id === 'bell-btn'){ openNoti(); }
     else if(t.hasAttribute('data-edit-post')){ openEdit(); }
     else if(t.hasAttribute('data-admin-author')){ editAuthor(); }
+    else if(t.hasAttribute('data-wish')){ e.preventDefault(); toggleWish(t.getAttribute('data-wish')); }
     else if(t.hasAttribute('data-ma-new')){ openMallForm(t.getAttribute('data-ma-new')); }
     else if(t.hasAttribute('data-ma-edit')){ var me = t.getAttribute('data-ma-edit').split(':'); openMallForm(me[0], me[1]); }
     else if(t.hasAttribute('data-ma-del')){ var md = t.getAttribute('data-ma-del').split(':'); deleteMall(md[0], md[1]); }

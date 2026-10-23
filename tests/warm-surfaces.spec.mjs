@@ -57,8 +57,8 @@ async function setup(width,loggedIn=true){
         {id:'mint-product',brand_id:'mint-brand',name:'함께 먹는 아침 그릇',price:12000,visible:true,sort_order:2},
         {id:'play-old',brand_id:'play-brand',name:'지난 특가 장난감',price:18000,is_deal:true,deal_until:'2000-01-01',visible:true,sort_order:3},
         {id:'play-new',brand_id:'play-brand',name:'오늘의 작은 장난감',price:16000,sale_price:14000,is_deal:true,visible:true,sort_order:4}],
-      mall_banners:[{id:'warm-banner',title:'따뜻한 일상을 만나요',subtitle:'가족을 위한 작은 발견',bg:'#FFF3E4',link_url:'#/brand/warm-brand',visible:true},
-        {id:'warm-banner-2',title:'진행 중인 특가를 만나보세요',subtitle:'마감 전 상품 살펴보기',bg:'#EEF4DB',link_url:'#/brand?tab=deal',visible:true}]
+      mall_banners:[{id:'warm-banner',title:'따뜻한 일상을 만나요',subtitle:'가족을 위한 작은 발견',bg:'#FFF3E4',link_url:'#/brand/warm-brand',visible:true,placement:'brand'},
+        {id:'warm-banner-2',title:'진행 중인 특가를 만나보세요',subtitle:'마감 전 상품 살펴보기',bg:'#EEF4DB',link_url:'#/brand?tab=deal',visible:true,placement:'brand'}]
     }
   });
   await ctx.route('**/*',async r=>{
@@ -170,7 +170,7 @@ try{
   }
   await page.route(base+'/nested/missing-page',async r=>r.fulfill({contentType:'text/html; charset=utf-8',body:await fs.readFile(path.join(root,'404.html'),'utf8')}));
   await page.goto(base+'/nested/missing-page');await noOverflow(page,'중첩 경로 404');
-  check('404 스타일시트 루트 경로 복구',await page.locator('#rounded-ui-style').getAttribute('href')==='/rounded-ui.css?v=20261023-8');
+  check('404 스타일시트 루트 경로 복구',await page.locator('#rounded-ui-style').getAttribute('href')==='/rounded-ui.css?v=20261023-9');
   await page.goto(base+'/index.html#onboarding');await page.locator('#auth-email').waitFor();
   await page.evaluate(()=>document.documentElement.dataset.theme='dark');
   check('남은 다크 테마 속성도 밝게 유지',await page.evaluate(()=>getComputedStyle(document.documentElement).colorScheme==='light'));

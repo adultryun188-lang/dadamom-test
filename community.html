@@ -679,7 +679,7 @@
     .my-head > .btn{ width:100%; }
   }
 </style>
-<link rel="stylesheet" href="./rounded-ui.css?v=20261023-8">
+<link rel="stylesheet" href="./rounded-ui.css?v=20261023-9">
 
 <a class="skip-link" href="#main">본문 바로가기</a>
 <header class="top">
@@ -1783,7 +1783,7 @@
     var res = await Promise.all([
       sb.from('mall_brands').select('*').order('sort_order', { ascending:true }).order('created_at', { ascending:true }),
       sb.from('mall_products').select('*').order('sort_order', { ascending:true }).order('created_at', { ascending:true }),
-      brandId ? Promise.resolve({ data:[] }) : sb.from('mall_banners').select('*').order('sort_order', { ascending:true })
+      brandId ? Promise.resolve({ data:[] }) : sb.from('mall_banners').select('*').in('placement', ['brand','both']).order('sort_order', { ascending:true })
     ]);
     if(request !== mallRequest || route().seg[0] !== 'brand') return;
     var brands = res[0].data || [], prods = res[1].data || [], banners = res[2].data || [];
@@ -1855,7 +1855,8 @@
       ['brand_id','브랜드 *','brand'], ['name','상품 이름 *','text',80], ['image_url','상품 사진','image'], ['price','정가 (원)','number'], ['sale_price','할인가 (원, 없으면 비움)','number'],
       ['buy_url','구매 링크 * (https://)','url'], ['is_deal','특가 코너에 표시','check'], ['deal_until','특가 마감일','date'], ['visible','공개','check'], ['sort_order','순서 (작을수록 앞)','number'] ] },
     banner: { table:'mall_banners', title:'배너', fields:[
-      ['title','제목 * (40자)','text',40], ['subtitle','설명 (80자)','text',80], ['image_url','배너 그림 (가로로 긴 그림)','image'], ['link_url','누르면 갈 곳 (https:// 또는 #/brand/...)','text',300],
+      ['placement','보일 곳','select',['brand:브랜드관','home:앱 홈 맨 위','both:둘 다']],
+      ['title','제목 * (40자)','text',40], ['subtitle','설명 (80자)','text',80], ['image_url','배너 그림 (가로로 긴 그림)','image'], ['link_url','누르면 갈 곳 (https:// 또는 #/brand/... · #/challenge · #/magazine)','text',300],
       ['bg','배경색 (예: #FFE3D6, 그림이 없을 때)','text',7], ['starts_on','시작일','date'], ['ends_on','종료일','date'], ['visible','공개','check'], ['sort_order','순서 (작을수록 앞)','number'] ] }
   };
   MALL_FORMS.magazine = { table:'magazine_items', title:'매거진 글', fields:[
@@ -1886,7 +1887,7 @@
     };
     main.innerHTML = '<section class="panel"><div class="panel-h line"><h1 class="display">⚙️ 브랜드관 관리</h1><a class="btn" href="#/brand">브랜드관 보기 ›</a></div>' +
       '<p class="mall-note" style="padding-top:14px;">상품을 올리기 전에 브랜드를 먼저 추가하세요. 숨김으로 저장하면 관리자에게만 보여요. 그림은 JPG·PNG·WEBP 5MB 까지.</p>' +
-      sec('banner', '🖼️', mallCache.banner, function(n){ return esc(n.title) + (n.ends_on ? ' <span class="helper">~' + esc(n.ends_on) + '</span>' : ''); }) +
+      sec('banner', '🖼️', mallCache.banner, function(n){ return '<span class="helper">' + ({ brand:'브랜드관', home:'앱 홈', both:'둘 다' }[n.placement] || '브랜드관') + '</span> ' + esc(n.title) + (n.ends_on ? ' <span class="helper">~' + esc(n.ends_on) + '</span>' : ''); }) +
       sec('brand', '🏷️', mallCache.brand, function(b){ return esc(b.name) + (b.is_new ? ' 🆕' : '') + (b.is_featured ? ' ⭐' : ''); }) +
       sec('product', '🧸', mallCache.product, function(p){ return '<span class="helper">' + esc(bname[p.brand_id] || '?') + '</span> ' + esc(p.name) + ' · ' + won(p.sale_price != null ? p.sale_price : p.price) + (p.is_deal ? ' 🔥' : ''); }) +
       sec('magazine', '📰', mallCache.magazine, function(m){ return '<span class="helper">' + esc((DadamomShared.magKinds[m.kind] || {}).label || '') + ' · ' + esc(m.source_name) + '</span> ' + esc(m.title); }) +

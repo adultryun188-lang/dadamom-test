@@ -361,7 +361,7 @@
     .toast{ bottom:40px; }
   }
 </style>
-<link rel="stylesheet" href="./rounded-ui.css?v=20261023-8">
+<link rel="stylesheet" href="./rounded-ui.css?v=20261023-9">
 
 <div class="app" id="app">
   <div class="test-banner" id="test-banner" role="status" hidden>
@@ -3302,7 +3302,37 @@
     { key:'prep', emoji:'📝', title:'출산 준비물 체크리스트', sub:'꼭 필요한 것만 골라 하나씩 체크해요', href:'#prep', bg:'var(--w-leaf)' },
     { key:'brand', emoji:'🛍️', title:'다다맘 브랜드관', sub:'엄마 아빠가 믿고 고르는 육아 브랜드', href:'#brand', bg:'var(--w-peach)' }
   ];
+  var homeDbBanners = null;   // null: 아직 안 불러옴
+  // 관리 화면의 링크(#/challenge, #/brand/<id> 같은 웹 주소)를 앱 화면 주소로 바꾼다. 모르는 곳이면 https 만 그대로.
+  function appHashFromLink(link){
+    var l = String(link || '');
+    var m = /^#\/brand\/([0-9a-f-]{36})$/i.exec(l);
+    if(m) return { pick: m[1] };
+    if(/^#\/brand\?tab=deal$/.test(l)) return { pick: 'deal' };
+    var r = /^#\/(challenge|brand|magazine|outing|faq|my)\b/.exec(l);
+    if(r) return { href: '#' + r[1] };
+    if(/^#\/(b\/|p\/|$)/.test(l)) return { href: '#community' };
+    if(/^https:\/\//i.test(l)) return { href: l, ext: true };
+    return { href: '#home' };
+  }
+  function loadHomeBanners(){
+    if(homeDbBanners !== null || !sb) return;
+    homeDbBanners = [];
+    sb.from('mall_banners').select('*').in('placement', ['home','both']).eq('visible', true).order('sort_order', { ascending:true })
+      .then(function(r){
+        if(r.error){ console.warn('[home banners]', r.error); return; }
+        homeDbBanners = (r.data || []).map(function(n){
+          var to = appHashFromLink(n.link_url);
+          var img = /^https:\/\//i.test(n.image_url || '') ? n.image_url : '';
+          return { key: 'db-' + n.id, emoji: '', title: n.title, sub: n.subtitle || '', href: to.href || '#brand', pick: to.pick || '', ext: !!to.ext,
+                   bg: img ? 'url(&quot;' + escapeHtml(img) + '&quot;) center/cover' : (/^#[0-9A-Fa-f]{6}$/.test(n.bg || '') ? n.bg : 'var(--w-peach)'), img: !!img };
+        });
+        if(homeDbBanners.length && (location.hash || '#home') === '#home') renderHomeBanners();
+      });
+  }
   function homeBannerList(){
+    loadHomeBanners();
+    if(homeDbBanners && homeDbBanners.length) return homeDbBanners;
     return HOME_BANNERS.filter(function(b){ return b.key !== 'challenge' || daysUntil(CHALLENGE_DEADLINE) >= 0; });
   }
   function renderHomeBanners(){
@@ -3315,9 +3345,10 @@
     if(!list.length){ el.innerHTML = ''; return; }
     el.innerHTML = '<div class="home-banners" role="region" aria-roledescription="배너" aria-label="다다맘 소식">' +
       '<div class="hb-track" id="hb-track">' + list.map(function(b, i){
-        return '<a class="hb-card" href="' + b.href + '" style="background:' + b.bg + ';" aria-label="' + (i + 1) + '/' + list.length + ' ' + escapeHtml(b.title) + '">' +
-          '<span class="col" style="gap:4px; min-width:0; flex:1;"><b>' + escapeHtml(b.title) + '</b><span>' + escapeHtml(b.sub) + '</span></span>' +
-          '<span class="hb-emoji" aria-hidden="true">' + b.emoji + '</span></a>';
+        return '<a class="hb-card' + (b.img ? ' img' : '') + '" href="' + escapeHtml(b.href) + '"' + (b.pick ? ' data-mall-go="' + escapeHtml(b.pick) + '"' : '') + (b.ext ? ' target="_blank" rel="noopener noreferrer"' : '') +
+          ' style="background:' + b.bg + ';" aria-label="' + (i + 1) + '/' + list.length + ' ' + escapeHtml(b.title) + '">' +
+          '<span class="col" style="gap:4px; min-width:0; flex:1;"><b>' + escapeHtml(b.title) + '</b>' + (b.sub ? '<span>' + escapeHtml(b.sub) + '</span>' : '') + '</span>' +
+          (b.emoji ? '<span class="hb-emoji" aria-hidden="true">' + b.emoji + '</span>' : '') + '</a>';
       }).join('') + '</div>' +
       (list.length > 1 ? '<div class="hb-dots" aria-hidden="true">' + list.map(function(b, i){ return '<span' + (i ? '' : ' class="on"') + '></span>'; }).join('') + '</div>' : '') +
       '</div>';
@@ -5145,7 +5176,8 @@
     var pick = byId[mallPick] || null;
     var list = prods.filter(function(p){ return mallPick === 'deal' ? mallDealOn(p) : mallPick === 'wish' ? state.wishProducts.indexOf(p.id) > -1 : (!pick || p.brand_id === pick.id); });
     var chip = function(k, label){ var on = mallPick === k; return '<button type="button" class="chip-f" data-mall-pick="' + escapeHtml(k) + '" aria-pressed="' + on + '">' + escapeHtml(label) + '</button>'; };
-    var banners = mall.banners.length ? '<div class="app-mall-banners">' + mall.banners.map(function(n){
+    var mallBanners = mall.banners.filter(function(n){ return n.placement !== 'home'; });
+    var banners = mallBanners.length ? '<div class="app-mall-banners">' + mallBanners.map(function(n){
         var img = mallUrl(n.image_url), link = mallUrl(n.link_url);
         var bg = img ? 'background-image:url(&quot;' + escapeHtml(img) + '&quot;)' : 'background:' + (/^#[0-9A-Fa-f]{6}$/.test(n.bg || '') ? n.bg : 'var(--w-peach)');
         var inner = '<b>' + escapeHtml(n.title) + '</b>' + (n.subtitle ? '<span>' + escapeHtml(n.subtitle) + '</span>' : '');

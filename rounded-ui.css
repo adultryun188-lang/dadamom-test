@@ -578,6 +578,9 @@ button.app-mall-banner{text-align:left;font-family:var(--font-ui);cursor:pointer
 .mag-hero .hh-art{background:#F3EBDD;}
 .faq-hero .hh-art{background:#E3EFE6;}
 #screen-magazine .mag-grid{grid-template-columns:1fr;}
+.hb-card.img{position:relative;overflow:hidden;}
+.hb-card.img::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(255,251,247,.94),rgba(255,251,247,.55) 70%,rgba(255,251,247,.1));}
+.hb-card.img > *{position:relative;}
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{transition:none !important;animation:none !important;scroll-behavior:auto !important;}
   .btn:active,.btn.primary:active,.btn-primary:active,.btn-ghost:active,.chip:active,.chip-f:active,.cheer:active,.nav-row a:active,.board-tabs a:active,.navbar button:active,.brand-chip:active,.topic-card:active,.pcard:active,.prod:active,.pager a:active{transform:none !important;}

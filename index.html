@@ -29,6 +29,7 @@
 <!-- 환경설정. 저장소에 커밋하지 않고 배포할 때 scripts/build.sh 가 만든다. -->
 <script src="./env.js"></script>
 <script src="./community-flow.js"></script>
+<script src="./shared-content.js"></script>
 <script>
   // PC 로 첫 화면(주소만)을 열면 커뮤니티 사이트로 보낸다. 앱 기능은 #home 처럼 해시를 붙여 들어온다.
   // 로그인 콜백(?code= 등)은 앱이 처리해야 하므로 쿼리가 있으면 보내지 않는다.
@@ -360,7 +361,7 @@
     .toast{ bottom:40px; }
   }
 </style>
-<link rel="stylesheet" href="./rounded-ui.css?v=20261023-7">
+<link rel="stylesheet" href="./rounded-ui.css?v=20261023-8">
 
 <div class="app" id="app">
   <div class="test-banner" id="test-banner" role="status" hidden>
@@ -502,6 +503,14 @@
         <ol class="home-hot" id="home-hot"></ol>
       </div>
 
+      <div class="home-sec" id="home-mag-sec" hidden>
+        <div class="home-sec-head">
+          <h2 class="home-sec-title display">📰 다다맘 매거진</h2>
+          <a href="#magazine" class="link-quiet">더보기</a>
+        </div>
+        <div class="mag-row" id="home-mag"></div>
+      </div>
+
       <div class="home-sec-head" style="margin-top:4px;">
         <h2 class="home-sec-title display">또래 이야기</h2>
         <a href="#community" class="link-quiet">커뮤니티 가기</a>
@@ -622,6 +631,7 @@
         <button data-community-tab="notice" role="tab">공지</button>
         <button data-community-tab="brag" role="tab">이야기</button>
         <button data-community-tab="qna" role="tab">Q&amp;A</button>
+        <button data-community-tab="photo" role="tab">사진</button>
       </div>
     </div>
       <div class="col" id="community-body" style="gap:20px;"></div>
@@ -677,6 +687,8 @@
       <div class="my-menu">
         <a href="#growth" class="my-row"><span class="my-ico" style="background:var(--w-leaf);" aria-hidden="true">🍼</span><span class="my-row-label">육아기록 · 성장</span><svg class="my-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></a>
         <a href="#prep" class="my-row"><span class="my-ico" style="background:var(--w-sun);" aria-hidden="true">📝</span><span class="my-row-label">출산 준비물 · 선물 장부</span><svg class="my-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></a>
+        <a href="#brand" data-mall-go="wish" class="my-row"><span class="my-ico" style="background:var(--w-peach);" aria-hidden="true">💗</span><span class="my-row-label">찜한 상품</span><svg class="my-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></a>
+        <a href="#faq" class="my-row"><span class="my-ico" style="background:var(--w-leaf);" aria-hidden="true">💬</span><span class="my-row-label">자주 묻는 질문</span><svg class="my-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></a>
         <a href="#community" data-my-link="posts" class="my-row"><span class="my-ico" style="background:var(--w-sun);" aria-hidden="true">📝</span><span class="my-row-label">내 게시물</span><svg class="my-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></a>
         <a href="#challenge" data-my-link="challenge" class="my-row"><span class="my-ico" style="background:var(--w-peach);" aria-hidden="true">👣</span><span class="my-row-label">참여이력</span><svg class="my-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></a>
         <a href="#benefit" data-my-link="benefit" class="my-row"><span class="my-ico" style="background:var(--w-sun);" aria-hidden="true">🎁</span><span class="my-row-label">혜택함</span><span id="my-benefit-badge" class="my-count">0</span></a>
@@ -791,6 +803,47 @@
         <div class="col" id="album-body" style="gap:14px;"></div>
         <div id="monthly-album-grid" hidden></div>
       </div>
+    </div>
+    <nav class="navbar" data-nav aria-label="주요 메뉴"></nav>
+  </section>
+
+  <!-- MAGAZINE: 다다맘이 고른 육아 소식 (제목·소개·출처·원문 링크만) -->
+  <section class="screen" id="screen-magazine">
+    <div class="scroll pad">
+      <div class="warm-page">
+        <header class="page-hero app-sub-hero mag-hero">
+          <div class="page-hero-copy">
+            <span class="mall-eyebrow">다다맘 매거진</span>
+            <div class="hh-top">
+              <h1 class="display">요즘 육아, <em>한눈에.</em></h1>
+              <div class="hh-art" aria-hidden="true"><span>📰</span></div>
+            </div>
+            <p class="page-hero-desc">다다맘이 고른 육아 뉴스·기사·영상을 출처와 함께 모았어요.</p>
+          </div>
+        </header>
+      </div>
+      <div class="home-feedbar" role="group" aria-label="매거진 종류" id="mag-chips" style="position:static; box-shadow:none; margin-top:0;"></div>
+      <div class="col" id="mag-body" style="gap:12px;"></div>
+    </div>
+    <nav class="navbar" data-nav aria-label="주요 메뉴"></nav>
+  </section>
+
+  <!-- FAQ: 자주 묻는 질문 (내용은 shared-content.js — 웹과 같다) -->
+  <section class="screen" id="screen-faq">
+    <div class="scroll pad">
+      <div class="warm-page">
+        <header class="page-hero app-sub-hero faq-hero">
+          <div class="page-hero-copy">
+            <span class="mall-eyebrow">고객센터</span>
+            <div class="hh-top">
+              <h1 class="display">자주 묻는 <em>질문</em></h1>
+              <div class="hh-art" aria-hidden="true"><span>💬</span></div>
+            </div>
+            <p class="page-hero-desc">궁금한 점이 더 있으면 ryundaen@gmail.com 으로 메일 주세요.</p>
+          </div>
+        </header>
+      </div>
+      <div id="faq-body"></div>
     </div>
     <nav class="navbar" data-nav aria-label="주요 메뉴"></nav>
   </section>
@@ -2227,6 +2280,7 @@
       growthRecords:[],
       // 출산 준비물 체크·선물 장부 — 이 기기에만 저장 (서버 프로필로 보내지 않는다)
       prepChecked:{},
+      wishProducts:[],
       prepCustom:[],
       gifts:[],
       growthMetric:'weight',
@@ -2269,7 +2323,8 @@
         growthRecords: Array.isArray(saved.growthRecords) ? saved.growthRecords : d.growthRecords,
         prepChecked: (saved.prepChecked && typeof saved.prepChecked === 'object' && !Array.isArray(saved.prepChecked)) ? saved.prepChecked : d.prepChecked,
         prepCustom: Array.isArray(saved.prepCustom) ? saved.prepCustom : d.prepCustom,
-        gifts: Array.isArray(saved.gifts) ? saved.gifts : d.gifts
+        gifts: Array.isArray(saved.gifts) ? saved.gifts : d.gifts,
+        wishProducts: Array.isArray(saved.wishProducts) ? saved.wishProducts : d.wishProducts
       });
     }catch(e){ return d; }
   }
@@ -2715,7 +2770,7 @@
     checkNoti();
   }
 
-  var NAV_PARENT = { growth:'home', outing:'home', benefit:'home', prep:'home' };   // 탭에서 빠진 화면은 홈 탭을 켠다
+  var NAV_PARENT = { growth:'home', outing:'home', benefit:'home', prep:'home', magazine:'home', faq:'my' };   // 탭에서 빠진 화면은 홈 탭을 켠다
   function buildNav(active){
     active = NAV_PARENT[active] || active;
     return NAV.map(function(n){
@@ -3236,6 +3291,7 @@
     document.getElementById('home-feed').innerHTML = homeFeedHtml();
     renderHomeBanners();
     renderHomeHot();
+    renderHomeMag();
   }
 
   // ---------- 홈 배너 넘기기 ----------
@@ -3716,6 +3772,18 @@
         '</div>'
       : '';
 
+    if(state.communityTab === 'photo'){
+      // 사진 있는 글만 모아 크게 보는 칸 (육아템·아이 자랑). 누르면 글과 댓글.
+      var pics = state.posts.filter(function(p){ return !!p.media_url; }).sort(function(a,b){ return b.createdAt - a.createdAt; });
+      body.innerHTML = guestBanner + (pics.length
+        ? '<div class="photo-grid">' + pics.map(function(p){
+            return '<button type="button" class="photo-tile" data-open-comments="' + escapeHtml(String(p.id)) + '" aria-label="' + escapeHtml(p.author) + '의 사진 글 보기, 좋아요 ' + (p.likes || 0) + '개">' +
+              mediaTag(p.media_url, 'width:100%; height:100%; object-fit:cover;') + '<span class="photo-meta">♡ ' + (p.likes || 0) + '</span></button>';
+          }).join('') + '</div>'
+        : '<div class="card col" style="padding:22px; align-items:center; gap:7px;"><span style="font-size:13.5px; font-weight:700;">아직 사진 글이 없어요</span><span class="helper">육아템이나 아이 사진을 자랑해 보세요</span>' +
+          '<button type="button" data-open-compose class="pill" style="margin-top:6px; padding:9px 16px; background:var(--accent-soft); color:var(--accent2); border:none; font-size:12.5px; font-weight:700;">사진 올리기</button></div>');
+      return;
+    }
     if(state.communityTab === 'notice'){
       body.innerHTML = guestBanner + '<div class="col" style="gap:12px;">' + noticeListHtml() + '</div>';
       if(!noticesLoaded){ fetchNotices().then(function(){ if(state.communityTab === 'notice') renderCommunity(); }); }
@@ -4929,9 +4997,9 @@
 
   function route(){
     var id = (location.hash || '').replace('#', '');
-    var valid = ['onboarding','home','challenge','benefit','community','outing','growth','prep','brand','my','admin','policy','terms'];
+    var valid = ['onboarding','home','challenge','benefit','community','outing','growth','prep','magazine','faq','brand','my','admin','policy','terms'];
     // 로그인 없이 볼 수 있는 화면: 커뮤니티 글, 챌린지·혜택(광고가 데려오는 곳, 참가·신청은 로그인 필요), 브랜드관, 약관
-    var guestPages = ['onboarding','community','challenge','benefit','brand','policy','terms'];
+    var guestPages = ['onboarding','community','challenge','benefit','brand','magazine','faq','policy','terms'];
     if(valid.indexOf(id) === -1){
       location.hash = '#' + (state.onboarded ? 'home' : 'onboarding');
       return;
@@ -4964,8 +5032,58 @@
     if(id === 'admin'){ renderAdmin(); }
     if(id === 'brand'){ renderBrand(); }
     if(id === 'prep'){ renderPrep(); }
+    if(id === 'magazine'){ renderMagazine(); }
+    if(id === 'faq'){ var fb = document.getElementById('faq-body'); if(fb && !fb.innerHTML && window.DadamomShared) fb.innerHTML = DadamomShared.faqHtml(); }
     if(id === 'policy' || id === 'terms'){ renderLegal(id); }
   }
+
+  // ---------- 매거진 (홈 칸 + #magazine) ----------
+  // 표 magazine_items(0022). 카드 모양은 shared-content.js — 웹과 같다.
+  var magItems = null, magKind = '';
+  function fetchMagazine(){
+    if(magItems || !sb) return Promise.resolve(magItems || []);
+    return sb.from('magazine_items').select('*').eq('visible', true).order('sort_order', { ascending:true })
+      .order('published_on', { ascending:false, nullsFirst:false }).order('created_at', { ascending:false }).limit(60)
+      .then(function(r){ if(r.error){ console.warn('[magazine]', r.error); return []; } magItems = r.data || []; return magItems; });
+  }
+  function renderHomeMag(){
+    var sec = document.getElementById('home-mag-sec'), row = document.getElementById('home-mag');
+    if(!sec || !row || !window.DadamomShared) return;
+    if(!magItems){ fetchMagazine().then(function(list){ if(list.length) renderHomeMag(); }); return; }
+    sec.hidden = !magItems.length;
+    row.innerHTML = magItems.slice(0, 6).map(DadamomShared.magCardHtml).join('');
+  }
+  function renderMagazine(){
+    var body = document.getElementById('mag-body'), chips = document.getElementById('mag-chips');
+    if(!body || !window.DadamomShared) return;
+    var K = DadamomShared.magKinds;
+    chips.innerHTML = [['', '전체']].concat(Object.keys(K).map(function(k){ return [k, K[k].label]; })).map(function(c){
+      return '<button type="button" class="chip-f" data-mag-kind="' + c[0] + '" aria-pressed="' + (magKind === c[0]) + '">' + escapeHtml(c[1]) + '</button>';
+    }).join('');
+    if(!magItems){
+      body.innerHTML = '<div class="card col" style="padding:18px; align-items:center;"><span class="helper">매거진을 불러오는 중...</span></div>';
+      fetchMagazine().then(function(){ if((location.hash || '') === '#magazine') renderMagazine(); });
+      return;
+    }
+    var list = magItems.filter(function(m){ return !magKind || m.kind === magKind; });
+    body.innerHTML = (list.length ? '<div class="mag-grid">' + list.map(DadamomShared.magCardHtml).join('') + '</div>'
+        : '<div class="card col" style="padding:22px; align-items:center; gap:6px;"><span style="font-size:30px;" aria-hidden="true">📰</span><span class="helper" style="text-align:center;">곧 엄마 아빠에게 도움이 될 소식을 모아 올게요!</span></div>') +
+      '<p class="mag-note">' + escapeHtml(DadamomShared.MAG_NOTE) + '</p>';
+  }
+  document.addEventListener('click', function(e){
+    if(!e.target.closest) return;
+    var mk = e.target.closest('[data-mag-kind]');
+    if(mk){ magKind = mk.getAttribute('data-mag-kind'); renderMagazine(); return; }
+    var w = e.target.closest('[data-wish]');
+    if(w){
+      var id = w.getAttribute('data-wish'), i = state.wishProducts.indexOf(id);
+      if(i > -1) state.wishProducts.splice(i, 1); else state.wishProducts.push(id);
+      save(); renderBrand(); showToast(i > -1 ? '찜을 풀었어요' : '찜했어요');
+      return;
+    }
+    var go = e.target.closest('[data-mall-go]');
+    if(go){ mallPick = go.getAttribute('data-mall-go'); }   // MY '찜한 상품' → 브랜드관을 찜 칸으로 연다 (이동은 href 가 한다)
+  }, true);
 
   // ---------- 브랜드관 (앱 전용 화면) ----------
   // 웹 브랜드관(community.html #/brand)과 같은 mall_* 표를 읽는다. 결제는 하지 않고 '구매하러 가기'는 브랜드 스토어로.
@@ -4989,9 +5107,12 @@
       '<span class="pr">' + (sale ? '<span class="was">' + mallWon(p.price) + '</span><span class="now"><span class="pct">' + pct + '%</span>' + mallWon(p.sale_price) + '</span>'
         : (p.price != null ? '<span class="now">' + mallWon(p.price) + '</span>' : '')) + '</span>' +
       (buy ? '<span class="buy">구매하러 가기 ↗</span>' : '');
-    return buy
+    var wished = state.wishProducts.indexOf(p.id) > -1;
+    // 찜 버튼은 링크(a) 밖 형제로 둔다 — 링크 안에 버튼을 넣으면 누를 때 스토어가 같이 열린다
+    return '<div class="app-prod-wrap">' + (buy
       ? '<a class="app-prod" href="' + escapeHtml(buy) + '" target="_blank" rel="noopener noreferrer sponsored">' + inner + '</a>'
-      : '<div class="app-prod">' + inner + '</div>';
+      : '<div class="app-prod">' + inner + '</div>') +
+      '<button type="button" class="wish-btn" data-wish="' + escapeHtml(p.id) + '" aria-pressed="' + wished + '" aria-label="' + escapeHtml(p.name) + (wished ? ' 찜 해제' : ' 찜하기') + '">' + (wished ? '♥' : '♡') + '</button></div>';
   }
   function renderBrand(){
     var body = document.getElementById('brand-body');
@@ -5022,12 +5143,14 @@
       return;
     }
     var pick = byId[mallPick] || null;
-    var list = prods.filter(function(p){ return mallPick === 'deal' ? mallDealOn(p) : (!pick || p.brand_id === pick.id); });
+    var list = prods.filter(function(p){ return mallPick === 'deal' ? mallDealOn(p) : mallPick === 'wish' ? state.wishProducts.indexOf(p.id) > -1 : (!pick || p.brand_id === pick.id); });
     var chip = function(k, label){ var on = mallPick === k; return '<button type="button" class="chip-f" data-mall-pick="' + escapeHtml(k) + '" aria-pressed="' + on + '">' + escapeHtml(label) + '</button>'; };
     var banners = mall.banners.length ? '<div class="app-mall-banners">' + mall.banners.map(function(n){
         var img = mallUrl(n.image_url), link = mallUrl(n.link_url);
         var bg = img ? 'background-image:url(&quot;' + escapeHtml(img) + '&quot;)' : 'background:' + (/^#[0-9A-Fa-f]{6}$/.test(n.bg || '') ? n.bg : 'var(--w-peach)');
         var inner = '<b>' + escapeHtml(n.title) + '</b>' + (n.subtitle ? '<span>' + escapeHtml(n.subtitle) + '</span>' : '');
+        var inApp = /^#\/brand\/([0-9a-f-]{36})$/i.exec(n.link_url || '') ? RegExp.$1 : (/^#\/brand\?tab=deal$/.test(n.link_url || '') ? 'deal' : '');
+        if(inApp) return '<button type="button" class="app-mall-banner' + (img ? ' img' : '') + '" style="' + bg + '" data-mall-pick="' + escapeHtml(inApp) + '">' + inner + '</button>';
         return link ? '<a class="app-mall-banner' + (img ? ' img' : '') + '" style="' + bg + '" href="' + escapeHtml(link) + '" target="_blank" rel="noopener noreferrer">' + inner + '</a>'
                     : '<div class="app-mall-banner' + (img ? ' img' : '') + '" style="' + bg + '">' + inner + '</div>';
       }).join('') + '</div>' : '';
@@ -5035,7 +5158,7 @@
     var brandInfo = pick ? '<div class="app-brand-info">' + mallLogo(pick) + '<div class="col" style="gap:4px; min-width:0; flex:1;"><b>' + escapeHtml(pick.name) + '</b>' +
         (pick.intro ? '<span class="helper">' + escapeHtml(pick.intro) + '</span>' : '') + '</div>' +
         (store ? '<a class="btn-ghost" href="' + escapeHtml(store) + '" target="_blank" rel="noopener noreferrer sponsored" style="height:40px; padding:0 14px; flex:0 0 auto;">스토어 ↗</a>' : '') + '</div>' : '';
-    body.innerHTML = banners +
+    body.innerHTML = (banners ? '<div class="home-sec"><div class="home-sec-head"><h2 class="home-sec-title display">진행 중인 기획전</h2></div>' + banners + '</div>' : '') +
       '<div class="home-sec"><div class="home-sec-head"><h2 class="home-sec-title display">함께하는 브랜드</h2><span class="helper">' + mall.brands.length + '개</span></div>' +
       '<div class="app-brand-list">' + mall.brands.map(function(b){
         return '<button type="button" class="app-brand-card' + (pick && pick.id === b.id ? ' on' : '') + '" data-mall-pick="' + escapeHtml(b.id) + '" aria-pressed="' + (pick && pick.id === b.id) + '">' + mallLogo(b) +
@@ -5043,7 +5166,7 @@
           '<span class="helper app-brand-intro">' + escapeHtml(b.intro || '브랜드 상품 만나보기') + '</span></span></button>';
       }).join('') + '</div></div>' +
       '<div class="home-sec" id="mall-catalog"><div class="home-sec-head"><h2 class="home-sec-title display">우리 가족을 위한 발견</h2><span class="helper">상품 ' + list.length + '개</span></div>' +
-      '<div class="home-feedbar" role="group" aria-label="상품 필터" style="position:static;">' + chip('', '전체') + mall.brands.map(function(b){ return chip(b.id, b.name); }).join('') + chip('deal', '특가') + '</div>' +
+      '<div class="home-feedbar" role="group" aria-label="상품 필터" style="position:static;">' + chip('', '전체') + chip('wish', '찜 ' + state.wishProducts.filter(function(id){ return prods.some(function(p){ return p.id === id; }); }).length) + mall.brands.map(function(b){ return chip(b.id, b.name); }).join('') + chip('deal', '특가') + '</div>' +
       brandInfo +
       (list.length ? '<div class="app-prod-grid">' + list.map(function(p){ return mallProdHtml(p, byId[p.brand_id]); }).join('') + '</div>'
                    : '<div class="card col" style="padding:18px; align-items:center;"><span class="helper">조건에 맞는 상품이 아직 없어요</span></div>') +

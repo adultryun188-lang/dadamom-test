@@ -24,6 +24,7 @@
 <!-- 앱(index.html)과 같은 환경설정·같은 DB·같은 로그인 세션을 쓴다. -->
 <script src="./env.js"></script>
 <script src="./community-flow.js"></script>
+<script src="./shared-content.js"></script>
 <style>
   :root{
     --bg:#FFF8F1; --surface:#FFFFFF; --border:#F3E3D3; --line:#F8EEE4;
@@ -678,7 +679,7 @@
     .my-head > .btn{ width:100%; }
   }
 </style>
-<link rel="stylesheet" href="./rounded-ui.css?v=20261023-7">
+<link rel="stylesheet" href="./rounded-ui.css?v=20261023-8">
 
 <a class="skip-link" href="#main">본문 바로가기</a>
 <header class="top">
@@ -719,7 +720,7 @@
 
 <footer class="footer"><div class="wrap">
   <span class="logo-text display">다다맘</span>
-  <a href="./index.html#policy"><b>개인정보처리방침</b></a><a href="./index.html#terms">이용약관</a>
+  <a href="./index.html#policy"><b>개인정보처리방침</b></a><a href="./index.html#terms">이용약관</a><a href="#/faq">자주 묻는 질문</a>
   <!-- 사업자 정보: 앱 index.html 의 BIZ 와 같은 값. 바꿀 때 둘 다 바꾼다. -->
   <span class="biz">다다란 · 대표 윤대인 · 사업자등록번호 435-05-02816 · 통신판매업신고 제2024-인천남동구-0274호<br>
     인천광역시 남동구 구월동 1306-15 3F · ryundaen@gmail.com · 010-4888-9498</span>
@@ -759,6 +760,7 @@
     { id:'challenge', name:'챌린지',     href:'#/challenge' },
     { id:'community', name:'커뮤니티',   href:'#/b/all' },
     { id:'brand',     name:'브랜드관',   href:'#/brand' },
+    { id:'magazine',  name:'매거진',     href:'#/magazine' },
     { id:'outing',    name:'나들이',     href:'#/outing' },
     { id:'my',        name:'마이페이지', href:'#/my' }
   ];
@@ -920,6 +922,8 @@
     if(s0 === 'outing') return renderOuting(main, r.params);
     if(s0 === 'brand') return renderBrandMall(main, r.seg[1], r.params);
     if(s0 === 'mall-admin') return renderMallAdmin(main);
+    if(s0 === 'magazine') return renderMagazine(main, r.params);
+    if(s0 === 'faq') return renderFaq(main);
     if(s0 === 'my') return renderMy(main);
     if(s0 === 'mine') return renderBoard(main, 'mine', r.params);
     var board = s0 === 'b' && r.seg[1] ? r.seg[1] : 'all';
@@ -973,6 +977,7 @@
         '<div class="stats"><div class="stat"><b id="st-today">–</b><span>오늘 새 글</span></div><div class="stat"><b id="st-week">–</b><span>이번 주 댓글</span></div><div class="stat"><b id="st-all">–</b><span>전체 이야기</span></div></div>' +
         '<a class="btn primary" href="#/write">글쓰기</a></section>' +
       '<section class="panel"><div class="panel-h"><h2 class="display">지금 뜨는 이야기</h2><a class="more" href="#/b/best">인기글 더보기 ›</a></div><div class="post-cards" id="home-hot"><div class="helper">불러오는 중…</div></div></section>' +
+      '<section class="panel" id="home-mag" hidden><div class="panel-h"><h2 class="display">다다맘 매거진</h2><a class="more" href="#/magazine">매거진 더보기 ›</a></div><div class="mag-grid" id="home-mag-list" style="padding:0 20px 20px;"></div></section>' +
       '<div class="topic-grid">' + BOARDS.filter(function(b){ return b.topic; }).map(function(b){
         return '<a class="topic-card ' + b.cls + '" href="#/b/' + b.id + '"><span class="em" aria-hidden="true">' + b.em + '</span><b>' + b.name + '</b><span>' + esc(b.desc) + '</span></a>';
       }).join('') + '</div>' +
@@ -1006,6 +1011,9 @@
     if($('home-hot')) $('home-hot').innerHTML = (hot.data || []).length ? hot.data.map(postCardHtml).join('') : emptyHtml('🌱', '아직 글이 없어요. 첫 이야기를 들려주세요!');
     var rows = await sb.from('community_posts').select(COLS).eq('status','approved').order('created_at', { ascending:false }).limit(8);
     if($('home-new')) $('home-new').innerHTML = (rows.data || []).length ? listTableHtml(rows.data, 'all', 0, rows.data.length, true) : emptyHtml('📝', '아직 글이 없어요.');
+
+    var mg = await sb.from('magazine_items').select('*').eq('visible', true).order('sort_order', { ascending:true }).order('published_on', { ascending:false, nullsFirst:false }).order('created_at', { ascending:false }).limit(4);
+    if((mg.data || []).length && $('home-mag')){ $('home-mag-list').innerHTML = mg.data.map(DadamomShared.magCardHtml).join(''); $('home-mag').hidden = false; }
 
     // 브랜드관 추천 상품 4개 (등록된 게 있을 때만 보인다)
     var mp = await sb.from('mall_products').select('*').eq('visible', true).order('sort_order', { ascending:true }).limit(8);
@@ -1706,6 +1714,41 @@
     }).join('') : emptyHtml('🧺', '지금 소개할 나들이 정보가 없어요. 곧 새 장소를 모아 올게요!');
   }
 
+  // ---------- 매거진 ----------
+  // 다다맘이 고른 육아 뉴스·기사·영상. 제목·소개·출처·원문 링크만 (shared-content.js 의 카드). 등록은 관리 화면에서.
+  var magRequest = 0;
+  async function renderMagazine(main, params){
+    var request = ++magRequest;
+    var kind = params.get('k') || '';
+    var K = DadamomShared.magKinds;
+    if(!K[kind]) kind = '';
+    var chip = function(k, label){ return '<a class="chip' + (k === kind ? ' on' : '') + '" href="#/magazine' + (k ? '?k=' + k : '') + '"' + (k === kind ? ' aria-current="true"' : '') + '>' + esc(label) + '</a>'; };
+    main.innerHTML = '<section class="warm-page">' +
+      '<header class="page-hero"><div class="page-hero-copy"><span class="mall-eyebrow">다다맘 매거진</span><h1 class="display">요즘 육아, <em>한눈에.</em></h1>' +
+        '<p class="page-hero-desc">다다맘이 고른 육아 뉴스·기사·영상을 출처와 함께 모았어요.</p>' + (isAdmin ? '<a class="btn" href="#/mall-admin">매거진 등록하기</a>' : '') + '</div>' +
+        '<div class="page-hero-art" aria-hidden="true"><span style="font-size:72px;">📰</span></div></header>' +
+      '<nav class="mall-filter" aria-label="매거진 종류">' + chip('', '전체') + Object.keys(K).map(function(k){ return chip(k, K[k].label); }).join('') + '</nav>' +
+      '<div id="mag-list"><div class="helper">불러오는 중…</div></div>' +
+      '<p class="mag-note">' + esc(DadamomShared.MAG_NOTE) + '</p></section>';
+    var q = sb.from('magazine_items').select('*').order('sort_order', { ascending:true }).order('published_on', { ascending:false, nullsFirst:false }).order('created_at', { ascending:false }).limit(60);
+    if(kind) q = q.eq('kind', kind);
+    var res = await q;
+    if(request !== magRequest || route().seg[0] !== 'magazine' || !$('mag-list')) return;
+    var rows = res.data || [];
+    $('mag-list').innerHTML = res.error ? emptyHtml('⚠️', '매거진을 불러오지 못했어요. 잠시 뒤 다시 열어 주세요.')
+      : rows.length ? '<div class="mag-grid">' + rows.map(DadamomShared.magCardHtml).join('') + '</div>'
+      : emptyHtml('📰', '곧 엄마 아빠에게 도움이 될 소식을 모아 올게요!');
+  }
+
+  // ---------- 자주 묻는 질문 ----------
+  function renderFaq(main){
+    main.innerHTML = '<section class="warm-page">' +
+      '<header class="page-hero"><div class="page-hero-copy"><span class="mall-eyebrow">고객센터</span><h1 class="display">자주 묻는 <em>질문</em></h1>' +
+        '<p class="page-hero-desc">궁금한 점이 더 있으면 ryundaen@gmail.com 으로 메일 주세요.</p></div>' +
+        '<div class="page-hero-art" aria-hidden="true"><span style="font-size:72px;">💬</span></div></header>' +
+      DadamomShared.faqHtml() + '</section>';
+  }
+
   // ---------- 브랜드관 ----------
   // 1단계: 다다맘에서 결제하지 않는다. 상품을 보여주고 "구매하러 가기"는 브랜드 스토어로 보낸다.
   // 브랜드·상품·배너는 관리자가 DB(mall_*)에 등록한다. 숨김 항목은 관리자에게만 보인다(RLS).
@@ -1815,7 +1858,12 @@
       ['title','제목 * (40자)','text',40], ['subtitle','설명 (80자)','text',80], ['image_url','배너 그림 (가로로 긴 그림)','image'], ['link_url','누르면 갈 곳 (https:// 또는 #/brand/...)','text',300],
       ['bg','배경색 (예: #FFE3D6, 그림이 없을 때)','text',7], ['starts_on','시작일','date'], ['ends_on','종료일','date'], ['visible','공개','check'], ['sort_order','순서 (작을수록 앞)','number'] ] }
   };
-  var mallCache = { brand:[], product:[], banner:[] };
+  MALL_FORMS.magazine = { table:'magazine_items', title:'매거진 글', fields:[
+    ['kind','종류','select',['news:뉴스','article:읽을거리','youtube:영상 (유튜브·쇼츠)','instagram:인스타']],
+    ['title','제목 * (80자, 원문 제목 그대로 또는 우리 말로)','text',80], ['summary','한 줄 소개 (200자, 원문을 베끼지 말고 우리 말로)','textarea',200],
+    ['source_name','출처 이름 * (예: 연합뉴스, 유튜브 채널명)','text',40], ['url','원문 주소 * (https://)','url'],
+    ['thumb_url','썸네일 (우리 그림만. 유튜브는 비워 두면 자동)','image'], ['published_on','원문 날짜','date'], ['visible','공개','check'], ['sort_order','순서 (작을수록 앞)','number'] ] };
+  var mallCache = { brand:[], product:[], banner:[], magazine:[] };
 
   async function renderMallAdmin(main){
     if(!isAdmin){ main.innerHTML = panelMsg('브랜드관 관리', '🔐', '관리자만 볼 수 있어요.'); return; }
@@ -1823,9 +1871,10 @@
     var res = await Promise.all([
       sb.from('mall_brands').select('*').order('sort_order', { ascending:true }),
       sb.from('mall_products').select('*').order('sort_order', { ascending:true }),
-      sb.from('mall_banners').select('*').order('sort_order', { ascending:true })
+      sb.from('mall_banners').select('*').order('sort_order', { ascending:true }),
+      sb.from('magazine_items').select('*').order('sort_order', { ascending:true }).order('created_at', { ascending:false })
     ]);
-    mallCache = { brand: res[0].data || [], product: res[1].data || [], banner: res[2].data || [] };
+    mallCache = { brand: res[0].data || [], product: res[1].data || [], banner: res[2].data || [], magazine: res[3].data || [] };
     var bname = {}; mallCache.brand.forEach(function(b){ bname[b.id] = b.name; });
     var row = function(kind, x, label){
       return '<li><span class="t">' + label + (x.visible === false ? '<span class="hidden-tag">숨김</span>' : '') + '</span>' +
@@ -1840,6 +1889,8 @@
       sec('banner', '🖼️', mallCache.banner, function(n){ return esc(n.title) + (n.ends_on ? ' <span class="helper">~' + esc(n.ends_on) + '</span>' : ''); }) +
       sec('brand', '🏷️', mallCache.brand, function(b){ return esc(b.name) + (b.is_new ? ' 🆕' : '') + (b.is_featured ? ' ⭐' : ''); }) +
       sec('product', '🧸', mallCache.product, function(p){ return '<span class="helper">' + esc(bname[p.brand_id] || '?') + '</span> ' + esc(p.name) + ' · ' + won(p.sale_price != null ? p.sale_price : p.price) + (p.is_deal ? ' 🔥' : ''); }) +
+      sec('magazine', '📰', mallCache.magazine, function(m){ return '<span class="helper">' + esc((DadamomShared.magKinds[m.kind] || {}).label || '') + ' · ' + esc(m.source_name) + '</span> ' + esc(m.title); }) +
+      '<p class="mall-note">매거진은 원문을 복사하지 말고 제목·짧은 소개·출처·원문 주소만 올려 주세요. 사진은 우리가 가진 그림만 쓰고, 유튜브는 썸네일이 자동으로 붙어요.</p>' +
       '</section>';
   }
 
@@ -1852,6 +1903,7 @@
       var k = fd[0], label = fd[1], type = fd[2], max = fd[3];
       if(type === 'check') return '<label class="ck"><input type="checkbox" name="' + k + '"' + (x[k] ? ' checked' : '') + '> ' + esc(label) + '</label>';
       if(type === 'textarea') return '<label>' + esc(label) + '<textarea name="' + k + '" maxlength="' + max + '" rows="3">' + esc(v(k)) + '</textarea></label>';
+      if(type === 'select') return '<label>' + esc(label) + '<select name="' + k + '">' + max.map(function(o){ var p = o.split(':'); return '<option value="' + p[0] + '"' + (p[0] === v(k) ? ' selected' : '') + '>' + esc(p[1]) + '</option>'; }).join('') + '</select></label>';
       if(type === 'brand') return '<label>' + esc(label) + '<select name="' + k + '">' + mallCache.brand.map(function(b){ return '<option value="' + b.id + '"' + (b.id === x[k] ? ' selected' : '') + '>' + esc(b.name) + '</option>'; }).join('') + '</select></label>';
       if(type === 'image') return '<label>' + esc(label) + '<input type="hidden" name="' + k + '" value="' + esc(v(k)) + '">' +
         '<span class="ma-img" style="display:flex; gap:8px; align-items:center;">' + (v(k) ? '<img src="' + esc(v(k)) + '" alt="" style="width:56px; height:56px; object-fit:cover; border-radius:10px;">' : '') +
@@ -1889,7 +1941,7 @@
     });
     var bad = spec.fields.filter(function(fd){ return /\*/.test(fd[1]) && !row[fd[0]]; })[0];
     if(bad){ $('ma-hint').textContent = fd2label(bad) + ' 을(를) 입력해주세요'; return; }
-    var urlBad = ['store_url','buy_url'].filter(function(k){ return row[k] && !/^https:\/\//.test(row[k]); })[0] || (row.link_url && !/^(https:\/\/|#\/)/.test(row.link_url) ? 'link_url' : '') || (row.bg && !/^#[0-9A-Fa-f]{6}$/.test(row.bg) ? 'bg' : '');
+    var urlBad = ['store_url','buy_url','url','thumb_url'].filter(function(k){ return row[k] && !/^https:\/\//.test(row[k]); })[0] || (row.link_url && !/^(https:\/\/|#\/)/.test(row.link_url) ? 'link_url' : '') || (row.bg && !/^#[0-9A-Fa-f]{6}$/.test(row.bg) ? 'bg' : '');
     if(urlBad){ $('ma-hint').textContent = urlBad === 'bg' ? '배경색은 #FFE3D6 처럼 적어주세요' : '주소는 https:// 로 시작해야 해요'; return; }
     $('ma-save').disabled = true;
     var q = id ? sb.from(spec.table).update(row).eq('id', id) : sb.from(spec.table).insert(row);

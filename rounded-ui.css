@@ -415,7 +415,7 @@ button,input,select,textarea{font-weight:700;}
 .app-prod-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;}
 .app-prod{display:flex;flex-direction:column;gap:5px;min-width:0;padding:10px;border:1px solid var(--w-line);border-radius:20px;background:#FFFDF8;color:var(--text);text-decoration:none;}
 .app-prod .ph{aspect-ratio:1;border-radius:14px;background:var(--w-sun);display:flex;align-items:center;justify-content:center;font-size:34px;overflow:hidden;}
-.app-prod:nth-child(2n) .ph{background:var(--w-leaf);}
+
 .app-prod .ph img{width:100%;height:100%;object-fit:cover;}
 .app-prod .deal{align-self:flex-start;font-size:11px;font-weight:800;color:#773B26;background:#FFE0CF;border-radius:999px;padding:2px 8px;}
 .app-prod .bn{font-size:11.5px;color:var(--text2);}
@@ -538,6 +538,46 @@ button,input,select,textarea{font-weight:700;}
 .gift-thank{flex:0 0 auto;min-height:36px;padding:0 12px;border-radius:999px;border:1px solid #E9D6C3;background:#fff;color:var(--text2);font-size:12.5px;font-weight:800;font-family:var(--font-ui);cursor:pointer;}
 .gift-thank[aria-pressed="true"]{background:var(--w-leaf);border-color:#CFDDBE;color:#3F6B49;}
 .gift-row.thanked b{color:var(--text2);}
+/* ── 매거진 카드 (웹·앱 공용, shared-content.js 의 magCardHtml) ── */
+.mag-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,240px),1fr));gap:14px;}
+.mag-row{display:grid;grid-auto-flow:column;grid-auto-columns:76%;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;}
+.mag-row::-webkit-scrollbar{display:none;}
+.mag-row > .mag-card{scroll-snap-align:start;}
+.mag-card{display:flex;flex-direction:column;min-width:0;border:1px solid var(--w-line,#EBDDCB);border-radius:22px;background:var(--w-cream,#FFFDF6);color:var(--text);text-decoration:none;overflow:hidden;}
+.mag-thumb{position:relative;display:flex;align-items:center;justify-content:center;aspect-ratio:16/9;overflow:hidden;}
+.mag-thumb img{width:100%;height:100%;object-fit:cover;}
+.mag-emoji{font-size:40px;}
+.mag-play{position:absolute;right:10px;bottom:10px;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.92);color:#A34429;display:flex;align-items:center;justify-content:center;font-size:13px;padding-left:2px;}
+.mag-body{display:flex;flex-direction:column;gap:5px;padding:12px 14px 14px;}
+.mag-kind{font-size:11.5px;font-weight:800;color:var(--w-em,#9C452B);}
+.mag-title{font-size:15px;font-weight:800;line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.mag-sum{font-size:13px;line-height:1.6;color:var(--text2);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.mag-src{font-size:12px;font-weight:700;color:var(--text2);}
+.mag-note{font-size:12px;line-height:1.6;color:var(--text2);margin:0;}
+/* ── 자주 묻는 질문 (웹·앱 공용) ── */
+.faq-list{display:flex;flex-direction:column;border:1px solid var(--w-line,#EBDDCB);border-radius:22px;background:var(--w-cream,#FFFDF6);overflow:hidden;}
+.faq-item + .faq-item{border-top:1px solid #F1E6D9;}
+.faq-item summary{display:flex;align-items:flex-start;gap:10px;min-height:52px;padding:14px 16px;font-size:14.5px;font-weight:800;line-height:1.5;cursor:pointer;list-style:none;}
+.faq-item summary::-webkit-details-marker{display:none;}
+.faq-item summary::after{content:'＋';margin-left:auto;flex:0 0 auto;color:var(--text2);font-weight:700;}
+.faq-item[open] summary::after{content:'－';}
+.faq-q{flex:0 0 auto;width:24px;height:24px;border-radius:8px;background:var(--w-sun,#FFF3DF);color:var(--w-em,#9C452B);font-size:13px;display:flex;align-items:center;justify-content:center;}
+.faq-item p{margin:0;padding:0 16px 16px 50px;font-size:13.5px;line-height:1.75;color:var(--text2);}
+/* ── 앱 커뮤니티 '사진' 탭 ── */
+.photo-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;}
+.photo-tile{position:relative;aspect-ratio:1;padding:0;border:none;border-radius:16px;overflow:hidden;background:var(--w-sun);cursor:pointer;}
+.photo-tile img,.photo-tile video{display:block;width:100%;height:100%;object-fit:cover;}
+.photo-meta{position:absolute;left:6px;bottom:6px;font-size:11px;font-weight:800;color:#773B26;background:rgba(255,255,255,.9);border-radius:999px;padding:2px 7px;}
+/* ── 앱 브랜드관: 상품 찜, 기획전 배너(앱 안 이동은 버튼) ── */
+.app-prod-wrap{position:relative;min-width:0;display:flex;}
+.app-prod-wrap > .app-prod{flex:1;}
+.app-prod-wrap:nth-child(2n) .ph{background:var(--w-leaf);}
+.wish-btn{position:absolute;top:16px;right:16px;width:40px;height:40px;border-radius:50%;border:1px solid #EBDFD1;background:rgba(255,255,255,.94);color:#A34429;font-size:19px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+.wish-btn[aria-pressed="true"]{background:#FFE0CF;border-color:#EDBFA5;}
+button.app-mall-banner{text-align:left;font-family:var(--font-ui);cursor:pointer;width:100%;}
+.mag-hero .hh-art{background:#F3EBDD;}
+.faq-hero .hh-art{background:#E3EFE6;}
+#screen-magazine .mag-grid{grid-template-columns:1fr;}
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{transition:none !important;animation:none !important;scroll-behavior:auto !important;}
   .btn:active,.btn.primary:active,.btn-primary:active,.btn-ghost:active,.chip:active,.chip-f:active,.cheer:active,.nav-row a:active,.board-tabs a:active,.navbar button:active,.brand-chip:active,.topic-card:active,.pcard:active,.prod:active,.pager a:active{transform:none !important;}

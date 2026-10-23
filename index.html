@@ -360,7 +360,7 @@
     .toast{ bottom:40px; }
   }
 </style>
-<link rel="stylesheet" href="./rounded-ui.css?v=20261023-3">
+<link rel="stylesheet" href="./rounded-ui.css?v=20261023-4">
 
 <div class="app" id="app">
   <div class="test-banner" id="test-banner" role="status" hidden>
@@ -611,18 +611,35 @@
   <!-- MY -->
   <section class="screen" id="screen-my">
     <div class="scroll pad">
-      <div class="card col" style="gap:14px; padding:20px;">
+      <!-- MY 2판 (2026-10-23): 웹과 같은 크림 카드 + 초록 그림판, 활동 수 파스텔 칸, 메뉴 한 카드. 모양은 공용 rounded-ui.css -->
+      <div class="card col my-hero">
         <div class="row" style="align-items:center; gap:14px;">
-          <div class="my-avatar" style="width:56px; height:56px; border-radius:999px; background:var(--chip-b);" aria-hidden="true"></div>
-          <div class="col" style="gap:4px;">
-            <div class="row" style="align-items:center; gap:6px;">
-              <span class="display" id="my-name" style="font-size:17px;"></span>
-              <span style="font-size:10.5px; font-weight:700; color:var(--chip-a-ink); background:var(--chip-a); padding:2px 8px; border-radius:999px;">창립회원</span>
+          <div class="my-avatar" style="width:60px; height:60px; border-radius:999px; background:var(--chip-b); flex:0 0 auto;" aria-hidden="true"></div>
+          <div class="col" style="gap:4px; min-width:0; flex:1;">
+            <div class="row" style="align-items:center; gap:6px; flex-wrap:wrap;">
+              <span class="display" id="my-name" style="font-size:19px;"></span>
+              <span class="my-badge">창립회원</span>
             </div>
-            <span style="font-size:12.5px; color:var(--text2);" id="my-sub"></span>
+            <span style="font-size:13px; color:var(--text2);" id="my-sub"></span>
           </div>
+          <div class="my-art" aria-hidden="true"><span>🌱</span></div>
         </div>
         <a href="#onboarding" class="btn-ghost">아이 정보 수정</a>
+      </div>
+
+      <div class="my-stats">
+        <div class="my-stat"><span class="display" id="my-stat-challenge">0</span><span>참여 챌린지</span></div>
+        <div class="my-stat"><span class="display" id="my-stat-benefit">0</span><span>신청 체험단</span></div>
+        <div class="my-stat"><span class="display" id="my-stat-post">0</span><span>내 게시물</span></div>
+      </div>
+
+      <div class="my-menu">
+        <a href="#growth" class="my-row"><span class="my-ico" style="background:var(--w-leaf);" aria-hidden="true">🍼</span><span class="my-row-label">육아기록 · 성장</span><svg class="my-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></a>
+        <a href="#community" data-my-link="posts" class="my-row"><span class="my-ico" style="background:var(--w-sun);" aria-hidden="true">📝</span><span class="my-row-label">내 게시물</span><svg class="my-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></a>
+        <a href="#challenge" data-my-link="challenge" class="my-row"><span class="my-ico" style="background:var(--w-peach);" aria-hidden="true">👣</span><span class="my-row-label">참여이력</span><svg class="my-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></a>
+        <a href="#benefit" data-my-link="benefit" class="my-row"><span class="my-ico" style="background:var(--w-sun);" aria-hidden="true">🎁</span><span class="my-row-label">혜택함</span><span id="my-benefit-badge" class="my-count">0</span></a>
+        <button type="button" data-open-saved class="my-row"><span class="my-ico" style="background:var(--w-peach);" aria-hidden="true">⭐</span><span class="my-row-label">스크랩한 글</span><svg class="my-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></button>
+        <button type="button" data-share-app class="my-row"><span class="my-ico" style="background:var(--w-leaf);" aria-hidden="true">💌</span><span class="my-row-label">다다맘 앱 공유하기</span><svg class="my-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></button>
       </div>
 
       <div class="card col" id="my-interest-card" style="gap:10px; padding:18px;">
@@ -631,6 +648,11 @@
           <span class="helper" id="my-interest-hint"></span>
         </div>
         <div class="row" style="flex-wrap:wrap; gap:8px;" id="my-interest-group" role="group" aria-label="관심 분야 수정"></div>
+      </div>
+
+      <div class="card col" id="family-card" style="gap:12px; padding:18px;" hidden>
+        <h2 class="display" style="font-size:16px;">가족과 함께 기록하기</h2>
+        <div class="col" id="family-body" style="gap:10px;"></div>
       </div>
 
       <div class="card row" id="account-card" style="align-items:center; gap:12px; padding:14px 18px;">
@@ -644,50 +666,6 @@
         <div class="col" id="block-body" style="gap:8px;"></div>
       </div>
 
-      <div style="display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:10px;">
-        <div class="card col" style="align-items:center; gap:4px; padding:14px 0;"><span class="display" id="my-stat-challenge" style="font-size:19px;">0</span><span style="font-size:11.5px; color:var(--text2);">참여 챌린지</span></div>
-        <div class="card col" style="align-items:center; gap:4px; padding:14px 0;"><span class="display" id="my-stat-benefit" style="font-size:19px;">0</span><span style="font-size:11.5px; color:var(--text2);">신청 체험단</span></div>
-        <div class="card col" style="align-items:center; gap:4px; padding:14px 0;"><span class="display" id="my-stat-post" style="font-size:19px;">0</span><span style="font-size:11.5px; color:var(--text2);">내 게시물</span></div>
-      </div>
-
-
-      <div class="card col" id="family-card" style="gap:12px; padding:18px;" hidden>
-        <h2 class="display" style="font-size:16px;">가족과 함께 기록하기</h2>
-        <div class="col" id="family-body" style="gap:10px;"></div>
-      </div>
-
-      <div class="col" style="gap:10px;">
-        <a href="#growth" class="card row" style="align-items:center; gap:14px; padding:16px; text-decoration:none; color:var(--text);">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="1.9" aria-hidden="true"><path d="M3 20h18"/><path d="M7 20v-6"/><path d="M12 20V8"/><path d="M17 20v-9"/></svg>
-          <span style="flex:1; font-size:14px; font-weight:700;">육아기록 · 성장</span>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
-        </a>
-        <a href="#community" data-my-link="posts" class="card row" style="align-items:center; gap:14px; padding:16px; text-decoration:none; color:var(--text);">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="1.9" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 4v16M4 9h16"/></svg>
-          <span style="flex:1; font-size:14px; font-weight:700;">내 게시물</span>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
-        </a>
-        <a href="#challenge" data-my-link="challenge" class="card row" style="align-items:center; gap:14px; padding:16px; text-decoration:none; color:var(--text);">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="1.9" aria-hidden="true"><path d="M5 3v18"/><path d="M5 4h11l-2 4 2 4H5"/></svg>
-          <span style="flex:1; font-size:14px; font-weight:700;">참여이력</span>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
-        </a>
-        <a href="#benefit" data-my-link="benefit" class="card row" style="align-items:center; gap:14px; padding:16px; text-decoration:none; color:var(--text);">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="1.9" aria-hidden="true"><rect x="3" y="8" width="18" height="13" rx="1.5"/><path d="M3 12h18"/><path d="M12 8v13"/></svg>
-          <span style="flex:1; font-size:14px; font-weight:700;">혜택함</span>
-          <span id="my-benefit-badge" style="font-size:11.5px; font-weight:700; color:var(--accent2); background:var(--accent-soft); padding:2px 8px; border-radius:999px;">0</span>
-        </a>
-        <button type="button" class="card row" data-open-saved style="align-items:center; gap:14px; padding:16px; border:1px solid var(--border); text-align:left; width:100%;">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="1.9" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5l2.6 5.3 5.8.8-4.2 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z"/></svg>
-          <span style="flex:1; font-size:14px; font-weight:700;">스크랩한 글</span>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
-        </button>
-        <button type="button" class="card row" data-share-app style="align-items:center; gap:14px; padding:16px; border:1px solid var(--border); text-align:left; width:100%;">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="1.9" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 10.6l6.8-3.8M8.6 13.4l6.8 3.8"/></svg>
-          <span style="flex:1; font-size:14px; font-weight:700;">다다맘 앱 공유하기</span>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
-        </button>
-      </div>
       <div id="my-profile-banner"></div>
       <div id="my-footer"></div>
       <!-- 회원 탈퇴는 MY 화면 맨 아래. 실수로 누르는 일이 없게 가장 끝에 둔다. -->

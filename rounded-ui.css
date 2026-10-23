@@ -425,6 +425,29 @@ button,input,select,textarea{font-weight:700;}
 .app-prod .now{font-size:15px;font-weight:800;}
 .app-prod .pct{color:var(--w-em);margin-right:4px;}
 .app-prod .buy{font-size:12px;font-weight:800;color:#A34429;margin-top:2px;}
+/* ── 앱 MY (index.html #screen-my) — 홈과 같은 크림 카드·파스텔 칸·한 장짜리 메뉴 ── */
+#screen-my > .scroll > .card.my-hero{gap:16px;padding:20px;border:1px solid #EAD8C6;border-radius:28px;background:var(--w-sun);box-shadow:none;}
+#screen-my .my-hero .btn-ghost{background:#fff;border-color:#E9D6C3;color:var(--text);}
+.my-badge{font-size:11px;font-weight:800;color:#80503A;background:#fff;border:1px solid #E9D6C3;padding:2px 9px;border-radius:999px;}
+.my-art{position:relative;isolation:isolate;overflow:hidden;flex:0 0 auto;width:62px;height:62px;border-radius:20px;background:var(--w-art);display:grid;place-items:center;}
+.my-art::before{content:'';position:absolute;width:46px;height:46px;right:-18px;top:-16px;background:var(--w-art-dot);border-radius:50%;z-index:-1;}
+.my-art::after{content:'';position:absolute;width:46px;height:46px;left:-24px;bottom:-26px;border:9px solid var(--w-art-ring);border-radius:50%;z-index:-1;}
+.my-art span{font-size:26px;line-height:1;}
+.my-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;flex:0 0 auto;}
+.my-stat{display:flex;flex-direction:column;align-items:center;gap:3px;padding:14px 4px;border:1px solid var(--w-line);border-radius:22px;background:var(--w-cream);}
+.my-stat:nth-child(2){background:var(--w-peach);}
+.my-stat:nth-child(3){background:var(--w-leaf);}
+.my-stat .display{font-size:22px;font-weight:800;color:var(--w-em);}
+.my-stat span:last-child{font-size:12px;font-weight:700;color:var(--text2);}
+.my-menu{display:flex;flex-direction:column;border:1px solid var(--w-line);border-radius:24px;background:var(--w-cream);overflow:hidden;flex:0 0 auto;}
+.my-row{display:flex;align-items:center;gap:13px;width:100%;min-height:56px;padding:11px 16px;border:none;background:none;color:var(--text);text-decoration:none;text-align:left;font-family:var(--font-ui);cursor:pointer;}
+.my-row + .my-row{border-top:1px solid #F1E6D9;}
+.my-row:active{background:#FFF6EC;}
+.my-ico{width:38px;height:38px;flex:0 0 auto;border-radius:13px;border:1px solid #EBDFD1;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.my-row-label{flex:1;font-size:14.5px;font-weight:800;}
+.my-chev{flex:0 0 auto;color:var(--text2);}
+.my-count{flex:0 0 auto;font-size:12px;font-weight:800;color:#80503A;background:#fff;border:1px solid #E9D6C3;padding:2px 9px;border-radius:999px;}
+#screen-my #my-interest-card,#screen-my #account-card,#screen-my #block-card,#screen-my #family-card{border-radius:24px;border-color:var(--w-line);}
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{transition:none !important;animation:none !important;scroll-behavior:auto !important;}
   .btn:active,.btn.primary:active,.btn-primary:active,.btn-ghost:active,.chip:active,.chip-f:active,.cheer:active,.nav-row a:active,.board-tabs a:active,.navbar button:active,.brand-chip:active,.topic-card:active,.pcard:active,.prod:active,.pager a:active{transform:none !important;}

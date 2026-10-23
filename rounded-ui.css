@@ -593,6 +593,17 @@ button.app-mall-banner{text-align:left;font-family:var(--font-ui);cursor:pointer
 .web-photo-tile .cap b{font-size:13.5px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .web-photo-tile .cap span{font-size:12px;color:var(--text2);}
 @media (hover:hover) and (pointer:fine){.web-photo-tile:hover img{transform:scale(1.03);}}
+/* ── 웹 글쓰기·나들이·공지 머리(webHero) — 다른 페이지보다 조금 낮게 ── */
+.warm-page .web-sub-hero .page-hero-art{min-height:200px;}
+.warm-page .web-sub-hero h1{font-size:clamp(28px,3vw,38px);}
+.warm-page > .panel{margin:0;}
+/* 마이페이지 프로필·글 상세 머리도 같은 크림색 */
+.my-head{background:var(--w-sun) !important;border-bottom:1px solid #EAD8C6;}
+.my-head .avatar{background:#fff !important;border:1px solid #EBDFD1;}
+.post-h{background:var(--w-sun) !important;}
+@media (max-width:720px){
+  .warm-page .web-sub-hero .page-hero-art{display:none;}
+}
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{transition:none !important;animation:none !important;scroll-behavior:auto !important;}
   .btn:active,.btn.primary:active,.btn-primary:active,.btn-ghost:active,.chip:active,.chip-f:active,.cheer:active,.nav-row a:active,.board-tabs a:active,.navbar button:active,.brand-chip:active,.topic-card:active,.pcard:active,.prod:active,.pager a:active{transform:none !important;}

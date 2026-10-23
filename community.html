@@ -679,7 +679,7 @@
     .my-head > .btn{ width:100%; }
   }
 </style>
-<link rel="stylesheet" href="./rounded-ui.css?v=20261023-10">
+<link rel="stylesheet" href="./rounded-ui.css?v=20261023-11">
 
 <a class="skip-link" href="#main">본문 바로가기</a>
 <header class="top">
@@ -1202,7 +1202,8 @@
   }
 
   async function renderNotices(main){
-    main.innerHTML = '<section class="panel"><div class="panel-h"><h1 class="display">📢 공지</h1></div>' + boardTabsHtml('notice') + '<div id="list-body"><div class="empty">불러오는 중…</div></div></section>';
+    main.innerHTML = '<section class="warm-page">' + webHero('다다맘 커뮤니티', '<em>공지</em>사항', '다다맘 운영 소식과 이벤트 안내를 알려드려요.', '📢') +
+      '<section class="panel">' + boardTabsHtml('notice') + '<div id="list-body"><div class="empty">불러오는 중…</div></div></section></section>';
     var res = await sb.from('notices').select('*').order('pinned', { ascending:false }).order('created_at', { ascending:false }).limit(50);
     var body = $('list-body');
     if(res.error || !res.data || !res.data.length){ body.innerHTML = emptyHtml('📭', '등록된 공지가 없어요.'); return; }
@@ -1553,7 +1554,7 @@
       return;
     }
     var pre = route().params.get('t') || '';
-    main.innerHTML = '<section class="panel"><div class="panel-h line"><h1 class="display">✏️ 글쓰기</h1></div>' +
+    main.innerHTML = '<section class="warm-page">' + webHero('이야기 남기기', '오늘의 <em>이야기</em>', '질문도, 자랑도, 고민도 편하게 남겨요. 글은 운영자가 확인한 뒤 공개돼요.', '✏️') + '<section class="panel">' +
       '<form class="form" id="write-form">' +
         '<div><label>게시판</label><div class="topics" id="topics">' +
           [''].concat(TOPICS).map(function(t){
@@ -1568,7 +1569,7 @@
         '<div><label for="w-photo">사진 (선택, 1장)</label><input type="file" id="w-photo" accept="image/jpeg,image/png,image/webp"><div class="photo-preview" id="w-preview"></div></div>' +
         '<div class="note">🛡️ 글은 운영자 검수 후 공개돼요. 아이 얼굴·이름·주소 같은 개인정보가 드러나지 않게 주의해주세요.<br>글쓴이에는 <b>' + esc(myName()) + '</b> 와 ' + esc(profileStageText() || '아이 단계') + ' 가 함께 표시돼요.</div>' +
         '<div style="display:flex; gap:8px; justify-content:flex-end;"><a class="btn" href="#/b/all">취소</a><button class="btn primary" type="submit" id="w-submit">등록</button></div>' +
-      '</form></section>';
+      '</form></section></section>';
     restoreDraft(pre);
   }
 
@@ -1722,11 +1723,11 @@
   async function renderOuting(main, params){
     var cat = params.get('c') || '', region = params.get('r') || '';
     var href = function(c, r){ var p = new URLSearchParams(); if(c) p.set('c', c); if(r) p.set('r', r); var s = p.toString(); return '#/outing' + (s ? '?' + s : ''); };
-    main.innerHTML = '<section class="panel"><div class="panel-h"><h1 class="display">🌳 아이와 나들이</h1><span class="helper">아이와 갈 수 있는 행사와 장소</span></div>' +
+    main.innerHTML = '<section class="warm-page">' + webHero('아이와 나들이', '이번 주 <em>어디 갈까?</em>', '아이와 갈 수 있는 행사와 놀거리를 지역별로 모았어요.', '🧺') + '<section class="panel">' +
       '<div class="sub">' + [['', '전체'], ['event', '🎪 행사'], ['spot', '🛝 놀거리']].map(function(x){ return '<a class="chip' + (x[0] === cat ? ' on' : '') + '" href="' + href(x[0], region) + '">' + x[1] + '</a>'; }).join('') +
         '<span class="sep" aria-hidden="true"></span>' +
         [''].concat(REGIONS).map(function(r){ return '<a class="chip' + (r === region ? ' on' : '') + '" href="' + href(cat, r) + '">' + (r || '모든 지역') + '</a>'; }).join('') +
-      '</div><div class="out-list" id="out-list"><div class="helper">불러오는 중…</div></div></section>';
+      '</div><div class="out-list" id="out-list"><div class="helper">불러오는 중…</div></div></section></section>';
     // 종료일이 없거나(상시) 아직 지나지 않은 것만 — 앱과 같은 조건
     var qb = sb.from('outings').select('*').or('ends_on.is.null,ends_on.gte.' + todayISO());
     if(cat) qb = qb.eq('category', cat);
@@ -1745,6 +1746,13 @@
         (link ? '<a class="more" href="' + esc(link) + '" target="_blank" rel="noopener noreferrer">자세히 보기 ↗</a>' : '') +
       '</div></div>';
     }).join('') : emptyHtml('🧺', '지금 소개할 나들이 정보가 없어요. 곧 새 장소를 모아 올게요!');
+  }
+
+  // 페이지 머리: 크림 카드 + 초록 그림판(이모지). 모양은 rounded-ui.css 의 page-hero
+  function webHero(eyebrow, titleHtml, desc, emoji, actionHtml){
+    return '<header class="page-hero web-sub-hero"><div class="page-hero-copy"><span class="mall-eyebrow">' + esc(eyebrow) + '</span><h1 class="display">' + titleHtml + '</h1>' +
+      (desc ? '<p class="page-hero-desc">' + esc(desc) + '</p>' : '') + (actionHtml || '') + '</div>' +
+      '<div class="page-hero-art" aria-hidden="true"><span style="font-size:68px;">' + emoji + '</span></div></header>';
   }
 
   // ---------- 매거진 ----------

@@ -360,7 +360,7 @@
     .toast{ bottom:40px; }
   }
 </style>
-<link rel="stylesheet" href="./rounded-ui.css?v=20261023-2">
+<link rel="stylesheet" href="./rounded-ui.css?v=20261023-3">
 
 <div class="app" id="app">
   <div class="test-banner" id="test-banner" role="status" hidden>
@@ -465,11 +465,20 @@
       <div id="home-install"></div>
       <div id="home-status"></div>
 
+      <!-- 성장(육아기록)은 아래 탭에서 빠져서 홈 위쪽 큰 카드로 연다 -->
+      <button type="button" data-goto="growth" class="growth-cta">
+        <span class="growth-cta-ico" aria-hidden="true">🍼</span>
+        <span class="col" style="gap:3px; min-width:0; flex:1; text-align:left;">
+          <b>오늘의 육아기록</b>
+          <span class="helper">수유·수면, 키·몸무게, 예방접종</span>
+        </span>
+        <span class="growth-cta-go">기록하기 ›</span>
+      </button>
+
       <nav class="quick-grid" aria-label="바로가기">
-        <a href="#growth" class="quick-tile"><span class="quick-ico" aria-hidden="true">🍼</span><span>육아기록</span></a>
-        <a href="#challenge" class="quick-tile"><span class="quick-ico" aria-hidden="true">👣</span><span>챌린지</span></a>
-        <!-- 브랜드관은 웹 화면을 그대로 연다(같은 주소라 앱 안에서 열림). 웹을 고치면 앱도 같이 바뀐다. 나들이는 아래 탭에 있다 -->
-        <a href="./community.html#/brand" class="quick-tile"><span class="quick-ico" aria-hidden="true">🛍️</span><span>브랜드관</span></a>
+        <!-- 아래 탭에서 뺀 나들이·혜택을 여기서 연다. 챌린지·브랜드관은 탭에 있다 -->
+        <button type="button" data-goto="outing" class="quick-tile"><span class="quick-ico" aria-hidden="true">🧺</span><span>나들이</span></button>
+        <button type="button" data-goto="benefit" class="quick-tile"><span class="quick-ico" aria-hidden="true">🎁</span><span>혜택</span></button>
         <button type="button" data-open-compose class="quick-tile"><span class="quick-ico" aria-hidden="true">✏️</span><span>글쓰기</span></button>
       </nav>
 
@@ -582,6 +591,23 @@
     <nav class="navbar" data-nav aria-label="주요 메뉴"></nav>
   </section>
 
+  <!-- BRAND (앱 전용 브랜드관) — 머리는 웹 브랜드관과 같은 문구·공용 page-hero 스타일 -->
+  <section class="screen" id="screen-brand">
+    <div class="scroll pad">
+      <div class="warm-page">
+        <header class="page-hero app-brand-hero">
+          <div class="page-hero-copy">
+            <span class="mall-eyebrow">다다맘 브랜드관</span>
+            <h1 class="display">우리 가족의 <em>다정한 선택.</em></h1>
+            <p class="page-hero-desc">육아 브랜드와 상품을 한곳에서 만나보세요.</p>
+          </div>
+        </header>
+      </div>
+      <div class="col" id="brand-body" style="gap:22px;"></div>
+    </div>
+    <nav class="navbar" data-nav aria-label="주요 메뉴"></nav>
+  </section>
+
   <!-- MY -->
   <section class="screen" id="screen-my">
     <div class="scroll pad">
@@ -631,6 +657,11 @@
       </div>
 
       <div class="col" style="gap:10px;">
+        <a href="#growth" class="card row" style="align-items:center; gap:14px; padding:16px; text-decoration:none; color:var(--text);">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="1.9" aria-hidden="true"><path d="M3 20h18"/><path d="M7 20v-6"/><path d="M12 20V8"/><path d="M17 20v-9"/></svg>
+          <span style="flex:1; font-size:14px; font-weight:700;">육아기록 · 성장</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
+        </a>
         <a href="#community" data-my-link="posts" class="card row" style="align-items:center; gap:14px; padding:16px; text-decoration:none; color:var(--text);">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="1.9" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 4v16M4 9h16"/></svg>
           <span style="flex:1; font-size:14px; font-weight:700;">내 게시물</span>
@@ -1929,9 +1960,9 @@
   var NAV = [
     {id:'home', label:'홈', icon:'<path d="M3 11l9-7 9 7"/><path d="M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9"/>'},
     {id:'challenge', label:'챌린지', icon:'<path d="M5 3v18"/><path d="M5 4h11l-2 4 2 4H5"/>'},
-    {id:'benefit', label:'혜택', icon:'<rect x="3" y="8" width="18" height="13" rx="1.5"/><path d="M3 12h18"/><path d="M12 8v13"/>'},
-    {id:'outing', label:'나들이', icon:'<path d="M12 21s7-7.2 7-12a7 7 0 1 0-14 0c0 4.8 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/>'},
-    {id:'growth', label:'성장', icon:'<path d="M3 20h18"/><path d="M7 20v-6"/><path d="M12 20V8"/><path d="M17 20v-9"/>'},
+    // 2026-10-23 탭 5개로 줄임. 혜택·나들이·성장은 홈 바로가기로 옮겼다 (화면은 그대로, 홈 탭이 켜진다)
+    // 브랜드관은 앱 전용 화면(#brand). 데이터는 웹과 같은 mall_* 표, 모양은 공용 rounded-ui.css
+    {id:'brand', label:'브랜드관', icon:'<path d="M6 7h12l-1 13H7L6 7z"/><path d="M9 7a3 3 0 0 1 6 0"/>'},
     {id:'community', label:'커뮤니티', icon:'<path d="M21 11.5a8.4 8.4 0 0 1-8.9 8.4 9 9 0 0 1-3.6-.7L3 20l1.3-3.9a8.2 8.2 0 0 1-1-4A8.4 8.4 0 0 1 12.1 3a8.3 8.3 0 0 1 8.9 8.5z"/>'},
     {id:'my', label:'MY', icon:'<circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4.5 5-6 8-6s6.5 1.5 8 6"/>'}
   ];
@@ -2624,7 +2655,9 @@
     checkNoti();
   }
 
+  var NAV_PARENT = { growth:'home', outing:'home', benefit:'home' };   // 탭에서 빠진 화면은 홈 탭을 켠다
   function buildNav(active){
+    active = NAV_PARENT[active] || active;
     return NAV.map(function(n){
       var isActive = n.id === active;
       return '<button data-goto="' + n.id + '" class="' + (isActive ? 'active' : '') + '"' + (isActive ? ' aria-current="page"' : '') + '>' +
@@ -3132,8 +3165,7 @@
 
   function renderHome(){
     document.getElementById('home-name').textContent = (state.nickname ? state.nickname + '님' : '다다맘님');
-    // 이름은 인사말에 있으니 칩에는 월령·지역만 (좁은 폰에서 잘리지 않게)
-    document.getElementById('home-chip').textContent = [ageLabel(), state.region].filter(Boolean).join(' · ') || profileSummary();
+    document.getElementById('home-chip').textContent = ageLabel() || profileSummary();   // '임신 17주차 · 서울' 은 폰에서 잘려서 월령·주수만
     renderBell();
     document.getElementById('home-install').innerHTML = installHintHtml();
     document.getElementById('home-status').innerHTML = homeStatusHtml();
@@ -4646,9 +4678,9 @@
 
   function route(){
     var id = (location.hash || '').replace('#', '');
-    var valid = ['onboarding','home','challenge','benefit','community','outing','growth','my','admin','policy','terms'];
-    // 로그인 없이 볼 수 있는 화면: 커뮤니티 글, 챌린지·혜택(광고가 데려오는 곳, 참가·신청은 로그인 필요), 약관
-    var guestPages = ['onboarding','community','challenge','benefit','policy','terms'];
+    var valid = ['onboarding','home','challenge','benefit','community','outing','growth','brand','my','admin','policy','terms'];
+    // 로그인 없이 볼 수 있는 화면: 커뮤니티 글, 챌린지·혜택(광고가 데려오는 곳, 참가·신청은 로그인 필요), 브랜드관, 약관
+    var guestPages = ['onboarding','community','challenge','benefit','brand','policy','terms'];
     if(valid.indexOf(id) === -1){
       location.hash = '#' + (state.onboarded ? 'home' : 'onboarding');
       return;
@@ -4679,8 +4711,104 @@
       fetchOutings().then(function(){ if((location.hash||'') === '#outing') renderOuting(); });
     }
     if(id === 'admin'){ renderAdmin(); }
+    if(id === 'brand'){ renderBrand(); }
     if(id === 'policy' || id === 'terms'){ renderLegal(id); }
   }
+
+  // ---------- 브랜드관 (앱 전용 화면) ----------
+  // 웹 브랜드관(community.html #/brand)과 같은 mall_* 표를 읽는다. 결제는 하지 않고 '구매하러 가기'는 브랜드 스토어로.
+  // 공개(visible) 항목만 보여준다. 숨김 항목 관리·미리보기는 웹의 브랜드관 관리에서 한다.
+  var mall = null, mallPick = '';   // mallPick: '' 전체 · 'deal' 특가 · 브랜드 id
+  function mallUrl(u){ return /^https:\/\//i.test(u || '') ? u : ''; }
+  function mallWon(n){ return n == null ? '' : Number(n).toLocaleString('ko-KR') + '원'; }
+  function mallLogo(b){
+    var u = mallUrl(b.logo_url);
+    return '<span class="app-brand-logo" aria-hidden="true">' + (u ? '<img src="' + escapeHtml(u) + '" alt="" loading="lazy">' : escapeHtml(String(b.name || '?').replace(/^예시\s*/, '').charAt(0))) + '</span>';
+  }
+  function mallDealOn(p){ return p.is_deal && (!p.deal_until || p.deal_until >= todayISO()); }
+  function mallProdHtml(p, b){
+    var img = mallUrl(p.image_url), buy = mallUrl(p.buy_url);
+    var sale = p.sale_price != null && p.price != null && p.sale_price < p.price;
+    var pct = sale ? Math.round((1 - p.sale_price / p.price) * 100) : 0;
+    var inner = '<span class="ph">' + (img ? '<img src="' + escapeHtml(img) + '" alt="" loading="lazy">' : '<span aria-hidden="true">🛍️</span>') + '</span>' +
+      (mallDealOn(p) ? '<span class="deal">특가' + (p.deal_until ? ' ~' + escapeHtml(p.deal_until.slice(5).replace('-', '/')) : '') + '</span>' : '') +
+      '<span class="bn">' + escapeHtml(b ? b.name : '') + '</span>' +
+      '<span class="nm">' + escapeHtml(p.name) + '</span>' +
+      '<span class="pr">' + (sale ? '<span class="was">' + mallWon(p.price) + '</span><span class="now"><span class="pct">' + pct + '%</span>' + mallWon(p.sale_price) + '</span>'
+        : (p.price != null ? '<span class="now">' + mallWon(p.price) + '</span>' : '')) + '</span>' +
+      (buy ? '<span class="buy">구매하러 가기 ↗</span>' : '');
+    return buy
+      ? '<a class="app-prod" href="' + escapeHtml(buy) + '" target="_blank" rel="noopener noreferrer sponsored">' + inner + '</a>'
+      : '<div class="app-prod">' + inner + '</div>';
+  }
+  function renderBrand(){
+    var body = document.getElementById('brand-body');
+    if(!body) return;
+    if(!mall){
+      body.innerHTML = '<div class="card col" style="padding:18px; align-items:center;"><span class="helper">브랜드관을 불러오는 중...</span></div>';
+      if(!sb){ mall = { brands:[], prods:[], banners:[] }; renderBrand(); return; }
+      Promise.all([
+        sb.from('mall_brands').select('*').eq('visible', true).order('sort_order', { ascending:true }).order('created_at', { ascending:true }),
+        sb.from('mall_products').select('*').eq('visible', true).order('sort_order', { ascending:true }).order('created_at', { ascending:true }),
+        sb.from('mall_banners').select('*').eq('visible', true).order('sort_order', { ascending:true })
+      ]).then(function(res){
+        if(res.some(function(r){ return r.error; })){ throw res.filter(function(r){ return r.error; })[0].error; }
+        mall = { brands:res[0].data || [], prods:res[1].data || [], banners:res[2].data || [] };
+        if((location.hash || '') === '#brand') renderBrand();
+      }).catch(function(err){
+        console.warn('[brand]', err);
+        body.innerHTML = '<div class="card col" style="padding:18px; align-items:center; gap:8px;"><span class="helper">브랜드관을 불러오지 못했어요</span>' +
+          '<button type="button" class="btn-ghost" data-mall-retry style="height:40px; padding:0 16px;">다시 시도</button></div>';
+      });
+      return;
+    }
+    var byId = {}; mall.brands.forEach(function(b){ byId[b.id] = b; });
+    var prods = mall.prods.filter(function(p){ return byId[p.brand_id]; });
+    if(!mall.brands.length){
+      body.innerHTML = '<div class="card col" style="padding:22px; align-items:center; gap:6px;"><span style="font-size:30px;" aria-hidden="true">🛍️</span>' +
+        '<span class="helper" style="text-align:center;">곧 엄마 아빠가 믿고 고를 수 있는 브랜드를 모아 열게요!</span></div>';
+      return;
+    }
+    var pick = byId[mallPick] || null;
+    var list = prods.filter(function(p){ return mallPick === 'deal' ? mallDealOn(p) : (!pick || p.brand_id === pick.id); });
+    var chip = function(k, label){ var on = mallPick === k; return '<button type="button" class="chip-f" data-mall-pick="' + escapeHtml(k) + '" aria-pressed="' + on + '">' + escapeHtml(label) + '</button>'; };
+    var banners = mall.banners.length ? '<div class="app-mall-banners">' + mall.banners.map(function(n){
+        var img = mallUrl(n.image_url), link = mallUrl(n.link_url);
+        var bg = img ? 'background-image:url(&quot;' + escapeHtml(img) + '&quot;)' : 'background:' + (/^#[0-9A-Fa-f]{6}$/.test(n.bg || '') ? n.bg : 'var(--w-peach)');
+        var inner = '<b>' + escapeHtml(n.title) + '</b>' + (n.subtitle ? '<span>' + escapeHtml(n.subtitle) + '</span>' : '');
+        return link ? '<a class="app-mall-banner' + (img ? ' img' : '') + '" style="' + bg + '" href="' + escapeHtml(link) + '" target="_blank" rel="noopener noreferrer">' + inner + '</a>'
+                    : '<div class="app-mall-banner' + (img ? ' img' : '') + '" style="' + bg + '">' + inner + '</div>';
+      }).join('') + '</div>' : '';
+    var store = pick && mallUrl(pick.store_url);
+    var brandInfo = pick ? '<div class="app-brand-info">' + mallLogo(pick) + '<div class="col" style="gap:4px; min-width:0; flex:1;"><b>' + escapeHtml(pick.name) + '</b>' +
+        (pick.intro ? '<span class="helper">' + escapeHtml(pick.intro) + '</span>' : '') + '</div>' +
+        (store ? '<a class="btn-ghost" href="' + escapeHtml(store) + '" target="_blank" rel="noopener noreferrer sponsored" style="height:40px; padding:0 14px; flex:0 0 auto;">스토어 ↗</a>' : '') + '</div>' : '';
+    body.innerHTML = banners +
+      '<div class="home-sec"><div class="home-sec-head"><h2 class="home-sec-title display">함께하는 브랜드</h2><span class="helper">' + mall.brands.length + '개</span></div>' +
+      '<div class="app-brand-list">' + mall.brands.map(function(b){
+        return '<button type="button" class="app-brand-card' + (pick && pick.id === b.id ? ' on' : '') + '" data-mall-pick="' + escapeHtml(b.id) + '" aria-pressed="' + (pick && pick.id === b.id) + '">' + mallLogo(b) +
+          '<span class="col" style="gap:3px; min-width:0; flex:1; text-align:left;"><b>' + escapeHtml(b.name) + (b.is_new ? ' <span class="badge-match">NEW</span>' : '') + '</b>' +
+          '<span class="helper app-brand-intro">' + escapeHtml(b.intro || '브랜드 상품 만나보기') + '</span></span></button>';
+      }).join('') + '</div></div>' +
+      '<div class="home-sec" id="mall-catalog"><div class="home-sec-head"><h2 class="home-sec-title display">우리 가족을 위한 발견</h2><span class="helper">상품 ' + list.length + '개</span></div>' +
+      '<div class="home-feedbar" role="group" aria-label="상품 필터" style="position:static;">' + chip('', '전체') + mall.brands.map(function(b){ return chip(b.id, b.name); }).join('') + chip('deal', '특가') + '</div>' +
+      brandInfo +
+      (list.length ? '<div class="app-prod-grid">' + list.map(function(p){ return mallProdHtml(p, byId[p.brand_id]); }).join('') + '</div>'
+                   : '<div class="card col" style="padding:18px; align-items:center;"><span class="helper">조건에 맞는 상품이 아직 없어요</span></div>') +
+      '</div>' +
+      '<p class="helper" style="margin:0;">구매·결제·배송은 각 브랜드 스토어에서 진행돼요. 다다맘은 상품을 소개하는 곳이라 판매 당사자가 아니에요.</p>';
+  }
+  document.addEventListener('click', function(e){
+    var p = e.target.closest && e.target.closest('[data-mall-pick]');
+    if(p){
+      var k = p.getAttribute('data-mall-pick');
+      mallPick = (mallPick === k && k) ? '' : k;   // 같은 브랜드를 다시 누르면 전체로
+      renderBrand();
+      var cat = document.getElementById('mall-catalog'); if(cat && p.classList.contains('app-brand-card')) cat.scrollIntoView({ block:'start' });
+      return;
+    }
+    if(e.target.closest && e.target.closest('[data-mall-retry]')){ mall = null; renderBrand(); }
+  });
 
   // ---------- 홈 피드 필터 ----------
   document.addEventListener('click', function(e){

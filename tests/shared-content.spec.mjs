@@ -1,0 +1,24 @@
+// shared-content.js (웹·앱 공용 매거진 카드·FAQ) 단위 확인. 실행: node tests/shared-content.spec.mjs
+import fs from 'fs';
+import vm from 'vm';
+const ctx = { window: {} };
+vm.runInNewContext(fs.readFileSync(new URL('../shared-content.js', import.meta.url), 'utf8'), ctx);
+const S = ctx.window.DadamomShared;
+let fail = 0;
+const ok = (n, c) => { if (!c) fail++; console.log((c ? 'PASS ' : 'FAIL ') + n); };
+ok('쇼츠 주소 → 영상 id', S.youtubeId('https://www.youtube.com/shorts/abcdefghijk') === 'abcdefghijk');
+ok('youtu.be 주소 → 영상 id', S.youtubeId('https://youtu.be/abcdefghijk?si=x') === 'abcdefghijk');
+ok('watch 주소 → 영상 id', S.youtubeId('https://www.youtube.com/watch?v=abcdefghijk&t=1') === 'abcdefghijk');
+ok('유튜브 아닌 주소 → 빈 값', S.youtubeId('https://example.com/x') === '');
+const yt = S.magCardHtml({ kind: 'youtube', title: '<b>x</b>', source_name: '채널', url: 'https://youtu.be/abcdefghijk' });
+ok('유튜브 썸네일 자동', yt.includes('i.ytimg.com/vi/abcdefghijk/hqdefault.jpg'));
+ok('제목 이스케이프', yt.includes('&lt;b&gt;x&lt;/b&gt;') && !yt.includes('<b>x</b>'));
+ok('출처 표기', yt.includes('출처 채널'));
+ok('javascript: 주소는 링크로 안 만듦', !S.magCardHtml({ kind: 'news', title: 'a', source_name: 'b', url: 'javascript:alert(1)' }).includes('javascript:'));
+ok('http 썸네일은 안 씀', !S.magCardHtml({ kind: 'news', title: 'a', source_name: 'b', url: 'https://a.example', thumb_url: 'http://x.example/a.png' }).includes('http://x.example'));
+ok('뉴스는 사진 없이 아이콘', S.magCardHtml({ kind: 'news', title: 'a', source_name: 'b', url: 'https://a.example' }).includes('mag-emoji'));
+ok('새 창 + noopener', yt.includes('target="_blank"') && yt.includes('noopener'));
+ok('FAQ 10개 이상', S.FAQ.length >= 10);
+ok('FAQ 화면 이스케이프', !S.faqHtml().includes('<script'));
+console.log(fail ? fail + '개 실패' : '전부 통과');
+process.exit(fail ? 1 : 0);

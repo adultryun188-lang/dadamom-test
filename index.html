@@ -360,7 +360,7 @@
     .toast{ bottom:40px; }
   }
 </style>
-<link rel="stylesheet" href="./rounded-ui.css?v=20261023-6">
+<link rel="stylesheet" href="./rounded-ui.css?v=20261023-7">
 
 <div class="app" id="app">
   <div class="test-banner" id="test-banner" role="status" hidden>
@@ -463,6 +463,8 @@
       </div>
 
       <div id="home-install"></div>
+      <!-- 홈 위쪽 배너 넘기기 (HOME_BANNERS). 5초마다 다음 장, 손으로 넘겨도 된다 -->
+      <div id="home-banners"></div>
       <div id="home-status"></div>
 
       <!-- 성장(육아기록)은 아래 탭에서 빠져서 홈 위쪽 큰 카드로 연다 -->
@@ -479,7 +481,9 @@
         <!-- 아래 탭에서 뺀 나들이·혜택을 여기서 연다. 챌린지·브랜드관은 탭에 있다 -->
         <button type="button" data-goto="outing" class="quick-tile"><span class="quick-ico" aria-hidden="true">🧺</span><span>나들이</span></button>
         <button type="button" data-goto="benefit" class="quick-tile"><span class="quick-ico" aria-hidden="true">🎁</span><span>혜택</span></button>
-        <button type="button" data-open-compose class="quick-tile"><span class="quick-ico" aria-hidden="true">✏️</span><span>글쓰기</span></button>
+        <!-- 글쓰기는 오른쪽 아래 + 버튼으로 -->
+        <button type="button" data-goto="prep" data-prep-tab="check" class="quick-tile"><span class="quick-ico" aria-hidden="true">📝</span><span>준비물</span></button>
+        <button type="button" data-goto="prep" data-prep-tab="gift" class="quick-tile"><span class="quick-ico" aria-hidden="true">💝</span><span>선물 장부</span></button>
       </nav>
 
       <div class="home-sec">
@@ -488,6 +492,14 @@
           <a href="#challenge" class="link-quiet">전체보기</a>
         </div>
         <div class="card col" style="gap:0; padding:0; overflow:hidden;" id="home-missions"></div>
+      </div>
+
+      <div class="home-sec" id="home-hot-sec" hidden>
+        <div class="home-sec-head">
+          <h2 class="home-sec-title display">🔥 이번 주 인기글</h2>
+          <a href="#community" class="link-quiet">커뮤니티 가기</a>
+        </div>
+        <ol class="home-hot" id="home-hot"></ol>
       </div>
 
       <div class="home-sec-head" style="margin-top:4px;">
@@ -664,6 +676,7 @@
 
       <div class="my-menu">
         <a href="#growth" class="my-row"><span class="my-ico" style="background:var(--w-leaf);" aria-hidden="true">🍼</span><span class="my-row-label">육아기록 · 성장</span><svg class="my-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></a>
+        <a href="#prep" class="my-row"><span class="my-ico" style="background:var(--w-sun);" aria-hidden="true">📝</span><span class="my-row-label">출산 준비물 · 선물 장부</span><svg class="my-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></a>
         <a href="#community" data-my-link="posts" class="my-row"><span class="my-ico" style="background:var(--w-sun);" aria-hidden="true">📝</span><span class="my-row-label">내 게시물</span><svg class="my-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></a>
         <a href="#challenge" data-my-link="challenge" class="my-row"><span class="my-ico" style="background:var(--w-peach);" aria-hidden="true">👣</span><span class="my-row-label">참여이력</span><svg class="my-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></a>
         <a href="#benefit" data-my-link="benefit" class="my-row"><span class="my-ico" style="background:var(--w-sun);" aria-hidden="true">🎁</span><span class="my-row-label">혜택함</span><span id="my-benefit-badge" class="my-count">0</span></a>
@@ -778,6 +791,30 @@
         <div class="col" id="album-body" style="gap:14px;"></div>
         <div id="monthly-album-grid" hidden></div>
       </div>
+    </div>
+    <nav class="navbar" data-nav aria-label="주요 메뉴"></nav>
+  </section>
+
+  <!-- PREP: 출산 준비물 체크리스트 · 선물 장부 (이 기기에만 저장) -->
+  <section class="screen" id="screen-prep">
+    <div class="scroll pad">
+      <div class="warm-page">
+        <header class="page-hero app-sub-hero prep-hero">
+          <div class="page-hero-copy">
+            <span class="mall-eyebrow">출산 준비</span>
+            <div class="hh-top">
+              <h1 class="display">준비물과 <em>선물 장부</em></h1>
+              <div class="hh-art" aria-hidden="true"><span>📝</span></div>
+            </div>
+            <p class="page-hero-desc">꼭 필요한 것만 체크하고, 받은 선물과 답례를 한곳에 적어 두세요.</p>
+          </div>
+        </header>
+      </div>
+      <div class="segmented" role="tablist" aria-label="준비물·선물 장부" id="prep-tabs">
+        <button type="button" data-prep-tab="check" role="tab">준비물 체크</button>
+        <button type="button" data-prep-tab="gift" role="tab">선물 장부</button>
+      </div>
+      <div class="col" id="prep-body" style="gap:14px;"></div>
     </div>
     <nav class="navbar" data-nav aria-label="주요 메뉴"></nav>
   </section>
@@ -2188,6 +2225,10 @@
       viewMineOnly:null,
       careLog:[],
       growthRecords:[],
+      // 출산 준비물 체크·선물 장부 — 이 기기에만 저장 (서버 프로필로 보내지 않는다)
+      prepChecked:{},
+      prepCustom:[],
+      gifts:[],
       growthMetric:'weight',
       vaccines:{},
       family:null,          // {id, cursor} — 가족 공유 중일 때만
@@ -2225,7 +2266,10 @@
         myEntries: Array.isArray(saved.myEntries) ? saved.myEntries : d.myEntries,
         myPosts: Array.isArray(saved.myPosts) ? saved.myPosts : d.myPosts,
         careLog: Array.isArray(saved.careLog) ? saved.careLog.filter(function(e){ return Date.now() - e.ts < 14*86400000; }) : d.careLog,
-        growthRecords: Array.isArray(saved.growthRecords) ? saved.growthRecords : d.growthRecords
+        growthRecords: Array.isArray(saved.growthRecords) ? saved.growthRecords : d.growthRecords,
+        prepChecked: (saved.prepChecked && typeof saved.prepChecked === 'object' && !Array.isArray(saved.prepChecked)) ? saved.prepChecked : d.prepChecked,
+        prepCustom: Array.isArray(saved.prepCustom) ? saved.prepCustom : d.prepCustom,
+        gifts: Array.isArray(saved.gifts) ? saved.gifts : d.gifts
       });
     }catch(e){ return d; }
   }
@@ -2671,7 +2715,7 @@
     checkNoti();
   }
 
-  var NAV_PARENT = { growth:'home', outing:'home', benefit:'home' };   // 탭에서 빠진 화면은 홈 탭을 켠다
+  var NAV_PARENT = { growth:'home', outing:'home', benefit:'home', prep:'home' };   // 탭에서 빠진 화면은 홈 탭을 켠다
   function buildNav(active){
     active = NAV_PARENT[active] || active;
     return NAV.map(function(n){
@@ -3190,7 +3234,190 @@
     missionsEl.parentElement.hidden = !missionsEl.innerHTML;   // 미션이 하나도 없으면 '오늘의 미션' 칸째 숨김
     document.getElementById('home-feedbar').innerHTML = homeFeedBarHtml();
     document.getElementById('home-feed').innerHTML = homeFeedHtml();
+    renderHomeBanners();
+    renderHomeHot();
   }
+
+  // ---------- 홈 배너 넘기기 ----------
+  // 운영자가 바꿀 홍보 칸. 링크는 앱 안 화면(#...)만 쓴다.
+  // shortcut: 배너를 코드에 적었다. 자주 바뀌면 mall_banners 처럼 DB 표로 옮긴다.
+  var HOME_BANNERS = [
+    { key:'challenge', emoji:'👣', title:'첫걸음 챌린지 진행 중', sub:'사진 한 장으로 참여하고 육아용품 받아가요', href:'#challenge', bg:'var(--w-sun)' },
+    { key:'prep', emoji:'📝', title:'출산 준비물 체크리스트', sub:'꼭 필요한 것만 골라 하나씩 체크해요', href:'#prep', bg:'var(--w-leaf)' },
+    { key:'brand', emoji:'🛍️', title:'다다맘 브랜드관', sub:'엄마 아빠가 믿고 고르는 육아 브랜드', href:'#brand', bg:'var(--w-peach)' }
+  ];
+  function homeBannerList(){
+    return HOME_BANNERS.filter(function(b){ return b.key !== 'challenge' || daysUntil(CHALLENGE_DEADLINE) >= 0; });
+  }
+  function renderHomeBanners(){
+    var el = document.getElementById('home-banners');
+    if(!el) return;
+    var list = homeBannerList();
+    var key = list.map(function(b){ return b.key; }).join(',');
+    if(el.getAttribute('data-key') === key) return;   // 다시 그리면 넘기던 위치가 처음으로 돌아가므로 바뀔 때만
+    el.setAttribute('data-key', key);
+    if(!list.length){ el.innerHTML = ''; return; }
+    el.innerHTML = '<div class="home-banners" role="region" aria-roledescription="배너" aria-label="다다맘 소식">' +
+      '<div class="hb-track" id="hb-track">' + list.map(function(b, i){
+        return '<a class="hb-card" href="' + b.href + '" style="background:' + b.bg + ';" aria-label="' + (i + 1) + '/' + list.length + ' ' + escapeHtml(b.title) + '">' +
+          '<span class="col" style="gap:4px; min-width:0; flex:1;"><b>' + escapeHtml(b.title) + '</b><span>' + escapeHtml(b.sub) + '</span></span>' +
+          '<span class="hb-emoji" aria-hidden="true">' + b.emoji + '</span></a>';
+      }).join('') + '</div>' +
+      (list.length > 1 ? '<div class="hb-dots" aria-hidden="true">' + list.map(function(b, i){ return '<span' + (i ? '' : ' class="on"') + '></span>'; }).join('') + '</div>' : '') +
+      '</div>';
+    var track = document.getElementById('hb-track');
+    track.addEventListener('scroll', function(){
+      var i = Math.round(track.scrollLeft / Math.max(1, track.clientWidth));
+      el.querySelectorAll('.hb-dots span').forEach(function(d, j){ d.classList.toggle('on', j === i); });
+    }, { passive:true });
+    ['touchstart','pointerdown'].forEach(function(t){ track.addEventListener(t, function(){ hbPausedUntil = Date.now() + 8000; }, { passive:true }); });
+  }
+  var hbPausedUntil = 0;
+  setInterval(function(){
+    // 홈이 보일 때만, 손으로 넘긴 직후 8초는 쉬고, '동작 줄이기' 설정이면 자동으로 넘기지 않는다
+    if((location.hash || '#home') !== '#home' || Date.now() < hbPausedUntil || document.hidden) return;
+    if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    var track = document.getElementById('hb-track');
+    if(!track || track.children.length < 2 || !track.clientWidth) return;
+    var i = Math.round(track.scrollLeft / track.clientWidth);
+    var next = (i + 1) % track.children.length;
+    track.scrollTo({ left: next * track.clientWidth, behavior:'smooth' });
+  }, 5000);
+
+  // ---------- 홈: 이번 주 인기글 ----------
+  // 웹 커뮤니티 '주간 인기글'과 같은 기준: 최근 7일 승인 글을 좋아요·댓글 순. 3개가 안 되면 전체 기간에서 채운다.
+  function postTitle(text){
+    var t = String(text || '').replace(/^\[[^\]]{1,6}\]\s*/, '').split('\n')[0].trim();
+    return t.length > 46 ? t.slice(0, 46) + '…' : t;
+  }
+  function renderHomeHot(){
+    var sec = document.getElementById('home-hot-sec'), ol = document.getElementById('home-hot');
+    if(!sec || !ol) return;
+    var score = function(p){ return (Number(p.likes) || 0) * 2 + (Number(p.comments) || 0); };
+    var pool = state.posts.filter(function(p){ return !p.mine || p.status !== 'pending'; });
+    var week = pool.filter(function(p){ return p.createdAt && Date.now() - p.createdAt < 7 * 86400000; });
+    var list = (week.length >= 3 ? week : pool).slice().sort(function(a, b){ return score(b) - score(a) || b.createdAt - a.createdAt; }).slice(0, 5);
+    sec.hidden = !list.length;
+    ol.innerHTML = list.map(function(p, i){
+      return '<li><button type="button" data-open-comments="' + escapeHtml(String(p.id)) + '">' +
+        '<span class="hot-rank">' + (i + 1) + '</span><span class="hot-title">' + escapeHtml(postTitle(p.text)) + '</span>' +
+        '<span class="hot-meta" aria-label="좋아요 ' + (p.likes || 0) + '개, 댓글 ' + (p.comments || 0) + '개">♡ ' + (p.likes || 0) + ' · 💬 ' + (p.comments || 0) + '</span></button></li>';
+    }).join('');
+  }
+
+  // ---------- 출산 준비물 체크리스트 · 선물 장부 (#prep) ----------
+  // 둘 다 이 기기에만 저장한다(state → localStorage). 서버 프로필에는 보내지 않는다.
+  var PREP_LIST = [
+    { cat:'수유', emoji:'🍼', items:['젖병 2~3개', '젖병 세정제·솔', '분유 (분유·혼합 수유라면)', '수유 쿠션', '유축기', '수유 패드'] },
+    { cat:'목욕·위생', emoji:'🛁', items:['아기 욕조', '목욕 타월·가제 손수건', '아기 바디워시·로션', '신생아 기저귀', '물티슈', '아기 손톱가위', '체온계'] },
+    { cat:'옷', emoji:'👶', items:['배냇저고리 3~4벌', '바디수트', '속싸개·겉싸개', '손싸개·발싸개', '아기 모자'] },
+    { cat:'잠자리', emoji:'🛏️', items:['아기 침대 또는 범퍼 침대', '방수 요·침구', '수면 조끼'] },
+    { cat:'외출', emoji:'🚗', items:['카시트 (퇴원할 때 필요해요)', '유모차', '아기띠', '기저귀 가방'] },
+    { cat:'엄마 용품', emoji:'🤱', items:['산모 패드', '수유 브라', '회음부 방석', '산모 내복', '복대'] }
+  ];
+  var GIFT_KINDS = ['출산 선물', '백일', '돌잔치', '기타'];
+  var prepTab = 'check';
+  function prepItemKey(cat, name){ return cat + '::' + name; }
+  function prepAllItems(){
+    var out = [];
+    PREP_LIST.forEach(function(g){ g.items.forEach(function(n){ out.push(prepItemKey(g.cat, n)); }); });
+    state.prepCustom.forEach(function(c){ out.push('custom::' + c.id); });
+    return out;
+  }
+  function prepRow(key, label, extra){
+    var on = !!state.prepChecked[key];
+    return '<label class="prep-item' + (on ? ' done' : '') + '"><input type="checkbox" data-prep-check="' + escapeHtml(key) + '"' + (on ? ' checked' : '') + '>' +
+      '<span class="prep-box" aria-hidden="true"></span><span class="prep-name">' + escapeHtml(label) + '</span>' + (extra || '') + '</label>';
+  }
+  function won(n){ return Number(n).toLocaleString('ko-KR') + '원'; }
+  function renderPrep(){
+    var body = document.getElementById('prep-body');
+    if(!body) return;
+    document.querySelectorAll('#prep-tabs [data-prep-tab]').forEach(function(b){ b.setAttribute('aria-selected', b.getAttribute('data-prep-tab') === prepTab ? 'true' : 'false'); });
+    if(prepTab === 'gift'){ body.innerHTML = giftHtml(); return; }
+    var all = prepAllItems();
+    var done = all.filter(function(k){ return state.prepChecked[k]; }).length;
+    var pct = all.length ? Math.round(done / all.length * 100) : 0;
+    body.innerHTML =
+      '<div class="prep-progress"><div class="row" style="justify-content:space-between; align-items:baseline;"><b>준비 ' + done + ' / ' + all.length + '</b><span class="helper">' + pct + '%</span></div>' +
+        '<div class="prep-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + pct + '" aria-label="준비물 진행"><span style="width:' + pct + '%;"></span></div></div>' +
+      PREP_LIST.map(function(g){
+        var n = g.items.filter(function(it){ return state.prepChecked[prepItemKey(g.cat, it)]; }).length;
+        return '<section class="prep-group"><h2 class="prep-head"><span aria-hidden="true">' + g.emoji + '</span>' + escapeHtml(g.cat) + '<span class="helper">' + n + '/' + g.items.length + '</span></h2>' +
+          g.items.map(function(it){ return prepRow(prepItemKey(g.cat, it), it); }).join('') + '</section>';
+      }).join('') +
+      '<section class="prep-group"><h2 class="prep-head"><span aria-hidden="true">✍️</span>직접 추가한 것</h2>' +
+        state.prepCustom.map(function(c){ return prepRow('custom::' + c.id, c.name, '<button type="button" class="prep-del" data-prep-del="' + escapeHtml(c.id) + '" aria-label="' + escapeHtml(c.name) + ' 지우기">✕</button>'); }).join('') +
+        '<form class="prep-add" data-prep-add><div class="field" style="flex:1;"><label for="prep-new" class="sr-only">추가할 준비물</label><input type="text" id="prep-new" maxlength="40" placeholder="예: 손소독제" autocomplete="off"></div>' +
+        '<button type="submit" class="btn-ghost" style="height:48px; padding:0 16px; flex:0 0 auto;">추가</button></form></section>' +
+      '<p class="helper" style="margin:0;">흔히 챙기는 목록이에요. 집 상황에 맞게 빼고 더하세요. 체크한 내용은 이 기기에만 저장돼요.</p>';
+  }
+  function giftHtml(){
+    var list = state.gifts.slice().sort(function(a, b){ return (b.date || '').localeCompare(a.date || '') || b.ts - a.ts; });
+    var cash = list.reduce(function(s, g){ return s + (Number(g.amount) || 0); }, 0);
+    var left = list.filter(function(g){ return !g.thanked; }).length;
+    return '<div class="gift-sum"><div><b>' + list.length + '</b><span>받은 선물</span></div><div><b>' + won(cash) + '</b><span>현금 합계</span></div><div><b>' + left + '</b><span>답례 남음</span></div></div>' +
+      '<form class="gift-form card col" data-gift-add>' +
+        '<h2 class="display" style="font-size:16px;">선물 기록하기</h2>' +
+        '<div class="field"><label for="gift-who">보낸 분 *</label><input type="text" id="gift-who" maxlength="20" required placeholder="예: 큰이모" autocomplete="off"></div>' +
+        '<div class="row" style="gap:8px;"><div class="field" style="flex:1; min-width:0;"><label for="gift-what">선물</label><input type="text" id="gift-what" maxlength="30" placeholder="예: 내복 세트" autocomplete="off"></div>' +
+          '<div class="field" style="flex:1; min-width:0;"><label for="gift-amount">현금 (원)</label><input type="number" id="gift-amount" min="0" step="1000" inputmode="numeric" placeholder="0"></div></div>' +
+        '<div class="row" style="gap:8px;"><div class="field" style="flex:1; min-width:0;"><label for="gift-kind">구분</label><select id="gift-kind">' + GIFT_KINDS.map(function(k){ return '<option>' + k + '</option>'; }).join('') + '</select></div>' +
+          '<div class="field" style="flex:1; min-width:0;"><label for="gift-date">받은 날</label><input type="date" id="gift-date" value="' + todayISO() + '"></div></div>' +
+        '<button type="submit" class="btn-primary">기록하기</button></form>' +
+      (list.length ? '<div class="gift-list">' + list.map(function(g){
+        var what = [g.what, g.amount ? won(g.amount) : ''].filter(Boolean).join(' · ') || '선물';
+        return '<div class="gift-row' + (g.thanked ? ' thanked' : '') + '"><div class="col" style="gap:3px; min-width:0; flex:1;">' +
+            '<b>' + escapeHtml(g.who) + ' <span class="gift-kind">' + escapeHtml(g.kind || '') + '</span></b>' +
+            '<span class="helper">' + escapeHtml(what) + (g.date ? ' · ' + escapeHtml(g.date.slice(5).replace('-', '/')) : '') + '</span></div>' +
+          '<button type="button" class="gift-thank" data-gift-thank="' + escapeHtml(g.id) + '" aria-pressed="' + !!g.thanked + '">' + (g.thanked ? '답례 완료' : '답례 전') + '</button>' +
+          '<button type="button" class="prep-del" data-gift-del="' + escapeHtml(g.id) + '" aria-label="' + escapeHtml(g.who) + ' 기록 지우기">✕</button></div>';
+      }).join('') + '</div>'
+        : '<div class="card col" style="padding:18px; align-items:center;"><span class="helper">아직 기록한 선물이 없어요</span></div>') +
+      '<p class="helper" style="margin:0;">이 장부는 이 기기에만 저장돼요. 다른 사람에게 보이지 않아요.</p>';
+  }
+  function prepId(){ return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+  document.addEventListener('click', function(e){
+    if(!e.target.closest) return;
+    var tabBtn = e.target.closest('[data-prep-tab]');
+    if(tabBtn){ prepTab = tabBtn.getAttribute('data-prep-tab') === 'gift' ? 'gift' : 'check'; if((location.hash || '') === '#prep') renderPrep(); return; }   // 홈 바로가기는 이 값을 정한 뒤 data-goto 로 넘어간다
+    var del = e.target.closest('[data-prep-del]');
+    if(del){ e.preventDefault(); var id = del.getAttribute('data-prep-del');
+      state.prepCustom = state.prepCustom.filter(function(c){ return c.id !== id; }); delete state.prepChecked['custom::' + id]; save(); renderPrep(); return; }
+    var th = e.target.closest('[data-gift-thank]');
+    if(th){ var gid = th.getAttribute('data-gift-thank'); state.gifts.forEach(function(g){ if(g.id === gid) g.thanked = !g.thanked; }); save(); renderPrep(); return; }
+    var gd = e.target.closest('[data-gift-del]');
+    if(gd){ var did = gd.getAttribute('data-gift-del'); var gg = state.gifts.filter(function(g){ return g.id === did; })[0];
+      if(gg && confirm(gg.who + ' 님 기록을 지울까요?')){ state.gifts = state.gifts.filter(function(g){ return g.id !== did; }); save(); renderPrep(); } return; }
+  }, true);
+  document.addEventListener('change', function(e){
+    var cb = e.target.closest && e.target.closest('[data-prep-check]');
+    if(!cb) return;
+    var k = cb.getAttribute('data-prep-check');
+    if(cb.checked) state.prepChecked[k] = true; else delete state.prepChecked[k];
+    save(); renderPrep();
+  });
+  document.addEventListener('submit', function(e){
+    if(e.target.matches('[data-prep-add]')){
+      e.preventDefault();
+      var inp = document.getElementById('prep-new'), name = (inp.value || '').trim().slice(0, 40);
+      if(!name) return;
+      state.prepCustom.push({ id: prepId(), name: name }); save(); renderPrep();
+      var again = document.getElementById('prep-new'); if(again) again.focus();
+    } else if(e.target.matches('[data-gift-add]')){
+      e.preventDefault();
+      var who = (document.getElementById('gift-who').value || '').trim().slice(0, 20);
+      if(!who){ showToast('보낸 분을 적어 주세요'); return; }
+      var amt = Math.max(0, Math.floor(Number(document.getElementById('gift-amount').value) || 0));
+      state.gifts.push({ id: prepId(), ts: Date.now(), who: who,
+        what: (document.getElementById('gift-what').value || '').trim().slice(0, 30),
+        amount: amt || null,
+        kind: GIFT_KINDS.indexOf(document.getElementById('gift-kind').value) > -1 ? document.getElementById('gift-kind').value : '기타',
+        date: /^\d{4}-\d{2}-\d{2}$/.test(document.getElementById('gift-date').value) ? document.getElementById('gift-date').value : todayISO(),
+        thanked: false });
+      save(); renderPrep(); showToast('기록했어요');
+    }
+  });
 
   // ---------- CHALLENGE ----------
   function sortedEntries(){
@@ -4702,7 +4929,7 @@
 
   function route(){
     var id = (location.hash || '').replace('#', '');
-    var valid = ['onboarding','home','challenge','benefit','community','outing','growth','brand','my','admin','policy','terms'];
+    var valid = ['onboarding','home','challenge','benefit','community','outing','growth','prep','brand','my','admin','policy','terms'];
     // 로그인 없이 볼 수 있는 화면: 커뮤니티 글, 챌린지·혜택(광고가 데려오는 곳, 참가·신청은 로그인 필요), 브랜드관, 약관
     var guestPages = ['onboarding','community','challenge','benefit','brand','policy','terms'];
     if(valid.indexOf(id) === -1){
@@ -4736,6 +4963,7 @@
     }
     if(id === 'admin'){ renderAdmin(); }
     if(id === 'brand'){ renderBrand(); }
+    if(id === 'prep'){ renderPrep(); }
     if(id === 'policy' || id === 'terms'){ renderLegal(id); }
   }
 

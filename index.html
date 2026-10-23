@@ -360,7 +360,7 @@
     .toast{ bottom:40px; }
   }
 </style>
-<link rel="stylesheet" href="./rounded-ui.css?v=20261023-4">
+<link rel="stylesheet" href="./rounded-ui.css?v=20261023-5">
 
 <div class="app" id="app">
   <div class="test-banner" id="test-banner" role="status" hidden>
@@ -507,16 +507,20 @@
   <!-- CHALLENGE -->
   <section class="screen" id="screen-challenge">
     <div class="scroll pad">
-      <a href="#home" style="display:inline-flex; align-items:center; gap:6px; font-size:13px; color:var(--text2); text-decoration:none;">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
-        홈으로
-      </a>
-      <div class="col" style="gap:8px;">
-        <span class="eyebrow" id="challenge-eyebrow">D-6 · 10~24개월 추천</span>
-        <h1 class="display" style="font-size:24px;">첫걸음 챌린지</h1>
-        <p style="font-size:13.5px; color:var(--text2); line-height:1.6;">걸음마 사진 한 장과 짧은 메모로 참여합니다. 10~24개월 아이가 대상입니다.</p>
-        <!-- shortcut: 경품 문구에 날짜를 직접 썼다. CHALLENGE_DEADLINE 을 바꾸면 여기(와 community.html)도 같이 고친다 -->
-        <p id="challenge-prize" style="font-size:13.5px; line-height:1.6; word-break:keep-all; background:var(--accent-soft); border-radius:14px; padding:12px 14px; margin:0;"><b>참가하면 추첨으로 4명에게 2만 원 상당 육아용품을 드려요.</b><br><span style="color:var(--text2);">11/30 마감 · 12/3 발표 · 당첨되면 가입한 이메일로 연락드려요</span></p>
+      <!-- 2026-10-23: 웹 챌린지 페이지와 같은 머리(크림 카드 + 초록 그림판). 모양은 공용 rounded-ui.css -->
+      <div class="warm-page">
+        <header class="page-hero app-ch-hero">
+          <div class="page-hero-copy">
+            <span class="mall-eyebrow" id="challenge-eyebrow">D-6 · 10~24개월 추천</span>
+            <div class="hh-top">
+              <h1 class="display">첫걸음 <em>챌린지</em></h1>
+              <div class="hh-art" aria-hidden="true"><span>👣</span></div>
+            </div>
+            <p class="page-hero-desc">걸음마 사진 한 장과 짧은 메모로 참여해요. 10~24개월 아이가 대상이에요.</p>
+            <!-- shortcut: 경품 문구에 날짜를 직접 썼다. CHALLENGE_DEADLINE 을 바꾸면 여기(와 community.html)도 같이 고친다 -->
+            <p id="challenge-prize"><span class="ch-prize-ico" aria-hidden="true">🎁</span><span><b>참가하면 추첨으로 4명에게 2만 원 상당 육아용품을 드려요.</b><br><span style="color:var(--text2);">11/30 마감 · 12/3 발표 · 당첨되면 가입한 이메일로 연락드려요</span></span></p>
+          </div>
+        </header>
       </div>
       <div class="row" style="align-items:center; justify-content:space-between; padding-top:4px;">
         <h2 class="display" style="font-size:16px;">참가작 <span id="entry-count" aria-live="polite">0</span>개</h2>
@@ -4648,8 +4652,16 @@
   }
 
   // ---------- ROUTING ----------
+  var shownScreen = '';
   function showScreen(id){
     document.querySelectorAll('.screen').forEach(function(s){ s.hidden = (s.id !== 'screen-' + id); });
+    // 화면이 바뀔 때만 짧게 떠오르는 효과 (0.2초). 같은 화면을 다시 그릴 때는 움직이지 않는다.
+    // 본문(.scroll)에만 줘서 아래 탭은 제자리. '동작 줄이기' 설정이면 rounded-ui.css 가 끈다.
+    if(shownScreen && shownScreen !== id){
+      var sc = document.querySelector('#screen-' + id + ' .scroll');
+      if(sc){ sc.classList.remove('screen-enter'); void sc.offsetWidth; sc.classList.add('screen-enter'); }
+    }
+    shownScreen = id;
     var scrollers = document.querySelectorAll('#screen-' + id + ' .scroll');
     scrollers.forEach(function(s){ s.scrollTop = 0; });
   }

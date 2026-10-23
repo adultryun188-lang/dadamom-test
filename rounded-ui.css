@@ -448,6 +448,21 @@ button,input,select,textarea{font-weight:700;}
 .my-chev{flex:0 0 auto;color:var(--text2);}
 .my-count{flex:0 0 auto;font-size:12px;font-weight:800;color:#80503A;background:#fff;border:1px solid #E9D6C3;padding:2px 9px;border-radius:999px;}
 #screen-my #my-interest-card,#screen-my #account-card,#screen-my #block-card,#screen-my #family-card{border-radius:24px;border-color:var(--w-line);}
+/* ── 앱 화면 전환: 아래 탭을 누르면 본문이 살짝 떠오른다 (과하지 않게 0.2초, 6px) ── */
+@keyframes appScreenIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+.scroll.screen-enter{animation:appScreenIn .2s ease-out both;}
+/* ── 앱 챌린지 (index.html #screen-challenge) — 홈과 같은 크림 머리 + 초록 그림판 ── */
+#screen-challenge .warm-page .page-hero{grid-template-columns:1fr;border-radius:26px;background:var(--w-sun);}
+#screen-challenge .page-hero-copy{padding:20px;gap:12px;align-items:stretch;}
+#screen-challenge .page-hero-copy .mall-eyebrow{align-self:flex-start;}
+#screen-challenge .warm-page .page-hero h1{font-size:28px;line-height:1.3;}
+#screen-challenge .page-hero-desc{font-size:13.5px;line-height:1.7;}
+#screen-challenge #challenge-prize{display:flex;gap:12px;align-items:flex-start;margin:0;padding:14px 15px;font-size:13.5px;line-height:1.65;word-break:keep-all;background:var(--w-cream) !important;border:1px solid #EAD8C6;border-radius:20px;}
+.ch-prize-ico{flex:0 0 auto;width:38px;height:38px;border-radius:13px;background:var(--w-peach);border:1px solid #EBDFD1;display:flex;align-items:center;justify-content:center;font-size:19px;}
+#screen-challenge #entries > .card{border-radius:24px;border-color:var(--w-line);background:var(--w-cream);}
+#screen-challenge #entries > .card:nth-child(3n+2){background:#FFFBF5;}
+#screen-challenge #entries > .card > div[role="img"]{width:76px !important;height:76px !important;border-radius:18px !important;background:var(--w-leaf) !important;}
+#screen-challenge > .pad:has(> [data-open-challenge-modal]){background:var(--w-cream) !important;border-top-color:var(--w-line) !important;}
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{transition:none !important;animation:none !important;scroll-behavior:auto !important;}
   .btn:active,.btn.primary:active,.btn-primary:active,.btn-ghost:active,.chip:active,.chip-f:active,.cheer:active,.nav-row a:active,.board-tabs a:active,.navbar button:active,.brand-chip:active,.topic-card:active,.pcard:active,.prod:active,.pager a:active{transform:none !important;}

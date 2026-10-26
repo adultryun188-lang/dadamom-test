@@ -92,7 +92,8 @@ async function screen(p, name, reload = false) {
   await p.locator('#screen-' + name).waitFor({ state: 'visible' });
 }
 const growth = p => screen(p, 'growth', true);
-async function family(p) { await screen(p, 'my', true); await p.locator('#family-card').waitFor({ state: 'visible' }); }
+// 로그인 직후 계정 기록(user_app_data)을 받아 화면을 다시 그릴 수 있어, 통신이 잠잠해진 뒤에 입력한다
+async function family(p) { await screen(p, 'my', true); await p.locator('#family-card').waitFor({ state: 'visible' }); await p.waitForLoadState('networkidle').catch(() => {}); }
 
 let browser;
 const clients = [];

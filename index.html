@@ -4235,7 +4235,9 @@
   }
 
   function growthSvg(metric){
-    var recs = sortedGrowth().filter(function(r){ return r[metric] != null; });
+    // 예전에 잘못 저장된 값(범위 밖)은 그래프에서 뺀다. 목록에는 남아 있어 지울 수 있다.
+    var lim = GROWTH_RANGE[metric];
+    var recs = sortedGrowth().filter(function(r){ return r[metric] != null && r[metric] >= lim[0] && r[metric] <= lim[1]; });
     var W=300,H=140,padL=30,padR=12,padT=16,padB=22;
     if(recs.length < 1){
       return '<div class="helper" style="padding:24px 0; text-align:center;">기록을 추가하면 그래프가 보여요</div>';
@@ -4290,7 +4292,8 @@
         var parts = [];
         if(r.height!=null) parts.push(r.height+'cm');
         if(r.weight!=null) parts.push(r.weight+'kg');
-        return '<div class="row" style="justify-content:space-between; font-size:12.5px; color:var(--text2);"><span>'+dateStr+'</span><span>'+parts.join(' · ')+'</span></div>';
+        return '<div class="row" style="justify-content:space-between; align-items:center; gap:10px; font-size:12.5px; color:var(--text2);"><span>'+dateStr+'</span><span style="margin-left:auto;">'+parts.join(' · ')+'</span>' +
+          '<button type="button" data-growth-del="' + escapeHtml(String(r.id)) + '" aria-label="' + dateStr + ' 성장 기록 지우기" style="border:none; background:none; color:var(--text2); font-size:11.5px; min-height:32px; padding:0 2px; text-decoration:underline;">지우기</button></div>';
       }).join('');
     }
   }
@@ -6114,6 +6117,7 @@
     return '<div class="modal-head"><h3 class="display">성장 기록 추가</h3><button class="modal-close" data-close-modal aria-label="닫기">✕</button></div>' +
       '<div class="field"><label for="growth-height">키 (cm, 선택)</label><input type="text" inputmode="decimal" id="growth-height" placeholder="예: 72.5"></div>' +
       '<div class="field"><label for="growth-weight">몸무게 (kg, 선택)</label><input type="text" inputmode="decimal" id="growth-weight" placeholder="예: 8.9"></div>' +
+      '<span class="helper" id="growth-hint" role="alert" style="color:var(--accent2); font-weight:700;"></span>' +
       '<span class="helper">또래 평균은 참고용이며, 정확한 성장 평가는 영유아 검진을 통해 확인해주세요.</span>' +
       '<button class="btn-primary" id="growth-submit" style="width:100%;" disabled>기록하기</button>';
   }
@@ -6348,6 +6352,19 @@
       }
       save(); renderCareLog();
       famQueue([famCareRow(state.careLog[state.careLog.length - 1])]);
+      return;
+    }
+    var growthDel = e.target.closest('[data-growth-del]');
+    if(growthDel){
+      var gid = growthDel.getAttribute('data-growth-del');
+      var g = state.growthRecords.filter(function(x){ return String(x.id) === gid; })[0];
+      if(g && confirm('이 성장 기록을 지울까요?')){
+        state.growthRecords = state.growthRecords.filter(function(x){ return x !== g; });
+        save(); renderGrowth();
+        // 가족 공유 중이면 가족 기기에서도 지운다 (가족 공유가 없는 판에는 famQueue 가 없다)
+        if(typeof famQueue === 'function' && typeof famGrowthRow === 'function') famQueue([Object.assign(famGrowthRow(g), { deleted:true })]);
+        showToast('성장 기록을 지웠어요');
+      }
       return;
     }
     var careUndo = e.target.closest('[data-care-undo]');
@@ -6979,15 +6996,27 @@
     if(!btn) return;
     var hv = h && h.value.trim() ? parseFloat(h.value) : null;
     var wv = w && w.value.trim() ? parseFloat(w.value) : null;
-    btn.disabled = !((hv!=null && !isNaN(hv)) || (wv!=null && !isNaN(wv)));
+    var bad = growthProblem(hv, wv);
+    var hint = document.getElementById('growth-hint');
+    if(hint) hint.textContent = bad;
+    btn.disabled = !!bad || !((hv!=null && !isNaN(hv)) || (wv!=null && !isNaN(wv)));
   }
 
+  // 아이(0~7세) 기준으로 말이 되는 값만 받는다. 잘못 친 값이 그래프를 망가뜨리지 않게.
+  var GROWTH_RANGE = { height:[30, 130], weight:[1, 40] };
+  function growthProblem(hv, wv){
+    if(hv != null && (isNaN(hv) || hv < GROWTH_RANGE.height[0] || hv > GROWTH_RANGE.height[1])) return '키는 ' + GROWTH_RANGE.height[0] + '~' + GROWTH_RANGE.height[1] + 'cm 사이로 적어 주세요';
+    if(wv != null && (isNaN(wv) || wv < GROWTH_RANGE.weight[0] || wv > GROWTH_RANGE.weight[1])) return '몸무게는 ' + GROWTH_RANGE.weight[0] + '~' + GROWTH_RANGE.weight[1] + 'kg 사이로 적어 주세요';
+    return '';
+  }
   function handleGrowthSubmit(){
     var h = document.getElementById('growth-height');
     var w = document.getElementById('growth-weight');
     var hv = h && h.value.trim() ? parseFloat(h.value) : null;
     var wv = w && w.value.trim() ? parseFloat(w.value) : null;
     if((hv==null || isNaN(hv)) && (wv==null || isNaN(wv))) return;
+    var bad = growthProblem(hv, wv);
+    if(bad){ showToast(bad); return; }
     state.growthRecords.push({
       id:'g' + Date.now(), ts:Date.now(),
       height:(hv!=null && !isNaN(hv)) ? hv : null,

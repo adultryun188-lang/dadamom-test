@@ -145,6 +145,12 @@
   #screen-growth .growth-hero .hh-art span{ font-size:24px; }
   #screen-growth .growth-hero .hh-art::before, #screen-growth .growth-hero .hh-art::after{ display:none; }
   #screen-growth .growth-hero .page-hero-desc{ font-size:11.5px; line-height:1.5; }
+  /* 파일 고르기: 기본 칸(영어로 나오는 브라우저가 있다)을 숨기고 한국어 버튼 + 파일 이름 */
+  .kfile{ position:relative; display:flex; align-items:center; gap:10px; flex-wrap:wrap; cursor:pointer; }
+  .kfile-input{ position:absolute; width:1px; height:1px; opacity:0; overflow:hidden; }
+  .kfile-btn{ display:inline-flex; align-items:center; height:42px; padding:0 18px; border-radius:999px; border:1px solid var(--border, #EBDFD1); background:#fff; color:var(--text); font-size:13.5px; font-weight:700; }
+  .kfile:focus-within .kfile-btn{ outline:3px solid var(--accent, #E9A27F); outline-offset:2px; }
+  .kfile-name{ font-size:12.5px; color:var(--text2); min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:100%; }
   /* 사진 고르기 칸: 브라우저 기본 버튼 대신 둥근 버튼 */
   .field input[type=file]{ width:100%; font-size:12.5px; color:var(--text2); }
   .field input[type=file]::file-selector-button{ height:42px; padding:0 18px; margin-right:10px; border-radius:999px; border:1px solid var(--border); background:#fff; color:var(--text); font:inherit; font-size:13.5px; font-weight:700; cursor:pointer; }
@@ -6260,7 +6266,7 @@
           (cur.guide || []).map(function(g){ return '<li>' + escapeHtml(g) + '</li>'; }).join('') +
         '</ul>' +
       '</div>' +
-      '<div class="field"><label for="entry-file">인증 사진·영상 *</label><input type="file" id="entry-file" accept="image/jpeg,image/png,image/webp,video/mp4,video/quicktime"><span class="helper" id="entry-file-hint">사진 1장 또는 30초 이하 영상 1개 (영상 50MB까지)</span></div>' +
+      '<div class="field"><label for="entry-file">인증 사진·영상 *</label><label class="kfile"><input type="file" class="kfile-input" id="entry-file" accept="image/jpeg,image/png,image/webp,video/mp4,video/quicktime"><span class="kfile-btn">📷 사진·영상 고르기</span><span class="kfile-name">선택한 파일 없음</span></label><span class="helper" id="entry-file-hint">사진 1장 또는 30초 이하 영상 1개 (영상 50MB까지)</span></div>' +
       '<div class="field"><label for="entry-note">한 줄 기록 *</label><textarea id="entry-note" rows="3" placeholder="' + escapeHtml(cur.placeholder || '한 줄로 남겨 주세요') + '"></textarea></div>' +
       '<label class="check-row"><input type="checkbox" id="entry-consent"> 보호자이며, 아이 사진을 챌린지에 게시하는 것에 동의해요 *</label>' +
       '<label class="check-row"><input type="checkbox" id="entry-consent2"> 참여 브랜드가 콘텐츠를 광고에 활용하는 것에 동의해요 (선택)</label>' +
@@ -6277,7 +6283,7 @@
             return '<button type="button" class="chip-f" data-post-topic="' + t + '" aria-pressed="false">' + t + '</button>';
           }).join('') +
         '</div></div>' +
-      '<div class="field"><label for="post-photo">사진·영상 (선택)</label><input type="file" id="post-photo" accept="image/jpeg,image/png,image/webp,video/mp4,video/quicktime"><span class="helper">사진 25MB · 영상 30초·50MB까지</span></div>' +
+      '<div class="field"><label for="post-photo">사진·영상 (선택)</label><label class="kfile"><input type="file" class="kfile-input" id="post-photo" accept="image/jpeg,image/png,image/webp,video/mp4,video/quicktime"><span class="kfile-btn">📷 사진·영상 고르기</span><span class="kfile-name">선택한 파일 없음</span></label><span class="helper">사진 25MB · 영상 30초·50MB까지</span></div>' +
       '<div class="field"><label for="post-text">내용 *</label><textarea id="post-text" rows="4" placeholder="질문이나 이야기를 적어주세요"></textarea></div>' +
       '<div class="field"><label>공개범위 *</label>' +
       '<div class="segmented round" role="tablist" aria-label="공개범위 선택" id="post-visibility-group" style="width:100%;">' +
@@ -7462,6 +7468,13 @@
     buildShareCard(it);
   }
 
+  // 파일 고르기(한국어 버튼): 고른 파일 이름을 옆에 적는다
+  document.addEventListener('change', function(e){
+    var inp = e.target;
+    if(!inp || !inp.classList || !inp.classList.contains('kfile-input')) return;
+    var nm = inp.parentNode && inp.parentNode.querySelector('.kfile-name');
+    if(nm) nm.textContent = (inp.files && inp.files[0]) ? inp.files[0].name : '선택한 파일 없음';
+  });
   // 홈 글쓰기(+) 버튼은 아래 글 목록에 닿았을 때만 보인다. 위쪽 카드(기록하기 등)를 가리지 않게.
   (function(){
     var fab = document.getElementById('home-fab'), bar = document.getElementById('home-feedbar');

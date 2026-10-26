@@ -678,6 +678,12 @@
     .ocard .em{ width:44px; height:44px; font-size:28px; }
     .my-head > .btn{ width:100%; }
   }
+  /* 파일 고르기: 기본 칸(영어로 나오는 브라우저가 있다)을 숨기고 한국어 버튼 + 파일 이름 */
+  .kfile{ position:relative; display:flex; align-items:center; gap:10px; flex-wrap:wrap; cursor:pointer; }
+  .kfile-input{ position:absolute; width:1px; height:1px; opacity:0; overflow:hidden; }
+  .kfile-btn{ display:inline-flex; align-items:center; height:42px; padding:0 18px; border-radius:999px; border:1px solid var(--border, #EBDFD1); background:#fff; color:var(--text); font-size:13.5px; font-weight:700; }
+  .kfile:focus-within .kfile-btn{ outline:3px solid var(--accent, #E9A27F); outline-offset:2px; }
+  .kfile-name{ font-size:12.5px; color:var(--text2); min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:100%; }
 </style>
 <link rel="stylesheet" href="./rounded-ui.css?v=20261023-11">
 
@@ -1608,7 +1614,7 @@
         // 1800자: 수정 함수(edit_my_post)가 2000자까지 받는다. 제목·말머리를 더해도 넘지 않게.
         '<div><label for="w-body">내용</label><textarea id="w-body" maxlength="1800" required placeholder="아이 개월 수나 상황을 함께 적으면 더 좋은 답을 받을 수 있어요."></textarea>' +
           '<span class="draft-note" id="draft-note" aria-live="polite"></span></div>' +
-        '<div><label for="w-photo">사진 (선택, 1장)</label><input type="file" id="w-photo" accept="image/jpeg,image/png,image/webp"><div class="photo-preview" id="w-preview"></div></div>' +
+        '<div><label for="w-photo">사진 (선택, 1장)</label><label class="kfile"><input type="file" class="kfile-input" id="w-photo" accept="image/jpeg,image/png,image/webp"><span class="kfile-btn">📷 사진 고르기</span><span class="kfile-name">선택한 파일 없음</span></label><div class="photo-preview" id="w-preview"></div></div>' +
         '<div class="note">🛡️ 글은 운영자 검수 후 공개돼요. 아이 얼굴·이름·주소 같은 개인정보가 드러나지 않게 주의해주세요.<br>글쓴이에는 <b>' + esc(myName()) + '</b> 와 ' + esc(profileStageText() || '아이 단계') + ' 가 함께 표시돼요.</div>' +
         '<div style="display:flex; gap:8px; justify-content:flex-end;"><a class="btn" href="#/b/all">취소</a><button class="btn primary" type="submit" id="w-submit">등록</button></div>' +
       '</form></section></section>';
@@ -2085,7 +2091,7 @@
       if(type === 'brand') return '<label>' + esc(label) + '<select name="' + k + '">' + mallCache.brand.map(function(b){ return '<option value="' + b.id + '"' + (b.id === x[k] ? ' selected' : '') + '>' + esc(b.name) + '</option>'; }).join('') + '</select></label>';
       if(type === 'image') return '<label>' + esc(label) + '<input type="hidden" name="' + k + '" value="' + esc(v(k)) + '">' +
         '<span class="ma-img" style="display:flex; gap:8px; align-items:center;">' + (v(k) ? '<img src="' + esc(v(k)) + '" alt="" style="width:56px; height:56px; object-fit:cover; border-radius:10px;">' : '') +
-        '<input type="file" accept="image/jpeg,image/png,image/webp" data-ma-file="' + k + '"></span></label>';
+        '<span class="kfile" style="display:inline-flex;"><input type="file" class="kfile-input" accept="image/jpeg,image/png,image/webp" data-ma-file="' + k + '"><span class="kfile-btn">🖼️ 그림 고르기</span><span class="kfile-name">선택한 파일 없음</span></span></span></label>';
       var t = type === 'number' ? 'number' : type === 'date' ? 'date' : type === 'url' ? 'url' : 'text';
       return '<label>' + esc(label) + '<input type="' + t + '" name="' + k + '"' + (max ? ' maxlength="' + max + '"' : '') + (t === 'number' ? ' min="0" step="1"' : '') + ' value="' + esc(v(k)) + '"></label>';
     }).join('');
@@ -2375,7 +2381,7 @@
     else if(t.hasAttribute('data-ma-del')){ var md = t.getAttribute('data-ma-del').split(':'); deleteMall(md[0], md[1]); }
     else if(t.hasAttribute('data-clear-recent')){ try{ localStorage.removeItem(RECENT_KEY); }catch(err){} renderRecent(); }
     else if(t.hasAttribute('data-clear-draft')){ clearDraft(); $('w-title').value = ''; $('w-body').value = ''; $('draft-note').textContent = ''; }
-    else if(t.hasAttribute('data-clear-photo')){ $('w-photo').value = ''; $('w-preview').innerHTML = ''; }
+    else if(t.hasAttribute('data-clear-photo')){ $('w-photo').value = ''; $('w-preview').innerHTML = ''; var wn = $('w-photo').parentNode.querySelector('.kfile-name'); if(wn) wn.textContent = '선택한 파일 없음'; }
     else if(t.hasAttribute('data-logout')){ sb.auth.signOut(); }
     else if(t.hasAttribute('data-close')){ closeModal(); }
     else if(t.id === 'like-btn'){ toggleLike(); }
@@ -2397,6 +2403,13 @@
   });
   document.addEventListener('input', function(e){ if(e.target.id === 'w-title' || e.target.id === 'w-body') saveDraft(); });
   document.addEventListener('change', function(e){ if(e.target.id === 'w-photo') previewPhoto(e.target); });
+  // 파일 고르기(한국어 버튼): 고른 파일 이름을 옆에 적는다
+  document.addEventListener('change', function(e){
+    var inp = e.target;
+    if(!inp || !inp.classList || !inp.classList.contains('kfile-input')) return;
+    var nm = inp.parentNode && inp.parentNode.querySelector('.kfile-name');
+    if(nm) nm.textContent = (inp.files && inp.files[0]) ? inp.files[0].name : '선택한 파일 없음';
+  });
   document.addEventListener('submit', function(e){
     // form.id 대신 속성을 읽는다: 챌린지 관리 폼에는 name="id" 칸이 있어 form.id 가 그 입력칸을 가리킨다
     var fid = e.target.getAttribute('id');

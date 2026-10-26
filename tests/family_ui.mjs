@@ -44,7 +44,9 @@ async function api(email) {
     rpc: (fn, body = {}) => request('/rest/v1/rpc/' + fn, 'POST', body, login.access_token),
     rows: fid => request('/rest/v1/family_records?select=kind,rid,body,deleted&family_id=eq.' + fid, 'GET', undefined, login.access_token),
     consent: granted => request('/rest/v1/consent_records', 'POST', { kind: 'family_share', granted, doc_version: 'v1' }, login.access_token),
-    insert: rows => request('/rest/v1/family_records', 'POST', rows, login.access_token)
+    insert: rows => request('/rest/v1/family_records', 'POST', rows, login.access_token),
+    // 0024 이후 기록이 계정(user_app_data)에도 남는다. 지난 실행의 기록이 쌓이지 않게 시작 전에 지운다.
+    wipeAppData: () => request('/rest/v1/user_app_data?user_id=eq.' + login.user.id, 'DELETE', undefined, login.access_token)
   };
 }
 const appState = p => p.evaluate(() => {
@@ -100,7 +102,7 @@ try {
   clients.push(A0);
   const B0 = await api('dadC@dadamom.test'); clients.push(B0);
   const C0 = await api('momB@dadamom.test');
-  for (const c of clients) await c.rpc('leave_family');
+  for (const c of clients) { await c.rpc('leave_family'); await c.wipeAppData(); }
   browser = await chromium.launch();
   const A = await open(browser, 'momA@dadamom.test');
   const B = await open(browser, 'dadC@dadamom.test');

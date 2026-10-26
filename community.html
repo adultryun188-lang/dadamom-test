@@ -1717,7 +1717,7 @@
     var picker = chList.length > 1 ? '<nav class="sub" aria-label="챌린지 고르기" style="padding:0 0 4px;">' + chList.map(function(x){
         return '<a class="chip' + (x.id === c.id ? ' on' : '') + '" href="#/challenge?c=' + encodeURIComponent(x.id) + '">' + esc((x.emoji || '') + ' ' + x.title) + (chOpenW(x) ? '' : ' · 마감') + '</a>';
       }).join('') + '</nav>' : '';
-    main.innerHTML = '<section class="warm-page challenge-page">' + picker +
+    main.innerHTML = '<section class="warm-page challenge-page">' + picker + '<section class="panel" id="ch-hall" hidden></section>' +
       '<header class="page-hero ch-hero"><div class="page-hero-copy"><span class="mall-eyebrow">다다맘 챌린지 <span class="dday' + (open ? '' : ' off') + '">' + dd + '</span></span>' +
         '<h1 class="display">' + titleHtml + '</h1><p class="page-hero-desc">' + esc(c.description || '') + '</p>' +
         '<div class="challenge-facts"><span>대상 <b>' + esc(c.target_label || '전체') + '</b></span><span>' + (c.ends_on ? '마감 <b>' + chMd(c.ends_on) + '</b>' : '<b>상시 진행</b>') + ' · 발표 <b>' + (c.announce_on ? chMd(c.announce_on) : '매달 첫 주') + '</b></span>' +
@@ -1730,6 +1730,35 @@
       '<nav class="sub" aria-label="참가작 정렬"><a class="chip on" href="#/challenge" id="ch-sort-new">최신순</a><a class="chip" href="#/challenge" id="ch-sort-pop">응원순</a></nav>' +
       '<div class="gallery" id="gallery"><div class="helper">불러오는 중…</div></div></section></section>';
     loadGallery('new');
+    loadHallWeb();
+  }
+
+  // 이달의 주인공: 그 달에 받은 응원 수 순위 (서버 challenge_hall). 끝난 달 1위가 주인공.
+  async function loadHallWeb(){
+    var box = $('ch-hall'); if(!box) return;
+    var r = await sb.rpc('challenge_hall', { p_months: 12 });
+    if(r.error || !$('ch-hall')) return;
+    var rows = r.data || [];
+    var now = new Date(), key = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+    var cur = rows.filter(function(x){ return x.month === key; });
+    var past = rows.filter(function(x){ return x.month < key && x.rnk === 1; }).sort(function(a, b){ return a.month < b.month ? 1 : -1; });
+    var urls = await signUrls(cur.map(function(x){ return x.media_path; }));
+    var chOf = function(k){ return chList.filter(function(c){ return c.id === k; })[0] || {}; };
+    var medal = ['🥇', '🥈', '🥉'];
+    var lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    box.hidden = false;
+    box.innerHTML = '<div class="panel-h"><h2 class="display">🏆 이달의 주인공</h2><span class="helper">' + (now.getMonth() + 1) + '/' + lastDay + ' 마감 · 이번 달 응원을 가장 많이 받은 아이에게 육아용품을 드려요</span></div>' +
+      '<div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:12px; padding:0 20px 16px;">' +
+      (cur.length ? cur.map(function(x){
+        var c = chOf(x.challenge_key);
+        return '<a class="chip" href="#/challenge?c=' + encodeURIComponent(x.challenge_key || '') + '" style="display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:18px; height:auto; text-decoration:none;">' +
+          '<span style="font-size:22px;" aria-hidden="true">' + medal[x.rnk - 1] + '</span>' +
+          '<span style="width:46px; height:46px; border-radius:12px; overflow:hidden; background:#FFF3DF; display:flex; align-items:center; justify-content:center; flex:0 0 auto;">' +
+            (urls[x.media_path] ? '<img src="' + esc(urls[x.media_path]) + '" alt="" style="width:100%; height:100%; object-fit:cover;">' : esc(c.emoji || '🏆')) + '</span>' +
+          '<span style="display:flex; flex-direction:column; min-width:0;"><b>' + esc(x.name || '우리 아이') + '</b><span class="helper">' + esc((c.emoji || '') + ' ' + (c.title || '')) + ' · 💛 ' + x.month_votes + '</span></span></a>';
+      }).join('') : '<p class="helper">아직 이번 달 응원이 없어요. 마음에 드는 참가작에 💛 응원을 눌러 주세요.</p>') + '</div>' +
+      (past.length ? '<div class="sub" style="padding:0 20px 16px; flex-wrap:wrap;"><span class="helper" style="font-weight:800;">지난 주인공</span>' +
+        past.slice(0, 6).map(function(x){ return '<span class="chip">' + (+x.month.slice(5)) + '월 ' + esc(x.name || '') + ' ' + esc(chOf(x.challenge_key).emoji || '') + '</span>'; }).join('') + '</div>' : '');
   }
 
   async function loadGallery(sort){
@@ -1764,6 +1793,7 @@
     btn.setAttribute('aria-pressed', String(on));
     if(r.data) btn.querySelector('span').textContent = r.data.votes;
     btn.disabled = false;
+    loadHallWeb();   // 응원하면 이달 순위가 바뀐다
   }
 
   // ---------- 나들이 (앱과 같은 outings) ----------

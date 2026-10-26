@@ -559,6 +559,7 @@
           </div>
         </header>
       </div>
+      <div id="challenge-hall"></div>
       <div class="home-feedbar" id="challenge-picker" role="group" aria-label="챌린지 고르기" style="position:static;"></div>
       <div class="row" style="align-items:center; justify-content:space-between; padding-top:4px;">
         <h2 class="display" style="font-size:16px;">참가작 <span id="entry-count" aria-live="polite">0</span>개</h2>
@@ -1846,7 +1847,15 @@
 
     var signupAdmin = await signupStatsHtml();
 
-    el.innerHTML = reportAdminHtml() + signupAdmin + outingAdminHtml() + noticeAdmin + applyAdmin +
+    hallAt = 0; await loadHall();
+    var lastMonth = new Date(); lastMonth.setDate(1); lastMonth.setMonth(lastMonth.getMonth() - 1);
+    var lastWinner = (hallRows || []).filter(function(x){ return x.month === hallMonthKey(lastMonth) && x.rnk === 1; })[0];
+    var hallAdmin = '<div class="card col" style="gap:8px; padding:14px;"><h2 class="display" style="font-size:15px;">🏆 지난달(' + (lastMonth.getMonth() + 1) + '월) 주인공</h2>' +
+      (lastWinner ? '<span>' + escapeHtml(lastWinner.name || '') + ' · 응원 ' + lastWinner.month_votes + ' · ' + escapeHtml(((challengeList.filter(function(c){ return c.id === lastWinner.challenge_key; })[0]) || {}).title || '') + '</span>' +
+          '<button type="button" class="btn-ghost" data-hall-email="' + escapeHtml(lastWinner.entry_id) + '" style="height:40px;">연락할 이메일 보기</button><span class="helper" id="hall-email"></span>' +
+          '<span class="helper">이메일로 경품 받을 이름·연락처·주소를 받아 주세요. 다다맘 공지에도 이름을 알려 주세요.</span>'
+        : '<span class="helper">지난달 응원 기록이 없어요.</span>') + '</div>';
+    el.innerHTML = hallAdmin + reportAdminHtml() + signupAdmin + outingAdminHtml() + noticeAdmin + applyAdmin +
       '<h2 class="display" style="font-size:15px; margin-top:6px;">콘텐츠 검수</h2>' +
       ((!pendingEntries.length && !pendingPosts.length)
         ? '<p class="helper">지금은 검수 대기 중인 콘텐츠가 없어요.</p>' : '') +
@@ -2161,6 +2170,57 @@
   function chDdayLabel(c){
     var d = chDaysLeft(c);
     return d == null ? '상시' : (d > 0 ? 'D-' + d : (d === 0 ? 'D-DAY' : '마감'));
+  }
+  // ---------- 이달의 주인공 (challenge_hall, 0026) ----------
+  // 그 달에 받은 응원 수 순위. 끝난 달 1위가 그 달 주인공. 1분에 한 번까지만 다시 받는다.
+  var hallRows = null, hallAt = 0, hallBusy = false;
+  async function loadHall(){
+    if(!sb || hallBusy || (hallRows && Date.now() - hallAt < 60000)) return;
+    hallBusy = true;
+    try{
+      var r = await sb.rpc('challenge_hall', { p_months: 12 });
+      if(r.error){ hallRows = []; console.warn('[이달의 주인공]', r.error.message); }
+      else{
+        hallRows = r.data || [];
+        var urls = await signMediaPaths(hallRows.map(function(x){ return x.media_path; }).filter(Boolean));
+        hallRows.forEach(function(x){ x.media_url = x.media_path ? (urls[x.media_path] || '') : ''; });
+      }
+      hallAt = Date.now();
+    }catch(e){ hallRows = []; }
+    hallBusy = false;
+    if((location.hash || '') === '#challenge') renderChallengeHall();
+  }
+  function hallMonthKey(d){ return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'); }
+  function renderChallengeHall(){
+    var box = document.getElementById('challenge-hall');
+    if(!box) return;
+    if(hallRows == null){ loadHall(); return; }
+    if(!hallRows.length && !challengesFromDb){ box.innerHTML = ''; return; }   // 함수가 없는 환경
+    var now = new Date(), thisKey = hallMonthKey(now);
+    var lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    var cur = hallRows.filter(function(x){ return x.month === thisKey; });
+    var past = hallRows.filter(function(x){ return x.month < thisKey && x.rnk === 1; }).sort(function(a, b){ return a.month < b.month ? 1 : -1; });
+    var chOf = function(k){ return challengeList.filter(function(c){ return c.id === k; })[0] || {}; };
+    var medal = ['🥇', '🥈', '🥉'];
+    var rowHtml = function(x){
+      var c = chOf(x.challenge_key);
+      return '<button type="button" class="row" data-challenge-pick="' + escapeHtml(x.challenge_key || '') + '" style="align-items:center; gap:10px; width:100%; border:none; background:none; padding:6px 0; text-align:left; color:var(--text);">' +
+        '<span style="font-size:20px; flex:0 0 auto;" aria-hidden="true">' + medal[x.rnk - 1] + '</span>' +
+        '<span style="flex:0 0 auto; width:44px; height:44px; border-radius:12px; overflow:hidden; background:var(--w-sun); display:flex; align-items:center; justify-content:center;">' +
+          (x.media_url ? mediaTag(x.media_url, 'width:100%; height:100%; object-fit:cover;') : '<span aria-hidden="true">' + escapeHtml(c.emoji || '🏆') + '</span>') + '</span>' +
+        '<span class="col" style="gap:2px; min-width:0; flex:1;"><b style="font-size:14px;">' + escapeHtml(x.name || '우리 아이') + '</b>' +
+          '<span class="helper" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">' + escapeHtml((c.emoji || '') + ' ' + (c.title || '챌린지')) + '</span></span>' +
+        '<span style="flex:0 0 auto; font-size:12.5px; font-weight:800; color:var(--accent2);">💛 ' + x.month_votes + '</span></button>';
+    };
+    box.innerHTML = '<div class="card col" style="gap:6px; padding:16px 16px 10px; background:linear-gradient(180deg,#FFF6E0,#FFFDF6); border-color:#F1DDAE;">' +
+      '<div class="row" style="align-items:baseline; justify-content:space-between; gap:8px;"><b class="display" style="font-size:16px;">🏆 이달의 주인공</b>' +
+        '<span class="helper">' + (now.getMonth() + 1) + '/' + lastDay + ' 마감</span></div>' +
+      '<span class="helper">이번 달 응원을 가장 많이 받은 아이에게 육아용품을 드려요.</span>' +
+      (cur.length ? '<div class="col" style="gap:2px; margin-top:4px;">' + cur.map(rowHtml).join('') + '</div>'
+                  : '<span class="helper" style="padding:10px 0;">아직 이번 달 응원이 없어요. 마음에 드는 참가작에 💛를 눌러 주세요.</span>') +
+      (past.length ? '<div class="row" style="gap:6px; flex-wrap:wrap; padding-top:8px; border-top:1px dashed #EAD8B6; margin-top:6px;"><span class="helper" style="font-weight:800;">지난 주인공</span>' +
+        past.slice(0, 6).map(function(x){ return '<span class="pill" style="padding:4px 10px; font-size:12px; background:#fff; border:1px solid #EAD8B6;">' + (+x.month.slice(5)) + '월 ' + escapeHtml(x.name || '') + ' ' + escapeHtml(chOf(x.challenge_key).emoji || '') + '</span>'; }).join('') + '</div>' : '') +
+    '</div>';
   }
   function chMD(iso){ return iso ? (+iso.slice(5, 7)) + '/' + (+iso.slice(8, 10)) : ''; }
   function daysUntil(dateStr){
@@ -3720,6 +3780,7 @@
       prizeEl.innerHTML = '<span class="ch-prize-ico" aria-hidden="true">🎁</span><span><b>' + escapeHtml(cur.prize || '') + '</b><br><span style="color:var(--text2);">' +
         (cur.ends_on ? chMD(cur.ends_on) + ' 마감' : '상시 진행') + ' · ' + (cur.announce_on ? chMD(cur.announce_on) + ' 발표' : '매달 첫 주 발표') + ' · 당첨되면 가입한 이메일로 연락드려요</span></span>';
     }
+    renderChallengeHall();
     var picker = document.getElementById('challenge-picker');
     if(picker){
       picker.hidden = challengeList.length < 2;
@@ -6310,6 +6371,14 @@
       return;
     }
 
+    var hallMail = e.target.closest('[data-hall-email]');
+    if(hallMail){
+      sb.rpc('admin_challenge_winner_email', { p_entry: hallMail.getAttribute('data-hall-email') }).then(function(r){
+        var out = document.getElementById('hall-email');
+        if(out) out.textContent = r.error ? '불러오지 못했어요: ' + r.error.message : (r.data || '이메일이 없어요');
+      });
+      return;
+    }
     var chPick = e.target.closest('[data-challenge-pick]');
     if(chPick){ state.challengeKey = chPick.getAttribute('data-challenge-pick'); save(); renderChallenge(); return; }
     var chGo = e.target.closest('[data-challenge-go]');
@@ -6319,6 +6388,7 @@
 
     var vote = e.target.closest('[data-vote]');
     if(vote){
+      hallAt = 0; setTimeout(loadHall, 1500);
       var vid = vote.getAttribute('data-vote');
       var entry = state.entries.filter(function(x){ return x.id === vid; })[0];
       if(entry){

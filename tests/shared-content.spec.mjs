@@ -23,6 +23,9 @@ ok('접종 글 → 💉 표지', S.topicOf({ title: '어린이 독감 무료접�
 ok('제목 우선', S.topicOf({ title: '통잠 언제부터', summary: '지원 제도도 있어요' }).label === '수면');
 ok('주제 없으면 종류 아이콘', S.topicOf({ title: '아무 말' }) === null && S.magCardHtml({ kind: 'news', title: '아무 말', source_name: 'b', url: 'https://a.example' }).includes('뉴스'));
 ok('사진 없는 카드에 표지', S.magCardHtml({ kind: 'news', title: '임신 중 출산 준비', source_name: 'b', url: 'https://a.example' }).includes('mag-cover'));
+ok('공공기관 주소 알아봄', S.isGov('https://health.kdca.go.kr/x') && S.isGov('https://www.korea.kr/news') && !S.isGov('https://www.hankyung.com/a') && !S.isGov('https://evilgo.kr.example.com/'));
+ok('공공기관 글에 띠', S.magCardHtml({ kind: 'article', title: '영아돌연사 예방', source_name: '질병관리청', url: 'https://health.kdca.go.kr/x' }).includes('공공기관 자료'));
+ok('인스타 글은 인스타 표지', S.magCardHtml({ kind: 'instagram', title: '아기 목욕', source_name: '@x', url: 'https://www.instagram.com/p/abc/' }).includes('인스타그램'));
 ok('FAQ 10개 이상', S.FAQ.length >= 10);
 ok('FAQ 화면 이스케이프', !S.faqHtml().includes('<script'));
 console.log(fail ? fail + '개 실패' : '전부 통과');

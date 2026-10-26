@@ -40,11 +40,18 @@
     for(var j = 0; j < texts.length; j++){ for(var i = 0; i < TOPICS.length; i++){ if(TOPICS[i].re.test(texts[j])) return TOPICS[i]; } }
     return null;
   }
+  // 공공기관 글: 기관 이름은 출처 표기로 보여주되 기관 사진·로고는 쓰지 않는다 (공공누리 제4유형은 상업 이용·변경 금지)
+  function isGov(url){ var m = /^https:\/\/([^/?#]+)/i.exec(url || ''); var h = m ? m[1].toLowerCase() : ''; return /\.go\.kr$/.test(h) || h === 'korea.kr' || /\.korea\.kr$/.test(h); }
   function coverHtml(item, k){
     var t = topicOf(item) || { emoji:k.emoji, label:k.label, bg:k.bg, ink:'#9C452B' };
-    return '<span class="mag-cover" style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; width:100%; height:100%; background:' + t.bg + ';">' +
-      '<span class="mag-emoji" aria-hidden="true" style="font-size:46px; line-height:1;">' + t.emoji + '</span>' +
-      '<span style="font-size:12.5px; font-weight:800; color:' + t.ink + '; background:rgba(255,255,255,.75); border-radius:999px; padding:4px 12px;">' + esc(t.label) + '</span></span>';
+    var bg = t.bg;
+    // 인스타 글은 사진을 가져올 수 없어(인스타 정책) 인스타 색으로 알아보게 한다
+    if(item.kind === 'instagram') bg = 'linear-gradient(135deg,#FEDA75 0%,#FA7E1E 30%,#D62976 62%,#962FBF 100%)';
+    var gov = isGov(item.url);
+    return '<span class="mag-cover" style="position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; width:100%; height:100%; background:' + bg + ';">' +
+      (gov ? '<span style="position:absolute; top:10px; left:10px; font-size:11px; font-weight:800; color:#2E5F8E; background:#fff; border-radius:999px; padding:3px 9px;">🏛️ 공공기관 자료</span>' : '') +
+      '<span class="mag-emoji" aria-hidden="true" style="font-size:46px; line-height:1;">' + (item.kind === 'instagram' ? '📸' : t.emoji) + '</span>' +
+      '<span style="font-size:12.5px; font-weight:800; color:' + t.ink + '; background:rgba(255,255,255,.85); border-radius:999px; padding:4px 12px;">' + esc(item.kind === 'instagram' ? '인스타그램' : t.label) + '</span></span>';
   }
   function magCardHtml(item){
     var k = KINDS[item.kind] || KINDS.news;
@@ -88,5 +95,5 @@
     }).join('') + '</div>';
   }
 
-  window.DadamomShared = { topicOf: topicOf, esc:esc, magKinds:KINDS, youtubeId:youtubeId, magCardHtml:magCardHtml, MAG_NOTE:MAG_NOTE, FAQ:FAQ, faqHtml:faqHtml };
+  window.DadamomShared = { topicOf: topicOf, isGov: isGov, esc:esc, magKinds:KINDS, youtubeId:youtubeId, magCardHtml:magCardHtml, MAG_NOTE:MAG_NOTE, FAQ:FAQ, faqHtml:faqHtml };
 })();

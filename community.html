@@ -762,6 +762,13 @@
       .then(function(r){ if(!r.error && r.data && r.data.length){ chList = r.data; chFromDb = true; } }, function(){});
     return chLoaded;
   }
+  // 참가작 사진·영상 한 칸. 영상은 작은 칸에선 첫 장면 + ▶, 상세(controls)에선 바로 재생할 수 있게.
+  function chMedia(url, path, style, controls){
+    if(!url) return '';
+    if(/\.(mp4|mov|webm|m4v)$/i.test(path || '')) return '<span style="position:relative; display:block; width:100%; height:100%;"><video src="' + esc(url) + '#t=0.1" ' + (controls ? 'controls ' : 'muted ') + 'playsinline preload="metadata" style="' + style + '"></video>' +
+      (controls ? '' : '<span aria-hidden="true" style="position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:34px; height:34px; border-radius:999px; background:rgba(0,0,0,.45); color:#fff; display:flex; align-items:center; justify-content:center; font-size:13px;">▶</span>') + '</span>';
+    return '<img src="' + esc(url) + '" alt="" loading="lazy" style="' + style + '">';
+  }
   function chLeft(c){ return c.ends_on ? Math.ceil((new Date(c.ends_on + 'T23:59:59') - Date.now()) / 86400000) : null; }
   function chOpenW(c){ var l = chLeft(c); return l == null || l >= 0; }
   function chDd(c){ var l = chLeft(c); return l == null ? '상시' : l > 0 ? 'D-' + l : l === 0 ? 'D-DAY' : '마감'; }
@@ -1054,7 +1061,7 @@
     var ch = await chq.order('votes', { ascending:false }).order('created_at', { ascending:false }).limit(4);
     var urls = await signUrls((ch.data || []).map(function(e){ return e.media_path; }));
     var tiles = (ch.data || []).map(function(e){
-      return '<a href="#/challenge" aria-label="' + esc(e.name || '참가작') + ' 응원 ' + (e.votes || 0) + '">' + (urls[e.media_path] ? '<img src="' + esc(urls[e.media_path]) + '" alt="" loading="lazy">' : '<b class="fc-entry-name">' + esc(e.name || '참가작') + '</b>') + '<span class="v">응원 ' + (e.votes || 0) + '</span></a>';
+      return '<a href="#/challenge?c=firststep" aria-label="' + esc(e.name || '참가작') + ' 응원 ' + (e.votes || 0) + '">' + (urls[e.media_path] ? chMedia(urls[e.media_path], e.media_path, 'width:100%; height:100%; object-fit:cover;') : '<b class="fc-entry-name">' + esc(e.name || '참가작') + '</b>') + '<span class="v">응원 ' + (e.votes || 0) + '</span></a>';
     });
     if(tiles.length < 4 && open) tiles.push('<a class="fc-invite" href="./index.html#challenge"><b>다음 주인공은<br>우리 아이</b><small>사진 한 장으로 참여하기 →</small></a>');
     if(!tiles.length) tiles.push('<span>공개된 참가작을 기다리고 있어요</span>');
@@ -1729,7 +1736,7 @@
           '<span class="helper">' + esc(c.target_label || '전체') + ' · ' + esc(c.description || '').slice(0, 60) + '</span>' +
           '<span class="helper" style="font-weight:700;">참가작 ' + mine.length + '개' + (cheers ? ' · 💛 응원 ' + cheers : '') + '</span>' +
         '</span>' +
-        (pics.length ? '<span style="display:flex; gap:6px; flex:0 0 auto;">' + pics.map(function(e){ return '<img src="' + esc(urls[e.media_path]) + '" alt="" loading="lazy" style="width:56px; height:56px; border-radius:14px; object-fit:cover;">'; }).join('') + '</span>' : '') +
+        (pics.length ? '<span style="display:flex; gap:6px; flex:0 0 auto;">' + pics.map(function(e){ return '<span style="width:56px; height:56px; border-radius:14px; overflow:hidden; display:block;">' + chMedia(urls[e.media_path], e.media_path, 'width:100%; height:100%; object-fit:cover;') + '</span>'; }).join('') + '</span>' : '') +
         '<span aria-hidden="true" style="flex:0 0 auto; color:var(--text2); font-size:18px;">›</span></a>';
     }).join('');
   }
@@ -1783,7 +1790,7 @@
         return '<a class="chip" href="#/challenge?c=' + encodeURIComponent(x.challenge_key || '') + '" style="display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:18px; height:auto; text-decoration:none;">' +
           '<span style="font-size:22px;" aria-hidden="true">' + medal[x.rnk - 1] + '</span>' +
           '<span style="width:46px; height:46px; border-radius:12px; overflow:hidden; background:#FFF3DF; display:flex; align-items:center; justify-content:center; flex:0 0 auto;">' +
-            (urls[x.media_path] ? '<img src="' + esc(urls[x.media_path]) + '" alt="" style="width:100%; height:100%; object-fit:cover;">' : esc(c.emoji || '🏆')) + '</span>' +
+            (urls[x.media_path] ? chMedia(urls[x.media_path], x.media_path, 'width:100%; height:100%; object-fit:cover;') : esc(c.emoji || '🏆')) + '</span>' +
           '<span style="display:flex; flex-direction:column; min-width:0;"><b>' + esc(x.name || '우리 아이') + '</b><span class="helper">' + esc((c.emoji || '') + ' ' + (c.title || '')) + ' · 💛 ' + x.month_votes + '</span></span></a>';
       }).join('') : '<p class="helper">아직 이번 달 응원이 없어요. 마음에 드는 참가작에 💛 응원을 눌러 주세요.</p>') + '</div>' +
       (past.length ? '<div class="sub" style="padding:0 20px 16px; flex-wrap:wrap;"><span class="helper" style="font-weight:800;">지난 주인공</span>' +
@@ -1810,7 +1817,7 @@
     $('ch-sort-new').classList.toggle('on', sort !== 'pop'); $('ch-sort-pop').classList.toggle('on', sort === 'pop');
     g.innerHTML = rows.length ? rows.map(function(e){
       var on = mine.indexOf(e.id) > -1;
-      return '<div class="gcard"><div class="ph">' + (urls[e.media_path] ? '<img src="' + esc(urls[e.media_path]) + '" alt="' + esc(e.name || '참가작') + ' 사진" loading="lazy">' : esc((chList.filter(function(x){ return x.id === chCurKey; })[0] || {}).emoji || '🏆')) + '</div>' +
+      return '<div class="gcard"><div class="ph">' + (urls[e.media_path] ? chMedia(urls[e.media_path], e.media_path, 'width:100%; height:100%; object-fit:cover;', true) : esc((chList.filter(function(x){ return x.id === chCurKey; })[0] || {}).emoji || '🏆')) + '</div>' +
         '<div class="in"><span class="nm">' + esc(e.name || '우리 아이') + (e.age ? ' <span class="helper">· ' + esc(e.age) + '</span>' : '') + (e.status && e.status !== 'approved' ? ' <span class="badge" style="font-size:11px; background:#FFF3DF; color:#9C5B12; padding:2px 7px; border-radius:999px;">' + (e.status === 'rejected' ? '반려됨' : '검수 중 · 나만 보여요') + '</span>' : '') + '</span>' +
         '<span class="nt">' + esc(e.note || '') + '</span>' +
         '<button class="cheer" data-cheer="' + e.id + '" aria-pressed="' + on + '">💛 응원 <span>' + (e.votes || 0) + '</span></button></div></div>';

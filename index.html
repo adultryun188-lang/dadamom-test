@@ -2120,6 +2120,13 @@
   function isVideoUrl(u){
     return /\.(mp4|mov|webm|m4v|3gp|avi)(\?.*)?$/i.test(u || '');
   }
+  // 작은 칸용: 영상이면 첫 장면만(소리·조작 없음) + ▶ 표시. 누르면 크게(mediaTag) 본다.
+  function mediaThumb(url, styleStr){
+    if(!url) return '';
+    if(isVideoUrl(url.split('#')[0])) return '<span style="position:relative; display:block; width:100%; height:100%;"><video src="' + escapeHtml(url) + '#t=0.1" muted playsinline preload="metadata" style="' + styleStr + '"></video>' +
+      '<span aria-hidden="true" style="position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:38px; height:38px; border-radius:999px; background:rgba(0,0,0,.45); color:#fff; display:flex; align-items:center; justify-content:center; font-size:15px;">▶</span></span>';
+    return '<img src="' + escapeHtml(url) + '" alt="" style="' + styleStr + '">';
+  }
   function mediaTag(url, styleStr){
     if(!url) return '';
     if(isVideoUrl(url)){
@@ -2226,7 +2233,7 @@
       return '<button type="button" class="row" data-challenge-pick="' + escapeHtml(x.challenge_key || '') + '" style="align-items:center; gap:10px; width:100%; border:none; background:none; padding:6px 0; text-align:left; color:var(--text);">' +
         '<span style="font-size:20px; flex:0 0 auto;" aria-hidden="true">' + medal[x.rnk - 1] + '</span>' +
         '<span style="flex:0 0 auto; width:44px; height:44px; border-radius:12px; overflow:hidden; background:var(--w-sun); display:flex; align-items:center; justify-content:center;">' +
-          (x.media_url ? mediaTag(x.media_url, 'width:100%; height:100%; object-fit:cover;') : '<span aria-hidden="true">' + escapeHtml(c.emoji || '🏆') + '</span>') + '</span>' +
+          (x.media_url ? mediaThumb(x.media_url, 'width:100%; height:100%; object-fit:cover;') : '<span aria-hidden="true">' + escapeHtml(c.emoji || '🏆') + '</span>') + '</span>' +
         '<span class="col" style="gap:2px; min-width:0; flex:1;"><b style="font-size:14px;">' + escapeHtml(x.name || '우리 아이') + '</b>' +
           '<span class="helper" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">' + escapeHtml((c.emoji || '') + ' ' + (c.title || '챌린지')) + '</span></span>' +
         '<span style="flex:0 0 auto; font-size:12.5px; font-weight:800; color:var(--accent2);">💛 ' + x.month_votes + '</span></button>';
@@ -3793,7 +3800,7 @@
         '<span style="display:flex; flex-direction:column; gap:4px; min-width:0; flex:1;">' +
           '<span style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;"><b style="font-size:15px;">' + escapeHtml(c.title) + '</b>' + tag + badge + '</span>' +
           '<span class="helper">' + escapeHtml(c.target_label || '전체') + ' · 참가작 ' + mine.length + '개' + (cheers ? ' · 💛 ' + cheers : '') + '</span>' +
-          (pics.length ? '<span style="display:flex; gap:5px; margin-top:2px;">' + pics.map(function(e){ return '<span style="width:38px; height:38px; border-radius:10px; overflow:hidden; flex:0 0 auto;">' + mediaTag(e.media_url, 'width:100%; height:100%; object-fit:cover;') + '</span>'; }).join('') + '</span>' : '') +
+          (pics.length ? '<span style="display:flex; gap:5px; margin-top:2px;">' + pics.map(function(e){ return '<span style="width:38px; height:38px; border-radius:10px; overflow:hidden; flex:0 0 auto;">' + mediaThumb(e.media_url, 'width:100%; height:100%; object-fit:cover;') + '</span>'; }).join('') + '</span>' : '') +
         '</span>' +
         '<svg style="flex:0 0 auto;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></button>';
     }).join('');
@@ -3858,7 +3865,7 @@
     document.getElementById('entries').innerHTML = challengeMineBanner + list.map(function(e){
       // 자랑이 주인공이라 사진을 크게 (두 칸). 사진을 누르면 크게 본다.
       var thumb = e.media_url
-        ? mediaTag(e.media_url, 'width:100%; height:100%; object-fit:cover;')
+        ? mediaThumb(e.media_url, 'width:100%; height:100%; object-fit:cover;')
         : '<span style="font-size:34px;" aria-hidden="true">' + escapeHtml(cur.emoji || '🏆') + '</span>';
       return '<div class="card col" style="gap:0; padding:0; overflow:hidden; min-width:0;">' +
         '<button type="button" data-entry-photo="' + escapeHtml(String(e.id)) + '" aria-label="' + escapeHtml(e.name) + ' 참가작 사진 크게 보기" style="display:flex; align-items:center; justify-content:center; width:100%; aspect-ratio:1/1; border:none; padding:0; background:var(--w-sun); overflow:hidden;">' +

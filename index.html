@@ -133,6 +133,14 @@
   .btn-google:disabled{ opacity:.5; cursor:not-allowed; }
   .btn-apple{ display:flex; align-items:center; justify-content:center; gap:8px; width:100%; height:50px; border:none; border-radius:18px; background:#000; color:#fff; font:inherit; font-size:15px; font-weight:700; cursor:pointer; margin-top:10px; }
   .btn-apple:disabled{ opacity:.5; cursor:not-allowed; }
+  /* 육아기록 머리는 작게: 수유·수면 버튼이 바로 보이게 */
+  #screen-growth .growth-hero .page-hero-copy{ padding:14px 16px 14px 20px; gap:2px; }
+  #screen-growth .growth-hero .mall-eyebrow{ display:none; }
+  #screen-growth .growth-hero h1{ font-size:22px !important; }
+  #screen-growth .growth-hero .hh-art{ width:52px; height:52px; border-radius:16px; }
+  #screen-growth .growth-hero .hh-art span{ font-size:24px; }
+  #screen-growth .growth-hero .hh-art::before, #screen-growth .growth-hero .hh-art::after{ display:none; }
+  #screen-growth .growth-hero .page-hero-desc{ font-size:11.5px; line-height:1.5; }
   /* 사진 고르기 칸: 브라우저 기본 버튼 대신 둥근 버튼 */
   .field input[type=file]{ width:100%; font-size:12.5px; color:var(--text2); }
   .field input[type=file]::file-selector-button{ height:42px; padding:0 18px; margin-right:10px; border-radius:999px; border:1px solid var(--border); background:#fff; color:var(--text); font:inherit; font-size:13.5px; font-weight:700; cursor:pointer; }

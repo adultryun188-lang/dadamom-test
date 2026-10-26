@@ -55,10 +55,10 @@ try {
   const homeMissions = await p.locator('#screen-home [data-challenge-go]').allTextContents();
   ok('홈에 챌린지 둘까지 (아이 개월 수에 맞는 것 먼저)', homeMissions.length === 2 && /첫걸음/.test(homeMissions[0]), homeMissions.map(t => t.replace(/\s+/g, ' ').trim().slice(0, 20)).join(' | '));
   await p.evaluate(() => { location.hash = '#challenge'; }); await p.waitForTimeout(1500);
-  const chips = await p.locator('#challenge-picker [data-challenge-pick]').allTextContents();
-  ok('챌린지 고르기 칩 5개', chips.length === 5, chips.join(' / '));
-  ok('처음엔 개월 수 맞는 첫걸음', (await p.textContent('#challenge-title')).includes('첫걸음'));
-  await p.click('[data-challenge-pick="halloween"]'); await p.waitForTimeout(600);
+  const cards = await p.locator('#challenge-list [data-challenge-open]').allTextContents();
+  ok('첫 화면은 챌린지 카드 세로 목록 5개', cards.length === 5 && await p.locator('#challenge-detail-view').isHidden(), cards.map(x => x.replace(/\s+/g, ' ').trim().slice(0, 12)).join(' / '));
+  ok('목록 맨 위는 개월 수 맞는 첫걸음', /첫걸음/.test(cards[0]));
+  await p.click('[data-challenge-open="halloween"]'); await p.waitForTimeout(600);
   ok('할로윈 고르면 머리 바뀜', (await p.textContent('#challenge-title')).includes('할로윈') && (await p.textContent('#challenge-art')) === '🎃');
   ok('경품 문구: 한 달에 한 명', (await p.textContent('#challenge-prize')).includes('1명'));
   ok('할로윈 참가작은 0개 (첫걸음 것과 섞이지 않음)', (await p.textContent('#entry-count')) === '0');
@@ -73,7 +73,8 @@ try {
   const mine = (await req('/rest/v1/challenge_entries?select=id,challenge_key,note,status&owner_id=eq.' + A.uid + '&note=eq.' + encodeURIComponent('시험 참가 — 호박 모자'), 'GET', undefined, A.token)).body;
   madeIds = mine.map(r => r.id);
   ok('DB 에 할로윈으로 저장', mine.length === 1 && mine[0].challenge_key === 'halloween' && mine[0].status === 'pending', JSON.stringify(mine));
-  await p.click('[data-challenge-pick="firststep"]'); await p.waitForTimeout(600);
+  await p.click('[data-challenge-back]'); await p.waitForTimeout(400);
+  await p.click('[data-challenge-open="firststep"]'); await p.waitForTimeout(600);
   ok('첫걸음 목록엔 방금 글 없음', !(await p.textContent('#entries')).includes('호박 모자'));
 
   const bad = await req('/rest/v1/challenge_entries', 'POST', { name: 'x', note: 'x', challenge_key: 'nope' }, A.token);
@@ -88,7 +89,7 @@ try {
   // 표가 없는 환경
   const fb = await open(true);
   await fb.p.evaluate(() => { location.hash = '#challenge'; }); await fb.p.waitForTimeout(1500);
-  ok('표가 없으면 첫걸음 하나 (칩 숨김)', (await fb.p.textContent('#challenge-title')).includes('첫걸음') && await fb.p.locator('#challenge-picker').isHidden());
+  ok('표가 없으면 목록 없이 첫걸음 상세', (await fb.p.textContent('#challenge-title')).includes('첫걸음') && await fb.p.locator('#challenge-list-view').isHidden() && await fb.p.locator('[data-challenge-back]').isHidden());
   ok('표가 없어도 첫걸음 참가작은 보임', Number(await fb.p.textContent('#entry-count')) >= 1);
   ok('페이지 오류 없음', errors.length === 0, errors.join(' | '));
 } catch (e) { failed++; console.log('FAIL 실행 중단: ' + e.message.split('\n')[0]); }

@@ -1703,9 +1703,41 @@
   }
 
   // ---------- 챌린지 (앱과 같은 challenge_entries · entry_votes) ----------
+  // 챌린지 첫 화면: 이달의 주인공 + 챌린지 카드 세로 목록 (참가작 수·응원·최근 사진)
+  async function renderChallengeList(main){
+    main.innerHTML = '<section class="warm-page challenge-page">' + webHero('다다맘 챌린지', '우리 아이 <em>자랑 대회</em>', '사진 한 장으로 참여하고, 응원을 가장 많이 받으면 이달의 주인공이 돼요.', '🏆') +
+      '<section class="panel" id="ch-hall" hidden></section>' +
+      '<section class="panel"><div class="panel-h"><h2 class="display">진행 중인 챌린지</h2><span class="helper">' + chList.length + '개</span></div>' +
+      '<div id="ch-list" style="display:flex; flex-direction:column; gap:12px; padding:0 20px 20px;"><div class="helper">불러오는 중…</div></div></section></section>';
+    loadHallWeb();
+    var r = await sb.from('challenge_entries').select('id,challenge_key,votes,media_path,created_at').eq('status', 'approved').order('created_at', { ascending:false }).limit(500);
+    var rows = r.data || [];
+    var firstPics = [];
+    chList.forEach(function(c){ rows.filter(function(e){ return e.challenge_key === c.id && e.media_path; }).slice(0, 4).forEach(function(e){ firstPics.push(e.media_path); }); });
+    var urls = await signUrls(firstPics);
+    var box = $('ch-list'); if(!box) return;
+    var ordered = chList.slice().sort(function(a, b){ return (chOpenW(b) ? 1 : 0) - (chOpenW(a) ? 1 : 0); });
+    box.innerHTML = ordered.map(function(c){
+      var mine = rows.filter(function(e){ return e.challenge_key === c.id; });
+      var cheers = mine.reduce(function(n, e){ return n + (e.votes || 0); }, 0);
+      var pics = mine.filter(function(e){ return urls[e.media_path]; }).slice(0, 4);
+      var open = chOpenW(c);
+      return '<a href="#/challenge?c=' + encodeURIComponent(c.id) + '" style="display:flex; align-items:center; gap:16px; padding:16px 18px; border:1px solid var(--w-line, #EBDFD1); border-radius:22px; background:#fff; text-decoration:none; color:var(--text);' + (open ? '' : ' opacity:.65;') + '">' +
+        '<span style="flex:0 0 auto; width:64px; height:64px; border-radius:20px; background:#FFF3DF; display:flex; align-items:center; justify-content:center; font-size:34px;" aria-hidden="true">' + esc(c.emoji || '🏆') + '</span>' +
+        '<span style="display:flex; flex-direction:column; gap:5px; min-width:0; flex:1;">' +
+          '<span style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;"><b style="font-size:17px;">' + esc(c.title) + '</b><span class="dday' + (open ? '' : ' off') + '">' + (open ? chDd(c) : '마감') + '</span></span>' +
+          '<span class="helper">' + esc(c.target_label || '전체') + ' · ' + esc(c.description || '').slice(0, 60) + '</span>' +
+          '<span class="helper" style="font-weight:700;">참가작 ' + mine.length + '개' + (cheers ? ' · 💛 응원 ' + cheers : '') + '</span>' +
+        '</span>' +
+        (pics.length ? '<span style="display:flex; gap:6px; flex:0 0 auto;">' + pics.map(function(e){ return '<img src="' + esc(urls[e.media_path]) + '" alt="" loading="lazy" style="width:56px; height:56px; border-radius:14px; object-fit:cover;">'; }).join('') + '</span>' : '') +
+        '<span aria-hidden="true" style="flex:0 0 auto; color:var(--text2); font-size:18px;">›</span></a>';
+    }).join('');
+  }
+
   async function renderChallenge(main, params){
     await loadChallenges();
     var want = params && params.get('c');
+    if(!want && chList.length > 1) return renderChallengeList(main);
     var c = chList.filter(function(x){ return x.id === want; })[0] || chList.filter(chOpenW)[0] || chList[0];
     chCurKey = c.id;
     var left = chLeft(c), open = chOpenW(c), dd = chDd(c);
@@ -1714,10 +1746,8 @@
     var poster = c.id === 'firststep'
       ? '<div class="first-step-poster"><span class="footprint">👣</span><b>작은 한 걸음,<br>커다란 기쁨.</b><span>첫 순간을 함께 응원해요</span></div>'
       : '<div class="first-step-poster"><span class="footprint">' + esc(c.emoji || '🏆') + '</span><b>' + esc(c.title) + '</b><span>우리 아이 자랑을 함께 응원해요</span></div>';
-    var picker = chList.length > 1 ? '<nav class="sub" aria-label="챌린지 고르기" style="padding:0 0 4px;">' + chList.map(function(x){
-        return '<a class="chip' + (x.id === c.id ? ' on' : '') + '" href="#/challenge?c=' + encodeURIComponent(x.id) + '">' + esc((x.emoji || '') + ' ' + x.title) + (chOpenW(x) ? '' : ' · 마감') + '</a>';
-      }).join('') + '</nav>' : '';
-    main.innerHTML = '<section class="warm-page challenge-page">' + picker + '<section class="panel" id="ch-hall" hidden></section>' +
+    var back = chList.length > 1 ? '<a href="#/challenge" style="align-self:flex-start; font-weight:800; font-size:14px; color:var(--text2); text-decoration:none;">← 전체 챌린지</a>' : '';
+    main.innerHTML = '<section class="warm-page challenge-page">' + back +
       '<header class="page-hero ch-hero"><div class="page-hero-copy"><span class="mall-eyebrow">다다맘 챌린지 <span class="dday' + (open ? '' : ' off') + '">' + dd + '</span></span>' +
         '<h1 class="display">' + titleHtml + '</h1><p class="page-hero-desc">' + esc(c.description || '') + '</p>' +
         '<div class="challenge-facts"><span>대상 <b>' + esc(c.target_label || '전체') + '</b></span><span>' + (c.ends_on ? '마감 <b>' + chMd(c.ends_on) + '</b>' : '<b>상시 진행</b>') + ' · 발표 <b>' + (c.announce_on ? chMd(c.announce_on) : '매달 첫 주') + '</b></span>' +
@@ -1727,10 +1757,9 @@
       '<section class="challenge-guide" aria-labelledby="challenge-guide-title"><div class="mall-section-head"><h2 id="challenge-guide-title">참여는 이렇게 해요</h2></div>' +
         '<div class="ch-steps"><div><b>1단계</b><span>' + esc((c.guide && c.guide[0]) || '아이의 순간을 사진으로 찍어요') + '</span></div><div><b>2단계</b><span>앱의 챌린지 탭에서 사진과 한 줄 메모를 올려요</span></div><div><b>3단계</b><span>검수 후 공개되면 또래 부모들의 응원을 받아요</span></div></div></section>' +
       '<section class="panel challenge-gallery" aria-labelledby="challenge-gallery-title"><div class="panel-h"><h2 class="display" id="challenge-gallery-title">' + esc(c.title) + ' 참가작</h2><span class="helper" id="ch-count"></span></div>' +
-      '<nav class="sub" aria-label="참가작 정렬"><a class="chip on" href="#/challenge" id="ch-sort-new">최신순</a><a class="chip" href="#/challenge" id="ch-sort-pop">응원순</a></nav>' +
+      '<nav class="sub" aria-label="참가작 정렬"><a class="chip on" href="#/challenge?c=' + encodeURIComponent(c.id) + '" id="ch-sort-new">최신순</a><a class="chip" href="#/challenge?c=' + encodeURIComponent(c.id) + '" id="ch-sort-pop">응원순</a></nav>' +
       '<div class="gallery" id="gallery"><div class="helper">불러오는 중…</div></div></section></section>';
     loadGallery('new');
-    loadHallWeb();
   }
 
   // 이달의 주인공: 그 달에 받은 응원 수 순위 (서버 challenge_hall). 끝난 달 1위가 주인공.
@@ -1767,6 +1796,12 @@
     if(sort === 'pop') qb = qb.order('votes', { ascending:false });
     var res = await qb.order('created_at', { ascending:false }).limit(60);
     var rows = res.data || [];
+    if(user){
+      var mq = sb.from('challenge_entries').select('id,name,age,note,media_path,votes,created_at,owner_id,status').eq('owner_id', user.id).neq('status', 'approved');
+      if(chFromDb && chCurKey) mq = mq.eq('challenge_key', chCurKey);
+      var mr = await mq.order('created_at', { ascending:false }).limit(10);
+      rows = (mr.data || []).concat(rows);
+    }
     var mine = [];
     if(user){ var mv = await sb.from('entry_votes').select('entry_id'); mine = (mv.data || []).map(function(x){ return x.entry_id; }); }
     var urls = await signUrls(rows.map(function(e){ return e.media_path; }));
@@ -1776,7 +1811,7 @@
     g.innerHTML = rows.length ? rows.map(function(e){
       var on = mine.indexOf(e.id) > -1;
       return '<div class="gcard"><div class="ph">' + (urls[e.media_path] ? '<img src="' + esc(urls[e.media_path]) + '" alt="' + esc(e.name || '참가작') + ' 사진" loading="lazy">' : esc((chList.filter(function(x){ return x.id === chCurKey; })[0] || {}).emoji || '🏆')) + '</div>' +
-        '<div class="in"><span class="nm">' + esc(e.name || '우리 아이') + (e.age ? ' <span class="helper">· ' + esc(e.age) + '</span>' : '') + '</span>' +
+        '<div class="in"><span class="nm">' + esc(e.name || '우리 아이') + (e.age ? ' <span class="helper">· ' + esc(e.age) + '</span>' : '') + (e.status && e.status !== 'approved' ? ' <span class="badge" style="font-size:11px; background:#FFF3DF; color:#9C5B12; padding:2px 7px; border-radius:999px;">' + (e.status === 'rejected' ? '반려됨' : '검수 중 · 나만 보여요') + '</span>' : '') + '</span>' +
         '<span class="nt">' + esc(e.note || '') + '</span>' +
         '<button class="cheer" data-cheer="' + e.id + '" aria-pressed="' + on + '">💛 응원 <span>' + (e.votes || 0) + '</span></button></div></div>';
     }).join('') : emptyHtml('👣', '아직 공개된 참가작이 없어요. 앱에서 첫 번째 주인공이 되어 보세요!', '<a class="btn primary" href="./index.html#challenge">앱에서 참여하기</a>');

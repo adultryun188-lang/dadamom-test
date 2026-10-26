@@ -545,8 +545,27 @@
   <!-- CHALLENGE -->
   <section class="screen" id="screen-challenge">
     <div class="scroll pad">
+      <!-- 첫 화면: 이달의 주인공 + 챌린지 카드 세로 목록. 카드를 누르면 아래 상세로 바뀐다 -->
+      <div id="challenge-list-view" style="display:flex; flex-direction:column; gap:14px;">
+        <div class="warm-page">
+          <header class="page-hero app-sub-hero">
+            <div class="page-hero-copy">
+              <span class="mall-eyebrow">다다맘 챌린지</span>
+              <div class="hh-top">
+                <h1 class="display">우리 아이 <em>자랑 대회</em></h1>
+                <div class="hh-art" aria-hidden="true"><span>🏆</span></div>
+              </div>
+              <p class="page-hero-desc">사진 한 장으로 참여하고, 응원을 가장 많이 받으면 이달의 주인공이 돼요.</p>
+            </div>
+          </header>
+        </div>
+        <div id="challenge-hall"></div>
+        <h2 class="display" style="font-size:16px; margin:4px 0 -4px;">진행 중인 챌린지</h2>
+        <div id="challenge-list" style="display:flex; flex-direction:column; gap:12px;"></div>
+      </div>
+      <div id="challenge-detail-view" style="display:flex; flex-direction:column; gap:20px;">
+      <button type="button" data-challenge-back class="link-quiet" style="align-self:flex-start; background:none; border:none; padding:2px 0; font-size:13px; font-weight:700;">← 전체 챌린지</button>
       <!-- 2026-10-23: 웹 챌린지 페이지와 같은 머리(크림 카드 + 초록 그림판). 모양은 공용 rounded-ui.css -->
-      <div class="home-feedbar" id="challenge-picker" role="group" aria-label="챌린지 고르기" style="position:static; margin-bottom:-6px;"></div>
       <div class="warm-page">
         <header class="page-hero app-ch-hero">
           <div class="page-hero-copy">
@@ -560,7 +579,6 @@
           </div>
         </header>
       </div>
-      <div id="challenge-hall"></div>
       <div class="row" style="align-items:center; justify-content:space-between; padding-top:4px;">
         <h2 class="display" style="font-size:16px;">참가작 <span id="entry-count" aria-live="polite">0</span>개</h2>
         <div class="segmented round" role="tablist" aria-label="정렬" id="sort-group">
@@ -569,8 +587,9 @@
         </div>
       </div>
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; padding-bottom:8px;" id="entries"></div>
+      </div>
     </div>
-    <div class="pad" style="flex:0 0 auto; padding-block:14px; border-top:1px solid var(--border); background:var(--surface);">
+    <div class="pad" id="challenge-join-bar" style="flex:0 0 auto; padding-block:14px; border-top:1px solid var(--border); background:var(--surface);">
       <button class="btn-primary" style="width:100%;" data-open-challenge-modal>우리 아이도 참여하기</button>
     </div>
     <nav class="navbar" data-nav aria-label="주요 메뉴"></nav>
@@ -3757,7 +3776,39 @@
     return list;
   }
 
+  var chOpenKey = '';   // 열어 본 챌린지 (비면 목록)
+  function renderChallengeList(){
+    var box = document.getElementById('challenge-list');
+    if(!box) return;
+    box.innerHTML = chRecommended().map(function(c){
+      var mine = state.entries.filter(function(e){ return (e.challenge_key || 'firststep') === c.id; });
+      var cheers = mine.reduce(function(n, e){ return n + (e.votes || 0); }, 0);
+      var pics = mine.filter(function(e){ return e.media_url; }).slice(0, 4);
+      var open = chOpen(c), ok = chEligible(c);
+      var tag = !open ? '<span class="dday off">마감</span>' : '<span class="dday">' + chDdayLabel(c) + '</span>';
+      var badge = !open ? '' : (!ok ? '<span class="pill" style="padding:2px 8px; font-size:11px; background:#FFF0F3; color:#B2456A;">💛 응원만</span>'
+        : (chFits(c) && (c.age_min_m != null || c.age_max_m != null || c.stage === 'pregnant') ? '<span class="badge-match">우리 아이 추천</span>' : ''));
+      return '<button type="button" class="card" data-challenge-open="' + escapeHtml(c.id) + '" style="display:flex; align-items:center; gap:13px; width:100%; padding:14px; text-align:left; color:var(--text);' + (open ? '' : ' opacity:.65;') + '">' +
+        '<span style="flex:0 0 auto; width:58px; height:58px; border-radius:18px; background:var(--w-sun); display:flex; align-items:center; justify-content:center; font-size:30px;" aria-hidden="true">' + escapeHtml(c.emoji || '🏆') + '</span>' +
+        '<span style="display:flex; flex-direction:column; gap:4px; min-width:0; flex:1;">' +
+          '<span style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;"><b style="font-size:15px;">' + escapeHtml(c.title) + '</b>' + tag + badge + '</span>' +
+          '<span class="helper">' + escapeHtml(c.target_label || '전체') + ' · 참가작 ' + mine.length + '개' + (cheers ? ' · 💛 ' + cheers : '') + '</span>' +
+          (pics.length ? '<span style="display:flex; gap:5px; margin-top:2px;">' + pics.map(function(e){ return '<span style="width:38px; height:38px; border-radius:10px; overflow:hidden; flex:0 0 auto;">' + mediaTag(e.media_url, 'width:100%; height:100%; object-fit:cover;') + '</span>'; }).join('') + '</span>' : '') +
+        '</span>' +
+        '<svg style="flex:0 0 auto;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></button>';
+    }).join('');
+  }
   function renderChallenge(){
+    // 챌린지가 하나뿐이면(표가 없는 환경) 목록 없이 바로 상세
+    var detailKey = challengeList.length < 2 ? challengeList[0].id : chOpenKey;
+    var inDetail = challengeList.some(function(c){ return c.id === detailKey; });
+    var lv = document.getElementById('challenge-list-view'), dv = document.getElementById('challenge-detail-view'), jb = document.getElementById('challenge-join-bar');
+    if(lv) lv.hidden = inDetail;
+    if(dv) dv.hidden = !inDetail;
+    if(jb) jb.hidden = !inDetail;
+    var back = document.querySelector('[data-challenge-back]'); if(back) back.hidden = challengeList.length < 2;
+    if(!inDetail){ renderChallengeHall(); renderChallengeList(); return; }
+    state.challengeKey = detailKey;
     document.querySelectorAll('#sort-group [data-sort]').forEach(function(btn){
       var on = btn.getAttribute('data-sort') === state.sortMode;
       btn.setAttribute('aria-selected', on ? 'true' : 'false');
@@ -3780,7 +3831,6 @@
       prizeEl.innerHTML = '<span class="ch-prize-ico" aria-hidden="true">🎁</span><span><b>' + escapeHtml(cur.prize || '') + '</b><br><span style="color:var(--text2);">' +
         (cur.ends_on ? chMD(cur.ends_on) + ' 마감' : '상시 진행') + ' · ' + (cur.announce_on ? chMD(cur.announce_on) + ' 발표' : '매달 첫 주 발표') + ' · 당첨되면 가입한 이메일로 연락드려요</span></span>';
     }
-    renderChallengeHall();
     var picker = document.getElementById('challenge-picker');
     if(picker){
       picker.hidden = challengeList.length < 2;
@@ -6391,10 +6441,20 @@
       }
       return;
     }
-    var chPick = e.target.closest('[data-challenge-pick]');
-    if(chPick){ state.challengeKey = chPick.getAttribute('data-challenge-pick'); save(); renderChallenge(); return; }
+    var chPick = e.target.closest('[data-challenge-pick], [data-challenge-open]');
+    if(chPick){
+      chOpenKey = state.challengeKey = chPick.getAttribute('data-challenge-pick') || chPick.getAttribute('data-challenge-open');
+      save(); renderChallenge();
+      var sc = document.querySelector('#screen-challenge .scroll'); if(sc) sc.scrollTop = 0;
+      return;
+    }
+    if(e.target.closest('[data-challenge-back]')){
+      chOpenKey = ''; renderChallenge();
+      var sc2 = document.querySelector('#screen-challenge .scroll'); if(sc2) sc2.scrollTop = 0;
+      return;
+    }
     var chGo = e.target.closest('[data-challenge-go]');
-    if(chGo){ state.challengeKey = chGo.getAttribute('data-challenge-go'); save(); }   // 이동은 href 가 한다
+    if(chGo){ chOpenKey = state.challengeKey = chGo.getAttribute('data-challenge-go'); save(); }   // 이동은 href 가 한다
     var sort = e.target.closest('[data-sort]');
     if(sort){ state.sortMode = sort.getAttribute('data-sort'); save(); renderChallenge(); return; }
 

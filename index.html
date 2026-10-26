@@ -551,15 +551,15 @@
           <div class="page-hero-copy">
             <span class="mall-eyebrow" id="challenge-eyebrow">D-6 · 10~24개월 추천</span>
             <div class="hh-top">
-              <h1 class="display">첫걸음 <em>챌린지</em></h1>
-              <div class="hh-art" aria-hidden="true"><span>👣</span></div>
+              <h1 class="display" id="challenge-title">첫걸음 <em>챌린지</em></h1>
+              <div class="hh-art" aria-hidden="true"><span id="challenge-art">👣</span></div>
             </div>
-            <p class="page-hero-desc">걸음마 사진 한 장과 짧은 메모로 참여해요. 10~24개월 아이가 대상이에요.</p>
-            <!-- shortcut: 경품 문구에 날짜를 직접 썼다. CHALLENGE_DEADLINE 을 바꾸면 여기(와 community.html)도 같이 고친다 -->
+            <p class="page-hero-desc" id="challenge-desc">걸음마 사진 한 장과 짧은 메모로 참여해요. 10~24개월 아이가 대상이에요.</p>
             <p id="challenge-prize"><span class="ch-prize-ico" aria-hidden="true">🎁</span><span><b>참가하면 추첨으로 4명에게 2만 원 상당 육아용품을 드려요.</b><br><span style="color:var(--text2);">11/30 마감 · 12/3 발표 · 당첨되면 가입한 이메일로 연락드려요</span></span></p>
           </div>
         </header>
       </div>
+      <div class="home-feedbar" id="challenge-picker" role="group" aria-label="챌린지 고르기" style="position:static;"></div>
       <div class="row" style="align-items:center; justify-content:space-between; padding-top:4px;">
         <h2 class="display" style="font-size:16px;">참가작 <span id="entry-count" aria-live="polite">0</span>개</h2>
         <div class="segmented round" role="tablist" aria-label="정렬" id="sort-group">
@@ -1768,7 +1768,7 @@
     await attachMediaUrls(pendingPosts);
     var entryHtml = pendingEntries.map(function(r){
       return '<div class="card col" style="gap:8px; padding:14px;">' +
-        '<span style="font-size:12px; color:var(--text2);">챌린지 참여 · ' + escapeHtml(r.name || '') + ' · ' + escapeHtml(r.age || '') + '</span>' +
+        '<span style="font-size:12px; color:var(--text2);">' + escapeHtml(((challengeList.filter(function(c){ return c.id === (r.challenge_key || 'firststep'); })[0] || {}).title) || '챌린지 참여') + ' · ' + escapeHtml(r.name || '') + ' · ' + escapeHtml(r.age || '') + '</span>' +
         (r.media_url ? mediaTag(r.media_url, 'width:100%; max-height:220px; object-fit:cover; border-radius:12px;') : '') +
         '<p style="font-size:13px; line-height:1.5;">' + escapeHtml(r.note || '') + '</p>' +
         '<div class="row" style="gap:8px;">' +
@@ -2123,7 +2123,46 @@
     return matchedInterest((t.title || '') + ' ' + (t.brand || ''));
   }
   // TODO: 실제 캠페인 마감일로 교체해주세요 (지금은 플레이스홀더 값입니다)
-  var CHALLENGE_DEADLINE = '2026-11-30';
+  // ---------- 챌린지 목록 (표 challenges, 0025) ----------
+  // 운영자가 관리 화면에서 만든다. 표가 없는 환경(운영 SQL 전)은 첫걸음 하나로 예전처럼 동작한다.
+  var CHALLENGE_FALLBACK = [{ id:'firststep', title:'첫걸음 챌린지', emoji:'👣',
+    description:'걸음마 사진 한 장과 짧은 메모로 참여해요. 10~24개월 아이가 대상이에요.',
+    guide:['걷는 모습이 담긴 사진 1장', '아직 걷지 못해도 걸음을 시도하는 모습이면 됩니다', '아이 얼굴이 부담되면 뒷모습이나 발만 담아도 돼요'],
+    placeholder:'예: 오늘 처음으로 세 발짝 걸었어요!', target_label:'10~24개월', stage:'parenting', age_min_m:10, age_max_m:24,
+    ends_on:'2026-11-30', announce_on:'2026-12-03', prize:'참가하면 추첨으로 4명에게 2만 원 상당 육아용품을 드려요.' }];
+  var challengeList = CHALLENGE_FALLBACK, challengesFromDb = false;
+  async function loadChallenges(){
+    if(!sb) return;
+    try{
+      var r = await sb.from('challenges').select('*').eq('visible', true).order('sort_order', { ascending:true });
+      if(!r.error && r.data && r.data.length){ challengeList = r.data; challengesFromDb = true; }
+    }catch(e){}
+  }
+  function chDaysLeft(c){ return c.ends_on ? daysUntil(c.ends_on) : null; }
+  function chOpen(c){ var d = chDaysLeft(c); return d == null || d >= 0; }
+  // 참여 자격은 단계(임신·육아)만 본다. 개월 수는 '추천' 순서에만 쓴다.
+  // 아직 단계를 모르는 사람(첫 방문·광고로 온 사람)은 막지 않는다. 누르면 로그인·프로필 확인이 먼저 나온다.
+  function chEligible(c){ return c.stage === 'all' || !state.kidType || c.stage === state.kidType; }
+  function chFits(c){
+    if(!chEligible(c)) return false;
+    var m = state.kidType === 'parenting' ? ageMonths(state.birthMonth) : null;
+    if(m == null || (c.age_min_m == null && c.age_max_m == null)) return true;
+    return (c.age_min_m == null || m >= c.age_min_m) && (c.age_max_m == null || m <= c.age_max_m);
+  }
+  // 우리 아이에게 맞는 열린 챌린지가 앞에 온다 (개월 수가 딱 맞는 것 > 누구나 > 나머지)
+  function chRecommended(){
+    var score = function(c){ return (chOpen(c) ? 4 : 0) + (chFits(c) ? 2 : 0) + ((c.age_min_m != null || c.age_max_m != null) && chFits(c) ? 1 : 0); };
+    return challengeList.slice().sort(function(a, b){ return score(b) - score(a); });
+  }
+  function chCurrent(){
+    var picked = challengeList.filter(function(c){ return c.id === state.challengeKey; })[0];
+    return picked || chRecommended()[0];
+  }
+  function chDdayLabel(c){
+    var d = chDaysLeft(c);
+    return d == null ? '상시' : (d > 0 ? 'D-' + d : (d === 0 ? 'D-DAY' : '마감'));
+  }
+  function chMD(iso){ return iso ? (+iso.slice(5, 7)) + '/' + (+iso.slice(8, 10)) : ''; }
   function daysUntil(dateStr){
     var target = new Date(dateStr + 'T23:59:59');
     return Math.ceil((target.getTime() - Date.now()) / 86400000);
@@ -2778,7 +2817,7 @@
     if(!sb) return null;
     var requestState = state;
     try{
-      var res = await sb.from('challenge_entries').select('*').eq('status', 'approved').order('created_at', {ascending:false}).limit(50);
+      var res = await sb.from('challenge_entries').select('*').eq('status', 'approved').order('created_at', {ascending:false}).limit(200);
       if(res.error || !res.data) return null;
       var merged = newestFirst(res.data.concat(await fetchOwnUnapproved('challenge_entries')));
       var mineVotes = await fetchMyReactionIds('entry_votes', 'entry_id');
@@ -2788,7 +2827,7 @@
       // media_url 은 DB 값을 그대로 쓰지 않는다. media_path 로 짧은 서명 URL 을 새로 받는다.
       var rows = merged.map(function(r){
         return {
-          id:r.id, name:r.name, age:r.age || '', note:r.note || '', owner_id: r.owner_id || null,
+          id:r.id, name:r.name, age:r.age || '', note:r.note || '', owner_id: r.owner_id || null, challenge_key: r.challenge_key || 'firststep',
           media_path: r.media_path || '', media_url: '',
           votes:r.votes || 0, mine: isMineRow(r.owner_id, r.id, state.myEntries), liked: votedIds.indexOf(r.id) > -1,
           status: r.status || 'approved',
@@ -2880,6 +2919,7 @@
       if(here === 'community') renderCommunity();
       if(here === 'challenge') renderChallenge();
     });
+    loadChallenges().then(function(){ if(state !== requestState) return; var h = (location.hash || '').replace('#',''); if(h === 'challenge') renderChallenge(); if(h === 'home') renderHome(); });
     Promise.all([fetchEntries(), fetchPosts(), fetchAppliedCounts(), fetchMyApplications()]).then(function(r){
       if(state !== requestState) return;
       var entries = r[0], posts = r[1], counts = r[2], mine = r[3];
@@ -3244,27 +3284,24 @@
     var rows = [];
 
     // 1) 챌린지
-    var dLeft = daysUntil(CHALLENGE_DEADLINE);
-    var cClosed = dLeft < 0;
-    var cIneligible = state.kidType === 'pregnant';
-    var cDday = cClosed ? '마감' : (dLeft === 0 ? 'D-DAY' : 'D-' + dLeft);
-    var cSub = cClosed ? '이번 챌린지는 마감됐어요'
-             : (cIneligible ? '육아 단계부터 참여할 수 있어요'
-                            : '10~24개월 · 지금 ' + state.entries.length + '명 참여 중');
-    // 마감된 챌린지는 홈에 띄우지 않는다 (챌린지 탭에서는 결과를 계속 볼 수 있다)
-    if(!cClosed) rows.push(
-      '<a href="#challenge" class="mission-row">' +
-        '<div class="mission-ico" style="background:var(--chip-b);" aria-hidden="true">👣</div>' +
+    // 마감된 챌린지는 홈에 띄우지 않는다 (챌린지 탭에서는 결과를 계속 볼 수 있다). 우리 아이에게 맞는 것부터 둘까지.
+    chRecommended().filter(chOpen).slice(0, 2).forEach(function(c){
+      var cIneligible = !chEligible(c);
+      var n = state.entries.filter(function(e){ return (e.challenge_key || 'firststep') === c.id; }).length;
+      var cSub = cIneligible ? (c.stage === 'pregnant' ? '임신 중인 분이 참여해요' : '육아 단계부터 참여할 수 있어요') : (c.target_label || '전체') + ' · 지금 ' + n + '명 참여 중';
+      rows.push(
+      '<a href="#challenge" class="mission-row" data-challenge-go="' + escapeHtml(c.id) + '">' +
+        '<div class="mission-ico" style="background:var(--chip-b);" aria-hidden="true">' + escapeHtml(c.emoji || '🏆') + '</div>' +
         '<div class="mission-main">' +
           '<div class="row" style="align-items:center; gap:6px;">' +
-            '<span class="mission-title">첫걸음 챌린지</span>' +
-            '<span class="dday' + (cClosed ? ' off' : '') + '">' + cDday + '</span>' +
+            '<span class="mission-title">' + escapeHtml(c.title) + '</span>' +
+            '<span class="dday">' + chDdayLabel(c) + '</span>' +
           '</div>' +
           '<span class="helper">' + escapeHtml(cSub) + '</span>' +
         '</div>' +
-        '<span class="mission-go' + (cClosed || cIneligible ? ' off' : '') + '">' +
-          (cClosed ? '결과' : (cIneligible ? '대상 아님' : '참여')) + '</span>' +
+        '<span class="mission-go' + (cIneligible ? ' off' : '') + '">' + (cIneligible ? '대상 아님' : '참여') + '</span>' +
       '</a>');
+    });
 
     // 2) 체험단 — 관심 분야에 걸리는 것부터
     var trials = TRIALS.filter(function(t){ return !trialExpired(t); });
@@ -3441,7 +3478,7 @@
   // 운영자가 바꿀 홍보 칸. 링크는 앱 안 화면(#...)만 쓴다.
   // shortcut: 배너를 코드에 적었다. 자주 바뀌면 mall_banners 처럼 DB 표로 옮긴다.
   var HOME_BANNERS = [
-    { key:'challenge', emoji:'👣', title:'첫걸음 챌린지 진행 중', sub:'사진 한 장으로 참여하고 육아용품 받아가요', href:'#challenge', bg:'var(--w-sun)' },
+    { key:'challenge', emoji:'🏆', title:'우리 아이 자랑 챌린지', sub:'사진 한 장으로 참여하고 응원 받아요', href:'#challenge', bg:'var(--w-sun)' },
     { key:'prep', emoji:'📝', title:'출산 준비물 체크리스트', sub:'꼭 필요한 것만 골라 하나씩 체크해요', href:'#prep', bg:'var(--w-leaf)' },
     { key:'brand', emoji:'🛍️', title:'다다맘 브랜드관', sub:'엄마 아빠가 믿고 고르는 육아 브랜드', href:'#brand', bg:'var(--w-peach)' }
   ];
@@ -3476,7 +3513,7 @@
   function homeBannerList(){
     loadHomeBanners();
     if(homeDbBanners && homeDbBanners.length) return homeDbBanners;
-    return HOME_BANNERS.filter(function(b){ return b.key !== 'challenge' || daysUntil(CHALLENGE_DEADLINE) >= 0; });
+    return HOME_BANNERS.filter(function(b){ return b.key !== 'challenge' || challengeList.some(chOpen); });
   }
   function renderHomeBanners(){
     var el = document.getElementById('home-banners');
@@ -3666,18 +3703,38 @@
       btn.setAttribute('aria-selected', on ? 'true' : 'false');
     });
 
-    var dLeft = daysUntil(CHALLENGE_DEADLINE);
-    var challengeClosed = dLeft < 0;
+    var cur = chCurrent();
+    var challengeClosed = !chOpen(cur);
     var eyebrowEl = document.getElementById('challenge-eyebrow');
-    if(eyebrowEl){ eyebrowEl.textContent = (dLeft > 0 ? ('D-' + dLeft) : (dLeft === 0 ? 'D-DAY' : '모집 마감')) + ' · 10~24개월 추천'; }
+    if(eyebrowEl){ eyebrowEl.textContent = (challengeClosed ? '모집 마감' : chDdayLabel(cur)) + ' · ' + (cur.target_label || '전체') + (cur.age_min_m != null ? ' 추천' : ''); }
+    var titleEl = document.getElementById('challenge-title');
+    if(titleEl){
+      var tw = String(cur.title || '').split(' ');
+      titleEl.innerHTML = tw.length > 1 ? escapeHtml(tw.slice(0, -1).join(' ')) + ' <em>' + escapeHtml(tw[tw.length - 1]) + '</em>' : '<em>' + escapeHtml(cur.title || '') + '</em>';
+    }
+    var artEl = document.getElementById('challenge-art'); if(artEl) artEl.textContent = cur.emoji || '🏆';
+    var descEl = document.getElementById('challenge-desc'); if(descEl) descEl.textContent = cur.description || '';
+    var prizeEl = document.getElementById('challenge-prize');
+    if(prizeEl){
+      prizeEl.hidden = !cur.prize;
+      prizeEl.innerHTML = '<span class="ch-prize-ico" aria-hidden="true">🎁</span><span><b>' + escapeHtml(cur.prize || '') + '</b><br><span style="color:var(--text2);">' +
+        (cur.ends_on ? chMD(cur.ends_on) + ' 마감' : '상시 진행') + ' · ' + (cur.announce_on ? chMD(cur.announce_on) + ' 발표' : '매달 첫 주 발표') + ' · 당첨되면 가입한 이메일로 연락드려요</span></span>';
+    }
+    var picker = document.getElementById('challenge-picker');
+    if(picker){
+      picker.hidden = challengeList.length < 2;
+      picker.innerHTML = chRecommended().map(function(c){
+        return '<button type="button" class="chip-f" data-challenge-pick="' + escapeHtml(c.id) + '" aria-pressed="' + (c.id === cur.id) + '">' + escapeHtml((c.emoji || '') + ' ' + c.title) + (chOpen(c) ? '' : ' · 마감') + '</button>';
+      }).join('');
+    }
     var partBtn = document.querySelector('[data-open-challenge-modal]');
     if(partBtn){
-      var ineligible = state.kidType === 'pregnant';
+      var ineligible = !chEligible(cur);
       partBtn.disabled = ineligible || challengeClosed;
-      partBtn.textContent = challengeClosed ? '모집이 마감됐어요' : (ineligible ? '육아 단계에서 참여할 수 있어요' : '참여하기');
+      partBtn.textContent = challengeClosed ? '모집이 마감됐어요' : (ineligible ? (cur.stage === 'pregnant' ? '임신 중인 분이 참여할 수 있어요' : '육아 단계에서 참여할 수 있어요') : '우리 아이도 참여하기');
     }
 
-    var list = sortedEntries();
+    var list = sortedEntries().filter(function(e){ return (e.challenge_key || 'firststep') === cur.id; });
     if(state.viewMineOnly === 'challenge'){ list = list.filter(function(e){ return e.mine; }); }
     document.getElementById('entry-count').textContent = list.length;
     var challengeMineBanner = state.viewMineOnly === 'challenge'
@@ -6042,27 +6099,26 @@
   }
 
   function challengeModalHtml(){
-    var dLeft = daysUntil(CHALLENGE_DEADLINE);
-    var dday = dLeft < 0 ? '모집 마감' : (dLeft === 0 ? 'D-DAY' : 'D-' + dLeft);
+    var cur = chCurrent();
+    var dday = chOpen(cur) ? chDdayLabel(cur) : '모집 마감';
+    var curCount = state.entries.filter(function(e){ return (e.challenge_key || 'firststep') === cur.id; }).length;
     return '<div class="modal-head"><h3 class="display">미션 인증</h3><button class="modal-close" data-close-modal aria-label="닫기">✕</button></div>' +
       // 어떤 미션인지 먼저 보여준다 — 커뮤니티 글쓰기와 구분되는 핵심
       '<div class="mission-banner">' +
         '<div class="row" style="align-items:center; gap:7px;">' +
           '<span class="mission-banner-dday">' + dday + '</span>' +
-          '<span style="font-size:13.5px; font-weight:800;">첫걸음 챌린지</span>' +
+          '<span style="font-size:13.5px; font-weight:800;">' + escapeHtml((cur.emoji || '') + ' ' + cur.title) + '</span>' +
         '</div>' +
-        '<span class="helper">지금까지 ' + state.entries.length + '명이 인증했어요 · 10~24개월 대상</span>' +
+        '<span class="helper">지금까지 ' + curCount + '명이 인증했어요 · ' + escapeHtml(cur.target_label || '전체') + '</span>' +
       '</div>' +
       '<div class="guide-box">' +
         '<span class="guide-title">작성 안내</span>' +
         '<ul class="guide-list">' +
-          '<li>걷는 모습이 담긴 사진 1장</li>' +
-          '<li>아직 걷지 못해도 걸음을 시도하는 모습이면 됩니다</li>' +
-          '<li>아이 얼굴이 부담되면 뒷모습이나 발만 담아도 돼요</li>' +
+          (cur.guide || []).map(function(g){ return '<li>' + escapeHtml(g) + '</li>'; }).join('') +
         '</ul>' +
       '</div>' +
       '<div class="field"><label for="entry-file">인증 사진 *</label><input type="file" id="entry-file" accept="image/jpeg,image/png,image/webp"><span class="helper" id="entry-file-hint">사진 1장이 필요해요 (JPG · PNG · WEBP, 25MB까지)</span></div>' +
-      '<div class="field"><label for="entry-note">한 줄 기록 *</label><textarea id="entry-note" rows="3" placeholder="예: 오늘 처음으로 세 발짝 걸었어요!"></textarea></div>' +
+      '<div class="field"><label for="entry-note">한 줄 기록 *</label><textarea id="entry-note" rows="3" placeholder="' + escapeHtml(cur.placeholder || '한 줄로 남겨 주세요') + '"></textarea></div>' +
       '<label class="check-row"><input type="checkbox" id="entry-consent"> 보호자이며, 아이 사진을 챌린지에 게시하는 것에 동의해요 *</label>' +
       '<label class="check-row"><input type="checkbox" id="entry-consent2"> 참여 브랜드가 콘텐츠를 광고에 활용하는 것에 동의해요 (선택)</label>' +
       '<button class="btn-primary" id="entry-submit" style="width:100%;" disabled>인증 제출하기</button>';
@@ -6254,6 +6310,10 @@
       return;
     }
 
+    var chPick = e.target.closest('[data-challenge-pick]');
+    if(chPick){ state.challengeKey = chPick.getAttribute('data-challenge-pick'); save(); renderChallenge(); return; }
+    var chGo = e.target.closest('[data-challenge-go]');
+    if(chGo){ state.challengeKey = chGo.getAttribute('data-challenge-go'); save(); }   // 이동은 href 가 한다
     var sort = e.target.closest('[data-sort]');
     if(sort){ state.sortMode = sort.getAttribute('data-sort'); save(); renderChallenge(); return; }
 
@@ -6699,7 +6759,8 @@
     var name = state.nickname || '우리 아이';
     var age = ageLabel() || '참가자';
     var brandConsent2El = document.getElementById('entry-consent2');
-    var newEntry = { id:'e' + Date.now(), name:name, age:age, note:noteVal, media_path:mediaPath, media_url:signedNow, votes:0, liked:false, mine:true, createdAt: Date.now(),
+    var entryKey = chCurrent().id;
+    var newEntry = { id:'e' + Date.now(), challenge_key:entryKey, name:name, age:age, note:noteVal, media_path:mediaPath, media_url:signedNow, votes:0, liked:false, mine:true, createdAt: Date.now(),
       status: sb ? 'pending' : 'approved',
       consent: { photoConsent:true, brandUse: !!(brandConsent2El && brandConsent2El.checked), docVersion:'v1', consentedAt: new Date().toISOString() } };
     if(sb){
@@ -6707,6 +6768,7 @@
       var rowId = newUuid();
       // 전체 URL 이 아니라 경로만 저장한다. URL 은 볼 때마다 짧게 새로 발급한다.
       var payload = { name:name, age:age, note:noteVal, media_path:mediaPath || null };
+      if(challengesFromDb) payload.challenge_key = entryKey;
       if(rowId) payload.id = rowId;
       var res = await sb.from('challenge_entries').insert(payload);
       if(res.error){

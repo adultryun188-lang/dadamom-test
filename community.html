@@ -752,8 +752,21 @@
   var MEDIA_ALLOWED = ['image/jpeg','image/png','image/webp'];
   var MEDIA_MAX_BYTES = 25 * 1024 * 1024;
   var MEDIA_TTL = 600;
-  // 앱 index.html 의 CHALLENGE_DEADLINE 과 같은 값. 바꿀 때 둘 다 바꾼다.
+  // 첫걸음 마감일 — 팝업이 쓴다. 챌린지 목록은 표 challenges(0025), 표가 없으면 아래 첫걸음 하나.
   var CHALLENGE_DEADLINE = '2026-11-30';
+  var CH_FALLBACK = [{ id:'firststep', title:'첫걸음 챌린지', emoji:'👣', description:'걸음마 사진 한 장과 짧은 메모로 참여해요. 처음의 순간을 함께 남기고 응원해요.',
+    target_label:'10~24개월', ends_on:CHALLENGE_DEADLINE, announce_on:'2026-12-03', prize:'참가하면 추첨으로 4명에게 2만 원 상당 육아용품을 드려요.' }];
+  var chList = CH_FALLBACK, chFromDb = false, chLoaded = null;
+  function loadChallenges(){
+    if(!chLoaded) chLoaded = sb.from('challenges').select('*').eq('visible', true).order('sort_order', { ascending:true })
+      .then(function(r){ if(!r.error && r.data && r.data.length){ chList = r.data; chFromDb = true; } }, function(){});
+    return chLoaded;
+  }
+  function chLeft(c){ return c.ends_on ? Math.ceil((new Date(c.ends_on + 'T23:59:59') - Date.now()) / 86400000) : null; }
+  function chOpenW(c){ var l = chLeft(c); return l == null || l >= 0; }
+  function chDd(c){ var l = chLeft(c); return l == null ? '상시' : l > 0 ? 'D-' + l : l === 0 ? 'D-DAY' : '마감'; }
+  function chMd(iso){ return iso ? (+iso.slice(5, 7)) + '/' + (+iso.slice(8, 10)) : ''; }
+  var chCurKey = '';
   var REPORT_REASONS = ['욕설·비방', '음란물·선정성', '광고·스팸', '허위정보', '개인정보 노출', '기타'];
   var NAV = [
     { id:'home',      name:'홈',        href:'#/' },
@@ -951,7 +964,7 @@
     if(s0 === '') return renderHome(main);
     if(s0 === 'p' && r.seg[1]) return renderPost(main, r.seg[1]);
     if(s0 === 'write') return renderWrite(main);
-    if(s0 === 'challenge') return renderChallenge(main);
+    if(s0 === 'challenge') return renderChallenge(main, r.params);
     if(s0 === 'outing') return renderOuting(main, r.params);
     if(s0 === 'brand') return renderBrandMall(main, r.seg[1], r.params);
     if(s0 === 'mall-admin') return renderMallAdmin(main);
@@ -1002,7 +1015,8 @@
           '<h1 class="display" id="fc-title">첫걸음 <em>챌린지</em></h1>' +
           '<p>아이의 첫걸음, 사진 한 장으로 남겨요. 참가작마다 또래 부모들의 응원이 모이고, 추첨으로 육아용품을 드려요.</p>' +
           '<div class="facts"><span>대상 <strong>10~24개월</strong></span><span>마감 <strong>11/30</strong> · 발표 12/3</span><span>경품 <strong>4명</strong> · 2만 원 상당 육아용품</span><span id="fc-count">참가작 –</span></div>' +
-          '<div class="cta">' + (open ? '<a class="btn primary" href="./index.html#challenge">앱에서 참여하기</a>' : '') + '<a class="btn" href="#/challenge">참가작 보고 응원하기</a></div>' +
+          '<div class="cta">' + (open ? '<a class="btn primary" href="./index.html#challenge">앱에서 참여하기</a>' : '') + '<a class="btn" href="#/challenge?c=firststep">참가작 보고 응원하기</a></div>' +
+          '<div class="sub" id="fc-more" style="padding:12px 0 0; flex-wrap:wrap;"></div>' +
         '</div>' +
         '<div class="mosaic" id="home-ch"><span>참가작을 불러오는 중…</span></div>' +
       '</section>' +
@@ -1023,7 +1037,8 @@
       sb.from('community_posts').select('id', { count:'exact', head:true }).eq('status','approved').gte('created_at', start.toISOString()),
       sb.from('post_comments').select('id', { count:'exact', head:true }).gte('created_at', week),
       sb.from('community_posts').select('id', { count:'exact', head:true }).eq('status','approved'),
-      sb.from('challenge_entries').select('id', { count:'exact', head:true }).eq('status','approved')
+      chFromDb ? sb.from('challenge_entries').select('id', { count:'exact', head:true }).eq('status','approved').eq('challenge_key', 'firststep')
+               : sb.from('challenge_entries').select('id', { count:'exact', head:true }).eq('status','approved')
     ]).then(function(r){
       if($('st-today')) $('st-today').textContent = (r[0].count || 0).toLocaleString();
       if($('st-week')) $('st-week').textContent = (r[1].count || 0).toLocaleString();
@@ -1031,7 +1046,12 @@
       if($('fc-count')) $('fc-count').innerHTML = '참가작 <strong>' + (r[3].count || 0).toLocaleString() + '</strong>개';
     });
 
-    var ch = await sb.from('challenge_entries').select('id,name,media_path,votes').eq('status','approved').order('votes', { ascending:false }).order('created_at', { ascending:false }).limit(4);
+    await loadChallenges();
+    var others = chList.filter(function(x){ return x.id !== 'firststep' && chOpenW(x); });
+    if($('fc-more') && others.length) $('fc-more').innerHTML = '<span class="helper" style="margin-right:4px;">다른 챌린지</span>' + others.map(function(x){ return '<a class="chip" href="#/challenge?c=' + encodeURIComponent(x.id) + '">' + esc((x.emoji || '') + ' ' + x.title) + '</a>'; }).join('');
+    var chq = sb.from('challenge_entries').select('id,name,media_path,votes').eq('status','approved');
+    if(chFromDb) chq = chq.eq('challenge_key', 'firststep');
+    var ch = await chq.order('votes', { ascending:false }).order('created_at', { ascending:false }).limit(4);
     var urls = await signUrls((ch.data || []).map(function(e){ return e.media_path; }));
     var tiles = (ch.data || []).map(function(e){
       return '<a href="#/challenge" aria-label="' + esc(e.name || '참가작') + ' 응원 ' + (e.votes || 0) + '">' + (urls[e.media_path] ? '<img src="' + esc(urls[e.media_path]) + '" alt="" loading="lazy">' : '<b class="fc-entry-name">' + esc(e.name || '참가작') + '</b>') + '<span class="v">응원 ' + (e.votes || 0) + '</span></a>';
@@ -1683,18 +1703,30 @@
   }
 
   // ---------- 챌린지 (앱과 같은 challenge_entries · entry_votes) ----------
-  async function renderChallenge(main){
-    var left = Math.ceil((new Date(CHALLENGE_DEADLINE + 'T23:59:59') - Date.now()) / 86400000);
-    var dd = left > 0 ? 'D-' + left : left === 0 ? 'D-DAY' : '마감';
-    main.innerHTML = '<section class="warm-page challenge-page">' +
-      '<header class="page-hero ch-hero"><div class="page-hero-copy"><span class="mall-eyebrow">다다맘 챌린지 <span class="dday' + (left < 0 ? ' off' : '') + '">' + dd + '</span></span>' +
-        '<h1 class="display">첫걸음 <em>챌린지</em></h1><p class="page-hero-desc">걸음마 사진 한 장과 짧은 메모로 참여해요.<br>처음의 순간을 함께 남기고 응원해요.</p>' +
-        '<div class="challenge-facts"><span>대상 <b>10~24개월</b></span><span>마감 <b>11/30</b> · 발표 <b>12/3</b></span><span><b>참가자 중 4명 추첨</b> · 2만 원 상당 육아용품</span></div>' +
-        (left >= 0 ? '<a class="btn primary" href="./index.html#challenge">앱에서 참여하기</a>' : '') + '</div>' +
-        '<div class="page-hero-art challenge-art" aria-hidden="true"><div class="first-step-poster"><span class="footprint">👣</span><b>작은 한 걸음,<br>커다란 기쁨.</b><span>첫 순간을 함께 응원해요</span></div></div></header>' +
+  async function renderChallenge(main, params){
+    await loadChallenges();
+    var want = params && params.get('c');
+    var c = chList.filter(function(x){ return x.id === want; })[0] || chList.filter(chOpenW)[0] || chList[0];
+    chCurKey = c.id;
+    var left = chLeft(c), open = chOpenW(c), dd = chDd(c);
+    var tw = String(c.title || '').split(' ');
+    var titleHtml = tw.length > 1 ? esc(tw.slice(0, -1).join(' ')) + ' <em>' + esc(tw[tw.length - 1]) + '</em>' : '<em>' + esc(c.title) + '</em>';
+    var poster = c.id === 'firststep'
+      ? '<div class="first-step-poster"><span class="footprint">👣</span><b>작은 한 걸음,<br>커다란 기쁨.</b><span>첫 순간을 함께 응원해요</span></div>'
+      : '<div class="first-step-poster"><span class="footprint">' + esc(c.emoji || '🏆') + '</span><b>' + esc(c.title) + '</b><span>우리 아이 자랑을 함께 응원해요</span></div>';
+    var picker = chList.length > 1 ? '<nav class="sub" aria-label="챌린지 고르기" style="padding:0 0 4px;">' + chList.map(function(x){
+        return '<a class="chip' + (x.id === c.id ? ' on' : '') + '" href="#/challenge?c=' + encodeURIComponent(x.id) + '">' + esc((x.emoji || '') + ' ' + x.title) + (chOpenW(x) ? '' : ' · 마감') + '</a>';
+      }).join('') + '</nav>' : '';
+    main.innerHTML = '<section class="warm-page challenge-page">' + picker +
+      '<header class="page-hero ch-hero"><div class="page-hero-copy"><span class="mall-eyebrow">다다맘 챌린지 <span class="dday' + (open ? '' : ' off') + '">' + dd + '</span></span>' +
+        '<h1 class="display">' + titleHtml + '</h1><p class="page-hero-desc">' + esc(c.description || '') + '</p>' +
+        '<div class="challenge-facts"><span>대상 <b>' + esc(c.target_label || '전체') + '</b></span><span>' + (c.ends_on ? '마감 <b>' + chMd(c.ends_on) + '</b>' : '<b>상시 진행</b>') + ' · 발표 <b>' + (c.announce_on ? chMd(c.announce_on) : '매달 첫 주') + '</b></span>' +
+          (c.prize ? '<span>' + esc(c.prize) + '</span>' : '') + '</div>' +
+        (open ? '<a class="btn primary" href="./index.html#challenge">앱에서 참여하기</a>' : '') + '</div>' +
+        '<div class="page-hero-art challenge-art" aria-hidden="true">' + poster + '</div></header>' +
       '<section class="challenge-guide" aria-labelledby="challenge-guide-title"><div class="mall-section-head"><h2 id="challenge-guide-title">참여는 이렇게 해요</h2></div>' +
-        '<div class="ch-steps"><div><b>1단계</b><span>아이의 첫걸음 순간을 사진으로 찍어요</span></div><div><b>2단계</b><span>앱의 챌린지 탭에서 사진과 한 줄 메모를 올려요</span></div><div><b>3단계</b><span>검수 후 공개되면 또래 부모들의 응원을 받아요</span></div></div></section>' +
-      '<section class="panel challenge-gallery" aria-labelledby="challenge-gallery-title"><div class="panel-h"><h2 class="display" id="challenge-gallery-title">첫걸음의 주인공들</h2><span class="helper" id="ch-count"></span></div>' +
+        '<div class="ch-steps"><div><b>1단계</b><span>' + esc((c.guide && c.guide[0]) || '아이의 순간을 사진으로 찍어요') + '</span></div><div><b>2단계</b><span>앱의 챌린지 탭에서 사진과 한 줄 메모를 올려요</span></div><div><b>3단계</b><span>검수 후 공개되면 또래 부모들의 응원을 받아요</span></div></div></section>' +
+      '<section class="panel challenge-gallery" aria-labelledby="challenge-gallery-title"><div class="panel-h"><h2 class="display" id="challenge-gallery-title">' + esc(c.title) + ' 참가작</h2><span class="helper" id="ch-count"></span></div>' +
       '<nav class="sub" aria-label="참가작 정렬"><a class="chip on" href="#/challenge" id="ch-sort-new">최신순</a><a class="chip" href="#/challenge" id="ch-sort-pop">응원순</a></nav>' +
       '<div class="gallery" id="gallery"><div class="helper">불러오는 중…</div></div></section></section>';
     loadGallery('new');
@@ -1702,6 +1734,7 @@
 
   async function loadGallery(sort){
     var qb = sb.from('challenge_entries').select('id,name,age,note,media_path,votes,created_at,owner_id').eq('status','approved');
+    if(chFromDb && chCurKey) qb = qb.eq('challenge_key', chCurKey);
     if(sort === 'pop') qb = qb.order('votes', { ascending:false });
     var res = await qb.order('created_at', { ascending:false }).limit(60);
     var rows = res.data || [];
@@ -1925,7 +1958,14 @@
     ['title','제목 * (80자, 원문 제목 그대로 또는 우리 말로)','text',80], ['summary','한 줄 소개 (200자, 원문을 베끼지 말고 우리 말로)','textarea',200],
     ['source_name','출처 이름 * (예: 연합뉴스, 유튜브 채널명)','text',40], ['url','원문 주소 * (https://)','url'],
     ['thumb_url','썸네일 (우리 그림만. 유튜브는 비워 두면 자동)','image'], ['published_on','원문 날짜','date'], ['visible','공개','check'], ['sort_order','순서 (작을수록 앞)','number'] ] };
-  var mallCache = { brand:[], product:[], banner:[], magazine:[] };
+  MALL_FORMS.challenge = { table:'challenges', title:'챌린지', fields:[
+    ['id','영문 이름 * (주소에 쓰여요. 소문자·숫자·- 만, 예: xmas2026)','text',32], ['title','챌린지 이름 * (40자)','text',40], ['emoji','그림 글자 (이모지 하나)','text',8],
+    ['description','소개 (300자)','textarea',300], ['guide','참여 안내 (한 줄에 하나씩)','lines',400], ['placeholder','한 줄 기록 예시 (예: 오늘 처음 뒤집었어요!)','text',80],
+    ['target_label','대상 표시 (예: 4~10개월, 전체)','text',30], ['stage','참여할 수 있는 사람','select',['parenting:육아 중','pregnant:임신 중','all:모두']],
+    ['age_min_m','추천 개월 수 (부터, 비우면 전체)','number'], ['age_max_m','추천 개월 수 (까지)','number'],
+    ['ends_on','마감일 (비우면 상시)','date'], ['announce_on','발표일 (비우면 매달 첫 주)','date'], ['prize','경품 문구 (200자)','text',200],
+    ['visible','공개','check'], ['sort_order','순서 (작을수록 앞)','number'] ] };
+  var mallCache = { brand:[], product:[], banner:[], magazine:[], challenge:[] };
 
   async function renderMallAdmin(main){
     if(!isAdmin){ main.innerHTML = panelMsg('브랜드관 관리', '🔐', '관리자만 볼 수 있어요.'); return; }
@@ -1934,9 +1974,10 @@
       sb.from('mall_brands').select('*').order('sort_order', { ascending:true }),
       sb.from('mall_products').select('*').order('sort_order', { ascending:true }),
       sb.from('mall_banners').select('*').order('sort_order', { ascending:true }),
-      sb.from('magazine_items').select('*').order('sort_order', { ascending:true }).order('created_at', { ascending:false })
+      sb.from('magazine_items').select('*').order('sort_order', { ascending:true }).order('created_at', { ascending:false }),
+      sb.from('challenges').select('*').order('sort_order', { ascending:true })
     ]);
-    mallCache = { brand: res[0].data || [], product: res[1].data || [], banner: res[2].data || [], magazine: res[3].data || [] };
+    mallCache = { brand: res[0].data || [], product: res[1].data || [], banner: res[2].data || [], magazine: res[3].data || [], challenge: res[4].error ? [] : (res[4].data || []) };
     var bname = {}; mallCache.brand.forEach(function(b){ bname[b.id] = b.name; });
     var row = function(kind, x, label){
       return '<li><span class="t">' + label + (x.visible === false ? '<span class="hidden-tag">숨김</span>' : '') + '</span>' +
@@ -1953,6 +1994,8 @@
       sec('product', '🧸', mallCache.product, function(p){ return '<span class="helper">' + esc(bname[p.brand_id] || '?') + '</span> ' + esc(p.name) + ' · ' + won(p.sale_price != null ? p.sale_price : p.price) + (p.is_deal ? ' 🔥' : ''); }) +
       sec('magazine', '📰', mallCache.magazine, function(m){ return '<span class="helper">' + esc((DadamomShared.magKinds[m.kind] || {}).label || '') + ' · ' + esc(m.source_name) + '</span> ' + esc(m.title); }) +
       '<p class="mall-note">매거진은 원문을 복사하지 말고 제목·짧은 소개·출처·원문 주소만 올려 주세요. 사진은 우리가 가진 그림만 쓰고, 유튜브는 썸네일이 자동으로 붙어요.</p>' +
+      (res[4].error ? '' : sec('challenge', '🏆', mallCache.challenge, function(c){ return esc((c.emoji || '') + ' ' + c.title) + ' <span class="helper">' + esc(c.target_label || '') + ' · ' + (c.ends_on ? '~' + esc(c.ends_on) : '상시') + '</span>'; }) +
+        '<p class="mall-note">참가작이 있는 챌린지는 지우지 말고 \'공개\'를 끄세요. 마감일이 지나면 앱에서 참여가 자동으로 닫혀요.</p>') +
       '</section>';
   }
 
@@ -1965,6 +2008,7 @@
       var k = fd[0], label = fd[1], type = fd[2], max = fd[3];
       if(type === 'check') return '<label class="ck"><input type="checkbox" name="' + k + '"' + (x[k] ? ' checked' : '') + '> ' + esc(label) + '</label>';
       if(type === 'textarea') return '<label>' + esc(label) + '<textarea name="' + k + '" maxlength="' + max + '" rows="3">' + esc(v(k)) + '</textarea></label>';
+      if(type === 'lines') return '<label>' + esc(label) + '<textarea name="' + k + '" maxlength="' + max + '" rows="3">' + esc((x[k] || []).join('\n')) + '</textarea></label>';
       if(type === 'select') return '<label>' + esc(label) + '<select name="' + k + '">' + max.map(function(o){ var p = o.split(':'); return '<option value="' + p[0] + '"' + (p[0] === v(k) ? ' selected' : '') + '>' + esc(p[1]) + '</option>'; }).join('') + '</select></label>';
       if(type === 'brand') return '<label>' + esc(label) + '<select name="' + k + '">' + mallCache.brand.map(function(b){ return '<option value="' + b.id + '"' + (b.id === x[k] ? ' selected' : '') + '>' + esc(b.name) + '</option>'; }).join('') + '</select></label>';
       if(type === 'image') return '<label>' + esc(label) + '<input type="hidden" name="' + k + '" value="' + esc(v(k)) + '">' +
@@ -1998,11 +2042,19 @@
     spec.fields.forEach(function(fd){
       var k = fd[0], type = fd[2], el = form.querySelector('[name="' + k + '"]'); if(!el) return;
       if(type === 'check') row[k] = el.checked;
+      else if(type === 'lines') row[k] = el.value.split('\n').map(function(t){ return t.trim(); }).filter(Boolean).slice(0, 6);
+      else if(type === 'number' && k !== 'sort_order'){ var nn = el.value.trim(); row[k] = nn === '' ? null : Math.max(0, parseInt(nn, 10) || 0); }
       else if(type === 'number'){ var n = el.value.trim(); row[k] = n === '' ? (k === 'sort_order' ? 0 : null) : Math.max(0, parseInt(n, 10) || 0); }
       else { var t = el.value.trim(); row[k] = t === '' ? null : t; }
     });
     var bad = spec.fields.filter(function(fd){ return /\*/.test(fd[1]) && !row[fd[0]]; })[0];
     if(bad){ $('ma-hint').textContent = fd2label(bad) + ' 을(를) 입력해주세요'; return; }
+    if(kind === 'challenge'){
+      if(!/^[a-z0-9_-]{2,32}$/.test(row.id || '')){ $('ma-hint').textContent = '영문 이름은 소문자·숫자·- 로 2~32자예요 (예: xmas2026)'; return; }
+      if(!row.emoji) row.emoji = '🏆';
+      ['description','placeholder','prize'].forEach(function(k){ if(row[k] == null) row[k] = ''; });
+      if(row.target_label == null) row.target_label = '전체';
+    }
     var urlBad = ['store_url','buy_url','url','thumb_url'].filter(function(k){ return row[k] && !/^https:\/\//.test(row[k]); })[0] || (row.link_url && !/^(https:\/\/|#\/)/.test(row.link_url) ? 'link_url' : '') || (row.bg && !/^#[0-9A-Fa-f]{6}$/.test(row.bg) ? 'bg' : '');
     if(urlBad){ $('ma-hint').textContent = urlBad === 'bg' ? '배경색은 #FFE3D6 처럼 적어주세요' : '주소는 https:// 로 시작해야 해요'; return; }
     $('ma-save').disabled = true;
@@ -2274,16 +2326,18 @@
   document.addEventListener('input', function(e){ if(e.target.id === 'w-title' || e.target.id === 'w-body') saveDraft(); });
   document.addEventListener('change', function(e){ if(e.target.id === 'w-photo') previewPhoto(e.target); });
   document.addEventListener('submit', function(e){
-    if(e.target.id === 'search'){
+    // form.id 대신 속성을 읽는다: 챌린지 관리 폼에는 name="id" 칸이 있어 form.id 가 그 입력칸을 가리킨다
+    var fid = e.target.getAttribute('id');
+    if(fid === 'search'){
       e.preventDefault();
       var q = $('q').value.trim();
       location.hash = boardHref('all', { q:q, f: q && $('q-scope').value === 'author' ? 'author' : '' });
     }
-    else if(e.target.id === 'cmt-form') submitComment(e);
-    else if(e.target.id === 'write-form') submitWrite(e);
-    else if(e.target.id === 'login-form') submitLogin(e);
-    else if(e.target.id === 'ma-form') saveMallForm(e);
-    else if(e.target.id === 'edit-form') submitEdit(e);
+    else if(fid === 'cmt-form') submitComment(e);
+    else if(fid === 'write-form') submitWrite(e);
+    else if(fid === 'login-form') submitLogin(e);
+    else if(fid === 'ma-form') saveMallForm(e);
+    else if(fid === 'edit-form') submitEdit(e);
   });
   document.addEventListener('keydown', function(e){ if(e.key === 'Escape' && !$('modal').hidden) closeModal(); });
   document.addEventListener('change', function(e){ if(e.target.matches && e.target.matches('[data-ma-file]')) uploadMallImage(e.target); });

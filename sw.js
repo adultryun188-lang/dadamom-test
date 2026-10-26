@@ -56,6 +56,10 @@ self.addEventListener('fetch', (e) => {
   // 다른 출처(폰트 CDN 등)는 브라우저 기본 동작에 맡긴다
   if (url.origin !== self.location.origin) return;
 
+  // 영상(챌린지 예시 영상 등)은 브라우저에 맡긴다. 아이폰 사파리는 Range 요청으로 받는데,
+  // 캐시에서 통째로 돌려주면 재생이 안 된다.
+  if (req.headers.has('range') || /\.(mp4|mov|webm)$/i.test(url.pathname)) return;
+
   const isDoc = req.mode === 'navigate'
              || url.pathname.endsWith('/')
              || url.pathname.endsWith('index.html')

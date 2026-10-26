@@ -561,7 +561,7 @@
                 <h1 class="display">우리 아이 <em>자랑 대회</em></h1>
                 <div class="hh-art" aria-hidden="true"><span>🏆</span></div>
               </div>
-              <p class="page-hero-desc">사진 한 장으로 참여하고, 응원을 가장 많이 받으면 이달의 주인공이 돼요.</p>
+              <p class="page-hero-desc">사진이나 30초 영상으로 참여하고, 응원을 가장 많이 받으면 이달의 주인공이 돼요.</p>
             </div>
           </header>
         </div>
@@ -585,6 +585,7 @@
           </div>
         </header>
       </div>
+      <div id="challenge-example"></div>
       <div class="row" style="align-items:center; justify-content:space-between; padding-top:4px;">
         <h2 class="display" style="font-size:16px;">참가작 <span id="entry-count" aria-live="polite">0</span>개</h2>
         <div class="segmented round" role="tablist" aria-label="정렬" id="sort-group">
@@ -2170,7 +2171,26 @@
     description:'걸음마 사진 한 장과 짧은 메모로 참여해요. 10~24개월 아이가 대상이에요.',
     guide:['걷는 모습이 담긴 사진 1장', '아직 걷지 못해도 걸음을 시도하는 모습이면 됩니다', '아이 얼굴이 부담되면 뒷모습이나 발만 담아도 돼요'],
     placeholder:'예: 오늘 처음으로 세 발짝 걸었어요!', target_label:'10~24개월', stage:'parenting', age_min_m:10, age_max_m:24,
-    ends_on:'2026-11-30', announce_on:'2026-12-03', prize:'참가하면 추첨으로 4명에게 2만 원 상당 육아용품을 드려요.' }];
+    ends_on:'2026-11-30', announce_on:'2026-12-03', prize:'참가하면 추첨으로 4명에게 2만 원 상당 육아용품을 드려요.', example_video:'./assets/challenge/firststep.mp4' }];
+  // 모든 챌린지 공통 촬영 규칙 (예시 영상 아래·참여 창에 함께 보인다)
+  var CH_RULES = [
+    '30초 이내 영상이나 사진 1장, 밝은 곳에서 세로로 찍으면 잘 보여요',
+    '아이 안전이 먼저예요. 높은 곳·물가처럼 위험한 연출은 하지 말아 주세요',
+    '이름표·주소·차 번호판처럼 집을 알 수 있는 정보가 나오지 않게 해 주세요',
+    '다른 집 아이가 나오면 그 보호자에게 먼저 허락을 받아 주세요',
+    '검수 후 공개돼요. 규칙에 맞지 않으면 반려될 수 있어요'
+  ];
+  function chExampleHtml(c){
+    var v = c.example_video && /^(https:\/\/|\.\/assets\/)[^\s"<>]+$/.test(c.example_video) ? c.example_video : '';
+    var poster = /^\.\/assets\/.+\.mp4$/.test(v) ? v.replace(/\.mp4$/, '.jpg') : '';
+    return '<section class="card col" aria-label="이렇게 찍어 주세요" style="gap:12px; padding:16px;">' +
+      '<div class="row" style="align-items:baseline; justify-content:space-between; gap:8px;"><b class="display" style="font-size:16px;">📹 이렇게 찍어 주세요</b>' + (v ? '<span class="helper">예시 영상 · Pexels</span>' : '') + '</div>' +
+      (v ? '<video src="' + escapeHtml(v) + '"' + (poster ? ' poster="' + escapeHtml(poster) + '"' : '') + ' controls muted playsinline loop preload="none" style="width:100%; max-height:420px; border-radius:16px; background:#000; object-fit:contain;"></video>' : '') +
+      '<ul class="guide-list" style="margin:0;">' + (c.guide || []).map(function(g){ return '<li>' + escapeHtml(g) + '</li>'; }).join('') + '</ul>' +
+      '<details><summary style="cursor:pointer; font-size:13px; font-weight:800; color:var(--text2);">모든 챌린지 공통 규칙</summary>' +
+        '<ul class="guide-list" style="margin:8px 0 0;">' + CH_RULES.map(function(g){ return '<li>' + escapeHtml(g) + '</li>'; }).join('') + '</ul></details>' +
+    '</section>';
+  }
   var challengeList = CHALLENGE_FALLBACK, challengesFromDb = false;
   async function loadChallenges(){
     if(!sb) return;
@@ -3861,6 +3881,8 @@
       titleEl.innerHTML = tw.length > 1 ? escapeHtml(tw.slice(0, -1).join(' ')) + ' <em>' + escapeHtml(tw[tw.length - 1]) + '</em>' : '<em>' + escapeHtml(cur.title || '') + '</em>';
     }
     var artEl = document.getElementById('challenge-art'); if(artEl) artEl.textContent = cur.emoji || '🏆';
+    var exEl = document.getElementById('challenge-example');
+    if(exEl && exEl.getAttribute('data-for') !== cur.id){ exEl.innerHTML = chExampleHtml(cur); exEl.setAttribute('data-for', cur.id); }
     var descEl = document.getElementById('challenge-desc'); if(descEl) descEl.textContent = cur.description || '';
     var prizeEl = document.getElementById('challenge-prize');
     if(prizeEl){
@@ -6264,6 +6286,7 @@
         '<span class="guide-title">작성 안내</span>' +
         '<ul class="guide-list">' +
           (cur.guide || []).map(function(g){ return '<li>' + escapeHtml(g) + '</li>'; }).join('') +
+          CH_RULES.slice(1, 4).map(function(g){ return '<li style="color:var(--text2);">' + escapeHtml(g) + '</li>'; }).join('') +
         '</ul>' +
       '</div>' +
       '<div class="field"><label for="entry-file">인증 사진·영상 *</label><label class="kfile"><input type="file" class="kfile-input" id="entry-file" accept="image/jpeg,image/png,image/webp,video/mp4,video/quicktime"><span class="kfile-btn">📷 사진·영상 고르기</span><span class="kfile-name">선택한 파일 없음</span></label><span class="helper" id="entry-file-hint">사진 1장 또는 30초 이하 영상 1개 (영상 50MB까지)</span></div>' +

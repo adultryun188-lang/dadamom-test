@@ -23,6 +23,29 @@
     if(item.kind === 'youtube'){ var id = youtubeId(item.url); if(id) return 'https://i.ytimg.com/vi/' + id + '/hqdefault.jpg'; }
     return '';
   }
+  // 사진이 없는 글은 제목·소개에서 주제를 골라 표지를 그린다 (위에서부터 먼저 맞는 것)
+  var TOPICS = [
+    { re:/수당|급여|지원금|이용권|바우처|육아휴직|지원/, emoji:'💰', label:'지원금·제도', bg:'#FFF1D6', ink:'#9C5B12' },
+    { re:/접종|백신|독감/, emoji:'💉', label:'예방접종', bg:'#E5F0FB', ink:'#2E5F8E' },
+    { re:/임신|출산|산후|태아|임산부|난임/, emoji:'🤰', label:'임신·출산', bg:'#F8E6EF', ink:'#94406A' },
+    { re:/수면|잠|낮잠|통잠/, emoji:'🌙', label:'수면', bg:'#ECE8F8', ink:'#5A4C9A' },
+    { re:/이유식|수유|분유|모유|유아식/, emoji:'🍼', label:'먹이기', bg:'#FFF0E6', ink:'#A3532B' },
+    { re:/어린이집|유치원|보육|돌봄/, emoji:'🏫', label:'보육', bg:'#E9F4E4', ink:'#3F7136' },
+    { re:/안전|사고|리콜|화상|질식|돌연사/, emoji:'🛡️', label:'안전', bg:'#FDE9E5', ink:'#A23D2C' },
+    { re:/건강|병원|발열|고열|감기|아토피|발달/, emoji:'🩺', label:'건강', bg:'#E3F3F1', ink:'#2F7068' }
+  ];
+  function topicOf(item){
+    // 제목에서 먼저 찾고, 없으면 소개에서 찾는다
+    var texts = [item.title || '', item.summary || ''];
+    for(var j = 0; j < texts.length; j++){ for(var i = 0; i < TOPICS.length; i++){ if(TOPICS[i].re.test(texts[j])) return TOPICS[i]; } }
+    return null;
+  }
+  function coverHtml(item, k){
+    var t = topicOf(item) || { emoji:k.emoji, label:k.label, bg:k.bg, ink:'#9C452B' };
+    return '<span class="mag-cover" style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; width:100%; height:100%; background:' + t.bg + ';">' +
+      '<span class="mag-emoji" aria-hidden="true" style="font-size:46px; line-height:1;">' + t.emoji + '</span>' +
+      '<span style="font-size:12.5px; font-weight:800; color:' + t.ink + '; background:rgba(255,255,255,.75); border-radius:999px; padding:4px 12px;">' + esc(t.label) + '</span></span>';
+  }
   function magCardHtml(item){
     var k = KINDS[item.kind] || KINDS.news;
     var url = httpsUrl(item.url);
@@ -30,7 +53,7 @@
     var date = item.published_on ? String(item.published_on).slice(5).replace('-', '/') : '';
     var inner =
       '<span class="mag-thumb" style="background:' + k.bg + ';">' +
-        (th ? '<img src="' + esc(th) + '" alt="" loading="lazy" referrerpolicy="no-referrer">' : '<span class="mag-emoji" aria-hidden="true">' + k.emoji + '</span>') +
+        (th ? '<img src="' + esc(th) + '" alt="" loading="lazy" referrerpolicy="no-referrer">' : coverHtml(item, k)) +
         (item.kind === 'youtube' ? '<span class="mag-play" aria-hidden="true">▶</span>' : '') +
       '</span>' +
       '<span class="mag-body">' +
@@ -65,5 +88,5 @@
     }).join('') + '</div>';
   }
 
-  window.DadamomShared = { esc:esc, magKinds:KINDS, youtubeId:youtubeId, magCardHtml:magCardHtml, MAG_NOTE:MAG_NOTE, FAQ:FAQ, faqHtml:faqHtml };
+  window.DadamomShared = { topicOf: topicOf, esc:esc, magKinds:KINDS, youtubeId:youtubeId, magCardHtml:magCardHtml, MAG_NOTE:MAG_NOTE, FAQ:FAQ, faqHtml:faqHtml };
 })();

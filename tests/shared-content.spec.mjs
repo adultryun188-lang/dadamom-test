@@ -18,6 +18,11 @@ ok('javascript: 주소는 링크로 안 만듦', !S.magCardHtml({ kind: 'news', 
 ok('http 썸네일은 안 씀', !S.magCardHtml({ kind: 'news', title: 'a', source_name: 'b', url: 'https://a.example', thumb_url: 'http://x.example/a.png' }).includes('http://x.example'));
 ok('뉴스는 사진 없이 아이콘', S.magCardHtml({ kind: 'news', title: 'a', source_name: 'b', url: 'https://a.example' }).includes('mag-emoji'));
 ok('새 창 + noopener', yt.includes('target="_blank"') && yt.includes('noopener'));
+ok('지원금 글 → 💰 표지', S.topicOf({ title: '부모급여·아동수당 신청 안 해도 받게 돼요' }).label === '지원금·제도');
+ok('접종 글 → 💉 표지', S.topicOf({ title: '어린이 독감 무료접종, 만 14세까지' }).label === '예방접종');
+ok('제목 우선', S.topicOf({ title: '통잠 언제부터', summary: '지원 제도도 있어요' }).label === '수면');
+ok('주제 없으면 종류 아이콘', S.topicOf({ title: '아무 말' }) === null && S.magCardHtml({ kind: 'news', title: '아무 말', source_name: 'b', url: 'https://a.example' }).includes('뉴스'));
+ok('사진 없는 카드에 표지', S.magCardHtml({ kind: 'news', title: '임신 중 출산 준비', source_name: 'b', url: 'https://a.example' }).includes('mag-cover'));
 ok('FAQ 10개 이상', S.FAQ.length >= 10);
 ok('FAQ 화면 이스케이프', !S.faqHtml().includes('<script'));
 console.log(fail ? fail + '개 실패' : '전부 통과');

@@ -61,7 +61,8 @@ try {
   await p.click('[data-challenge-open="halloween"]'); await p.waitForTimeout(600);
   ok('할로윈 고르면 머리 바뀜', (await p.textContent('#challenge-title')).includes('할로윈') && (await p.textContent('#challenge-art')) === '🎃');
   ok('경품 문구: 한 달에 한 명', (await p.textContent('#challenge-prize')).includes('1명'));
-  ok('할로윈 참가작은 0개 (첫걸음 것과 섞이지 않음)', (await p.textContent('#entry-count')) === '0');
+  const hwDb = (await req('/rest/v1/challenge_entries?select=id&status=eq.approved&challenge_key=eq.halloween', 'GET', undefined, A.token)).body.length;
+  ok('할로윈 참가작 수 = DB 의 할로윈 공개 참가작 수 (첫걸음 것과 섞이지 않음)', (await p.textContent('#entry-count')) === String(hwDb), '화면 ' + (await p.textContent('#entry-count')) + ' / DB ' + hwDb);
   await p.screenshot({ path: 'test-results/챌린지_할로윈.png' });
   await p.click('[data-open-challenge-modal]'); await p.waitForTimeout(800);
   ok('참여 창에 할로윈 안내', (await p.textContent('#modal-card')).includes('코스튬'));

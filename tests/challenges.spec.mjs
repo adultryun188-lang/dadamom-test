@@ -56,7 +56,7 @@ try {
   ok('홈에 챌린지 둘까지 (아이 개월 수에 맞는 것 먼저)', homeMissions.length === 2 && /첫걸음/.test(homeMissions[0]), homeMissions.map(t => t.replace(/\s+/g, ' ').trim().slice(0, 20)).join(' | '));
   await p.evaluate(() => { location.hash = '#challenge'; }); await p.waitForTimeout(1500);
   const chips = await p.locator('#challenge-picker [data-challenge-pick]').allTextContents();
-  ok('챌린지 고르기 칩 4개', chips.length === 4, chips.join(' / '));
+  ok('챌린지 고르기 칩 5개', chips.length === 5, chips.join(' / '));
   ok('처음엔 개월 수 맞는 첫걸음', (await p.textContent('#challenge-title')).includes('첫걸음'));
   await p.click('[data-challenge-pick="halloween"]'); await p.waitForTimeout(600);
   ok('할로윈 고르면 머리 바뀜', (await p.textContent('#challenge-title')).includes('할로윈') && (await p.textContent('#challenge-art')) === '🎃');
@@ -79,7 +79,7 @@ try {
   const bad = await req('/rest/v1/challenge_entries', 'POST', { name: 'x', note: 'x', challenge_key: 'nope' }, A.token);
   ok('없는 챌린지에 참가 거절', bad.status >= 400, 'HTTP ' + bad.status);
   const anonList = await req('/rest/v1/challenges?select=id');
-  ok('비로그인도 챌린지 목록은 읽음', anonList.status === 200 && anonList.body.length === 4);
+  ok('비로그인도 챌린지 목록은 읽음', anonList.status === 200 && anonList.body.length === 5);
   const anonWrite = await req('/rest/v1/challenges', 'POST', { id: 'hack', title: 'x' });
   ok('비로그인 챌린지 만들기 거절', anonWrite.status >= 400, 'HTTP ' + anonWrite.status);
   const userWrite = await req('/rest/v1/challenges', 'POST', { id: 'hack', title: 'x' }, A.token);

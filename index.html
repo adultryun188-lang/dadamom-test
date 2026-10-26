@@ -546,6 +546,7 @@
   <section class="screen" id="screen-challenge">
     <div class="scroll pad">
       <!-- 2026-10-23: 웹 챌린지 페이지와 같은 머리(크림 카드 + 초록 그림판). 모양은 공용 rounded-ui.css -->
+      <div class="home-feedbar" id="challenge-picker" role="group" aria-label="챌린지 고르기" style="position:static; margin-bottom:-6px;"></div>
       <div class="warm-page">
         <header class="page-hero app-ch-hero">
           <div class="page-hero-copy">
@@ -560,7 +561,6 @@
         </header>
       </div>
       <div id="challenge-hall"></div>
-      <div class="home-feedbar" id="challenge-picker" role="group" aria-label="챌린지 고르기" style="position:static;"></div>
       <div class="row" style="align-items:center; justify-content:space-between; padding-top:4px;">
         <h2 class="display" style="font-size:16px;">참가작 <span id="entry-count" aria-live="polite">0</span>개</h2>
         <div class="segmented round" role="tablist" aria-label="정렬" id="sort-group">
@@ -568,7 +568,7 @@
           <button data-sort="pop" role="tab">인기순</button>
         </div>
       </div>
-      <div class="col" style="gap:12px; padding-bottom:8px;" id="entries"></div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; padding-bottom:8px;" id="entries"></div>
     </div>
     <div class="pad" style="flex:0 0 auto; padding-block:14px; border-top:1px solid var(--border); background:var(--surface);">
       <button class="btn-primary" style="width:100%;" data-open-challenge-modal>우리 아이도 참여하기</button>
@@ -3348,7 +3348,7 @@
     chRecommended().filter(chOpen).slice(0, 2).forEach(function(c){
       var cIneligible = !chEligible(c);
       var n = state.entries.filter(function(e){ return (e.challenge_key || 'firststep') === c.id; }).length;
-      var cSub = cIneligible ? (c.stage === 'pregnant' ? '임신 중인 분이 참여해요' : '육아 단계부터 참여할 수 있어요') : (c.target_label || '전체') + ' · 지금 ' + n + '명 참여 중';
+      var cSub = cIneligible ? '지금 ' + n + '명 참여 중 · 💛 응원으로 함께해요' : (c.target_label || '전체') + ' · 지금 ' + n + '명 참여 중';
       rows.push(
       '<a href="#challenge" class="mission-row" data-challenge-go="' + escapeHtml(c.id) + '">' +
         '<div class="mission-ico" style="background:var(--chip-b);" aria-hidden="true">' + escapeHtml(c.emoji || '🏆') + '</div>' +
@@ -3359,7 +3359,7 @@
           '</div>' +
           '<span class="helper">' + escapeHtml(cSub) + '</span>' +
         '</div>' +
-        '<span class="mission-go' + (cIneligible ? ' off' : '') + '">' + (cIneligible ? '대상 아님' : '참여') + '</span>' +
+        '<span class="mission-go">' + (cIneligible ? '응원' : '참여') + '</span>' +
       '</a>');
     });
 
@@ -3792,32 +3792,33 @@
     if(partBtn){
       var ineligible = !chEligible(cur);
       partBtn.disabled = ineligible || challengeClosed;
-      partBtn.textContent = challengeClosed ? '모집이 마감됐어요' : (ineligible ? (cur.stage === 'pregnant' ? '임신 중인 분이 참여할 수 있어요' : '육아 단계에서 참여할 수 있어요') : '우리 아이도 참여하기');
+      partBtn.textContent = challengeClosed ? '모집이 마감됐어요' : (ineligible ? (cur.stage === 'pregnant' ? '임신 중인 분이 참여하는 챌린지예요 · 💛 응원해 주세요' : '임신 중엔 💛 응원으로 함께해요 · 출산 후 참여할 수 있어요') : (cur.stage === 'pregnant' ? '참여하기 ' + (cur.emoji || '') : '우리 아이도 참여하기'));
     }
 
     var list = sortedEntries().filter(function(e){ return (e.challenge_key || 'firststep') === cur.id; });
     if(state.viewMineOnly === 'challenge'){ list = list.filter(function(e){ return e.mine; }); }
     document.getElementById('entry-count').textContent = list.length;
     var challengeMineBanner = state.viewMineOnly === 'challenge'
-      ? '<div class="row" style="align-items:center; justify-content:space-between; background:var(--accent-soft); border-radius:12px; padding:10px 14px; margin-bottom:10px;"><span style="font-size:12.5px; font-weight:700; color:var(--accent2);">내 참여 기록만 보는 중</span><button type="button" data-clear-my-filter class="link-quiet" style="background:none; border:none;">전체보기</button></div>'
+      ? '<div class="row" style="grid-column:1/-1; align-items:center; justify-content:space-between; background:var(--accent-soft); border-radius:12px; padding:10px 14px;"><span style="font-size:12.5px; font-weight:700; color:var(--accent2);">내 참여 기록만 보는 중</span><button type="button" data-clear-my-filter class="link-quiet" style="background:none; border:none;">전체보기</button></div>'
       : '';
     if(list.length === 0){
-      document.getElementById('entries').innerHTML = challengeMineBanner + '<div class="card col" style="padding:18px; align-items:center; gap:6px;"><span class="helper">아직 참여한 기록이 없어요</span></div>';
+      document.getElementById('entries').innerHTML = challengeMineBanner + '<div class="card col" style="grid-column:1/-1; padding:22px 18px; align-items:center; gap:6px; text-align:center;"><span style="font-size:28px;" aria-hidden="true">' + escapeHtml(cur.emoji || '🏆') + '</span><span style="font-size:14px; font-weight:800;">첫 주인공이 되어 보세요</span><span class="helper">사진 한 장이면 참여할 수 있어요. 응원을 가장 많이 받으면 이달의 주인공!</span></div>';
       return;
     }
     document.getElementById('entries').innerHTML = challengeMineBanner + list.map(function(e){
+      // 자랑이 주인공이라 사진을 크게 (두 칸). 사진을 누르면 크게 본다.
       var thumb = e.media_url
-        ? mediaTag(e.media_url, 'width:100%; height:100%; object-fit:cover; border-radius:14px;')
-        : '<svg width="18" height="18" viewBox="0 0 24 24" fill="var(--text2)" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>';
-      // 이름·배지·설명이 카드 폭을 다 쓰도록 응원·수정·삭제는 아래 줄로 내린다.
-      // (예전엔 한 줄에 버튼 3개가 같이 있어 휴대폰에서 글이 한두 글자씩 꺾였다)
-      return '<div class="card row" style="gap:12px; padding:14px; align-items:flex-start;">' +
-        '<div style="flex:0 0 auto; width:64px; height:64px; border-radius:14px; background:var(--border); overflow:hidden; display:flex; align-items:center; justify-content:center;" role="img" aria-label="' + escapeHtml(e.name) + ' 참가작 썸네일">' +
-        thumb + '</div>' +
-        '<div class="col" style="flex:1; gap:4px; min-width:0;">' +
-        '<div class="row" style="align-items:center; gap:6px; flex-wrap:wrap;"><span style="font-size:14px; font-weight:700;">' + escapeHtml(e.name) + '</span>' + (e.mine ? '<span class="badge-match">내 참가작</span>' : '') + myStatusBadge(e) + '</div>' +
-        '<span style="font-size:12.5px; color:var(--text2); line-height:1.55;">' + escapeHtml(e.age) + (e.note ? ' · ' + escapeHtml(e.note) : '') + '</span>' +
-        '<div class="row" style="align-items:center; gap:2px; margin:0 -8px -8px;">' +
+        ? mediaTag(e.media_url, 'width:100%; height:100%; object-fit:cover;')
+        : '<span style="font-size:34px;" aria-hidden="true">' + escapeHtml(cur.emoji || '🏆') + '</span>';
+      return '<div class="card col" style="gap:0; padding:0; overflow:hidden; min-width:0;">' +
+        '<button type="button" data-entry-photo="' + escapeHtml(String(e.id)) + '" aria-label="' + escapeHtml(e.name) + ' 참가작 사진 크게 보기" style="display:flex; align-items:center; justify-content:center; width:100%; aspect-ratio:1/1; border:none; padding:0; background:var(--w-sun); overflow:hidden;">' +
+        thumb + '</button>' +
+        '<div class="col" style="gap:3px; padding:10px 12px 0; min-width:0;">' +
+        '<div class="row" style="align-items:center; gap:5px; flex-wrap:wrap;"><span style="font-size:14px; font-weight:800;">' + escapeHtml(e.name) + '</span>' + (e.mine ? '<span class="badge-match">내 것</span>' : '') + myStatusBadge(e) + '</div>' +
+        '<span class="helper" style="font-size:11.5px;">' + escapeHtml(e.age) + '</span>' +
+        (e.note ? '<span style="font-size:12.5px; line-height:1.5; color:var(--text); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">' + escapeHtml(e.note) + '</span>' : '') +
+        '</div>' +
+        '<div class="row" style="align-items:center; gap:0; padding:2px 4px 4px;">' +
         '<button data-vote="' + e.id + '" aria-pressed="' + e.liked + '" aria-label="응원하기, 현재 ' + e.votes + '표" style="flex:0 0 auto; background:none; border:none; display:flex; align-items:center; gap:5px; min-width:44px; min-height:44px; padding:0 8px; justify-content:center;">' +
         '<svg width="20" height="20" viewBox="0 0 24 24" fill="' + (e.liked ? 'var(--accent)' : 'none') + '" stroke="var(--accent)" stroke-width="1.6" aria-hidden="true"><path d="M12 21s-7.5-4.6-10-9.3C0.4 8.4 2.4 5 6 5c2 0 3.4 1 4 2.3C10.6 6 12 5 14 5c3.6 0 5.6 3.4 4 6.7-2.5 4.7-10 9.3-10 9.3z"/></svg>' +
         '<span style="font-size:12.5px; color:var(--text2);">' + e.votes + '</span></button>' +
@@ -3825,7 +3826,7 @@
           ? '<button data-edit-entry="' + e.id + '" aria-label="내 참가작 수정" style="flex:0 0 auto; margin-left:auto; background:none; border:none; color:var(--text2); min-width:44px; min-height:44px; font-size:12px;">수정</button>' +
             '<button data-delete-entry="' + e.id + '" aria-label="내 참가작 삭제" style="flex:0 0 auto; background:none; border:none; color:var(--text2); min-width:44px; min-height:44px; font-size:12px;">삭제</button>'
           : '') +
-        '</div></div></div>';
+        '</div></div>';
     }).join('');
   }
 
@@ -6377,6 +6378,17 @@
         var out = document.getElementById('hall-email');
         if(out) out.textContent = r.error ? '불러오지 못했어요: ' + r.error.message : (r.data || '이메일이 없어요');
       });
+      return;
+    }
+    var entryPhoto = e.target.closest('[data-entry-photo]');
+    if(entryPhoto){
+      var ep = state.entries.filter(function(x){ return String(x.id) === entryPhoto.getAttribute('data-entry-photo'); })[0];
+      if(ep && ep.media_url){
+        openModal('<div class="modal-head"><h3 class="display">' + escapeHtml(ep.name) + '</h3><button class="modal-close" data-close-modal aria-label="닫기">✕</button></div>' +
+          mediaTag(ep.media_url, 'width:100%; max-height:70vh; object-fit:contain; border-radius:16px; background:#000;') +
+          '<span class="helper">' + escapeHtml(ep.age) + '</span>' + (ep.note ? '<p style="font-size:14px; line-height:1.6;">' + escapeHtml(ep.note) + '</p>' : '') +
+          '<span class="helper">💛 응원 ' + ep.votes + ' · 마음에 들면 목록에서 💛를 눌러 응원해 주세요</span>');
+      }
       return;
     }
     var chPick = e.target.closest('[data-challenge-pick]');

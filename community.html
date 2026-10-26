@@ -1775,7 +1775,7 @@
     $('ch-sort-new').classList.toggle('on', sort !== 'pop'); $('ch-sort-pop').classList.toggle('on', sort === 'pop');
     g.innerHTML = rows.length ? rows.map(function(e){
       var on = mine.indexOf(e.id) > -1;
-      return '<div class="gcard"><div class="ph">' + (urls[e.media_path] ? '<img src="' + esc(urls[e.media_path]) + '" alt="' + esc(e.name || '참가작') + ' 사진" loading="lazy">' : '👣') + '</div>' +
+      return '<div class="gcard"><div class="ph">' + (urls[e.media_path] ? '<img src="' + esc(urls[e.media_path]) + '" alt="' + esc(e.name || '참가작') + ' 사진" loading="lazy">' : esc((chList.filter(function(x){ return x.id === chCurKey; })[0] || {}).emoji || '🏆')) + '</div>' +
         '<div class="in"><span class="nm">' + esc(e.name || '우리 아이') + (e.age ? ' <span class="helper">· ' + esc(e.age) + '</span>' : '') + '</span>' +
         '<span class="nt">' + esc(e.note || '') + '</span>' +
         '<button class="cheer" data-cheer="' + e.id + '" aria-pressed="' + on + '">💛 응원 <span>' + (e.votes || 0) + '</span></button></div></div>';

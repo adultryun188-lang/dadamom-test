@@ -2179,6 +2179,7 @@
     '이름표·주소·차 번호판처럼 집을 알 수 있는 정보가 나오지 않게 해 주세요',
     '다른 집 아이가 나오면 그 보호자에게 먼저 허락을 받아 주세요',
     '경품은 원본 사진·영상을 확인한 뒤 드려요. 인터넷에서 받은 것이나 우리 아이가 아닌 것은 제외돼요',
+    '이달의 주인공은 응원 수로 정하지만, 규칙에 맞지 않으면 다음 순위로 넘어가요. 한 챌린지에 한 아이는 한 달에 한 번만 참가해 주세요',
     '처음 몇 번은 검수 후 공개돼요. 규칙에 맞지 않거나 신고가 쌓이면 내려갈 수 있어요'
   ];
   function chExampleHtml(c){
@@ -6405,7 +6406,7 @@
       '<div class="field"><label for="entry-note">한 줄 기록 *</label><textarea id="entry-note" rows="3" placeholder="' + escapeHtml(cur.placeholder || '한 줄로 남겨 주세요') + '"></textarea></div>' +
       '<label class="check-row"><input type="checkbox" id="entry-consent"> 보호자이며, 아이 사진을 챌린지에 게시하는 것에 동의해요 *</label>' +
       '<label class="check-row"><input type="checkbox" id="entry-consent2"> 올린 사진·영상을 다다맘과 경품을 주는 브랜드가 SNS·광고 등 홍보에 쓰는 것에 동의해요 *</label>' +
-      '<p class="helper" style="margin:-4px 0 0 28px;">경품이 걸린 챌린지라 꼭 필요해요. 참가작을 지우면 그 뒤 새 홍보에는 쓰지 않아요.</p>' +
+      '<p class="helper" style="margin:-4px 0 0 28px;">경품이 걸린 챌린지라 꼭 필요해요. 쓰는 곳: 다다맘 앱·웹·SNS, 경품을 주는 브랜드의 SNS·광고 · 기간: 참가한 날부터 2년 · 참가작을 지우면 그 뒤 새 홍보에는 쓰지 않아요.</p>' +
       '<button class="btn-primary" id="entry-submit" style="width:100%;" disabled>인증 제출하기</button>';
   }
 
@@ -6426,6 +6427,7 @@
       '<button type="button" data-post-visibility="public" role="tab" aria-selected="true" style="flex:1;">전체 공개</button>' +
       '<button type="button" data-post-visibility="private" role="tab" aria-selected="false" style="flex:1;">나만 보기</button>' +
       '</div><span class="helper" id="post-visibility-hint">커뮤니티의 모든 사람이 볼 수 있어요</span></div>' +
+      '<p class="helper" style="margin:0;">다른 사람·선생님·업체의 실명이나 아이 신상을 올리면 바로 내려가요. 서로 다른 3명이 신고하면 자동으로 숨겨져요.</p>' +
       '<label class="check-row"><input type="checkbox" id="post-consent"> 아이 사진이 포함된다면 위 공개범위를 확인했고, 선택한 범위로 게시하는 것에 동의해요 *</label>' +
       '<button class="btn-primary" id="post-submit" style="width:100%;" disabled>글 올리기</button>';
   }

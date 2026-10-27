@@ -770,6 +770,7 @@
     '이름표·주소·차 번호판처럼 집을 알 수 있는 정보가 나오지 않게 해 주세요',
     '다른 집 아이가 나오면 그 보호자에게 먼저 허락을 받아 주세요',
     '경품은 원본 사진·영상을 확인한 뒤 드려요. 인터넷에서 받은 것이나 우리 아이가 아닌 것은 제외돼요',
+    '이달의 주인공은 응원 수로 정하지만, 규칙에 맞지 않으면 다음 순위로 넘어가요. 한 챌린지에 한 아이는 한 달에 한 번만 참가해 주세요',
     '처음 몇 번은 검수 후 공개돼요. 규칙에 맞지 않거나 신고가 쌓이면 내려갈 수 있어요'
   ];
   function chExampleWeb(c){
@@ -1640,7 +1641,7 @@
         '<div><label for="w-body">내용</label><textarea id="w-body" maxlength="1800" required placeholder="아이 개월 수나 상황을 함께 적으면 더 좋은 답을 받을 수 있어요."></textarea>' +
           '<span class="draft-note" id="draft-note" aria-live="polite"></span></div>' +
         '<div><label for="w-photo">사진 (선택, 1장)</label><label class="kfile"><input type="file" class="kfile-input" id="w-photo" accept="image/jpeg,image/png,image/webp"><span class="kfile-btn">📷 사진 고르기</span><span class="kfile-name">선택한 파일 없음</span></label><div class="photo-preview" id="w-preview"></div></div>' +
-        '<div class="note">🛡️ 글은 바로 공개돼요. 사진이 있거나 연락처·링크가 들어간 글은 운영자 확인 후 공개돼요. 아이 얼굴·이름·주소 같은 개인정보가 드러나지 않게 주의해주세요.<br>글쓴이에는 <b>' + esc(myName()) + '</b> 와 ' + esc(profileStageText() || '아이 단계') + ' 가 함께 표시돼요.</div>' +
+        '<div class="note">🛡️ 글은 바로 공개돼요. 사진이 있거나 연락처·링크가 들어간 글은 운영자 확인 후 공개돼요. 아이 얼굴·이름·주소 같은 개인정보가 드러나지 않게 주의해주세요. 다른 사람·선생님·업체의 실명이나 아이 신상을 올리면 바로 내려가고, 서로 다른 3명이 신고하면 자동으로 숨겨져요.<br>글쓴이에는 <b>' + esc(myName()) + '</b> 와 ' + esc(profileStageText() || '아이 단계') + ' 가 함께 표시돼요.</div>' +
         '<div style="display:flex; gap:8px; justify-content:flex-end;"><a class="btn" href="#/b/all">취소</a><button class="btn primary" type="submit" id="w-submit">등록</button></div>' +
       '</form></section></section>';
     restoreDraft(pre);

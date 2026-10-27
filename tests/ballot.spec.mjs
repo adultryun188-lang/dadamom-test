@@ -45,6 +45,10 @@ try {
   ok('표를 직접 넣을 수 없음', direct.status >= 400, 'HTTP ' + direct.status);
   const mine = await (await fetch(U + '/rest/v1/entry_ballots?select=entry_id&month=eq.' + month + '&challenge_key=eq.cheeks', { headers: h(B.access_token) })).json();
   ok('내 표를 읽을 수 있음', mine.length === 1 && mine[0].entry_id === id, JSON.stringify(mine));
+  const cnt = await rpc(A.access_token, 'entry_ballot_counts', {});
+  ok('참가작별 투표 수가 보임 (0042)', (cnt.body || []).some(x => x.entry_id === id && x.n === 1), JSON.stringify(cnt.body));
+  const cntAnon = await rpc(null, 'entry_ballot_counts', {});
+  ok('비로그인은 투표 수를 못 봄', cntAnon.status >= 400, 'HTTP ' + cntAnon.status);
   const hall = await rpc(B.access_token, 'challenge_hall', { p_months: 1 });
   const row = (hall.body || []).find(x => x.entry_id === id);
   ok('주인공 점수에 투표 5점이 들어감', row && row.month_ballots === 1 && row.score >= 5, JSON.stringify(row || hall.body));

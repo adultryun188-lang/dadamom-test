@@ -3088,12 +3088,16 @@
   }
 
   var myBallots = {};   // challenge_key → entry_id (이번 달)
+  var ballotCounts = {};   // entry_id → 이번 달 표 수 (0042)
   function curMonthKST(){ return new Date(Date.now() + 9 * 3600000).toISOString().slice(0, 7); }
   function ballotErrText(err){ var m = (err && (err.hint || err.message)) || ''; return /가입 7일|NEW_ACCOUNT/.test(m) ? '가입 7일이 지나면 투표할 수 있어요' : /내 참가작|OWN_ENTRY/.test(m) ? '내 참가작에는 투표할 수 없어요' : '투표를 저장하지 못했어요. 잠시 뒤 다시 눌러 주세요'; }
   async function fetchMyBallots(){
-    myBallots = {};
+    myBallots = {}; ballotCounts = {};
     if(!sb || !authUser) return;
     try{
+      var bc = await sb.rpc('entry_ballot_counts');
+      if(bc.error) console.warn('[투표 수]', bc.error.message);
+      (bc.data || []).forEach(function(x){ ballotCounts[x.entry_id] = x.n; });
       var r = await sb.from('entry_ballots').select('challenge_key,entry_id').eq('month', curMonthKST());
       (r.data || []).forEach(function(b){ myBallots[b.challenge_key] = b.entry_id; });
     }catch(e){}
@@ -4115,7 +4119,8 @@
         '<button data-vote="' + e.id + '" aria-pressed="' + e.liked + '" aria-label="응원하기, 현재 ' + e.votes + '표" style="flex:0 0 auto; background:none; border:none; display:flex; align-items:center; gap:5px; min-width:44px; min-height:44px; padding:0 8px; justify-content:center;">' +
         '<svg width="20" height="20" viewBox="0 0 24 24" fill="' + (e.liked ? 'var(--accent)' : 'none') + '" stroke="var(--accent)" stroke-width="1.6" aria-hidden="true"><path d="M12 21s-7.5-4.6-10-9.3C0.4 8.4 2.4 5 6 5c2 0 3.4 1 4 2.3C10.6 6 12 5 14 5c3.6 0 5.6 3.4 4 6.7-2.5 4.7-10 9.3-10 9.3z"/></svg>' +
         '<span style="font-size:12.5px; color:var(--text2);">' + e.votes + '</span></button>' +
-        (!e.mine && e.status === 'approved' ? (function(){ var on = myBallots[cur.id] === e.id; return '<button type="button" data-ballot="' + escapeHtml(String(e.id)) + '" aria-pressed="' + on + '" aria-label="이 참가작에 투표하기 (챌린지마다 한 달에 한 표)" style="flex:0 0 auto; margin-left:auto; border:1px solid ' + (on ? 'var(--accent)' : 'var(--line)') + '; background:' + (on ? 'var(--accent-soft)' : '#fff') + '; color:' + (on ? 'var(--accent2)' : 'var(--text2)') + '; border-radius:999px; min-height:34px; padding:0 12px; font-size:12px; font-weight:800; margin-right:6px;">' + (on ? '🗳️ 투표함' : '🗳️ 투표') + '</button>'; })() : '') +
+        (!e.mine && e.status === 'approved' ? (function(){ var on = myBallots[cur.id] === e.id; return '<button type="button" data-ballot="' + escapeHtml(String(e.id)) + '" aria-pressed="' + on + '" aria-label="이 참가작에 투표하기 (챌린지마다 한 달에 한 표)" style="flex:0 0 auto; margin-left:auto; border:1px solid ' + (on ? 'var(--accent)' : 'var(--line)') + '; background:' + (on ? 'var(--accent-soft)' : '#fff') + '; color:' + (on ? 'var(--accent2)' : 'var(--text2)') + '; border-radius:999px; min-height:34px; padding:0 12px; font-size:12px; font-weight:800; margin-right:6px;">' + (on ? '🗳️ 투표함 ' : '🗳️ 투표 ') + (ballotCounts[e.id] || 0) + '</button>'; })()
+          : (e.mine && e.status === 'approved' ? '<span style="flex:0 0 auto; margin-left:auto; margin-right:6px; font-size:12px; font-weight:800; color:var(--text2);" aria-label="이번 달 투표 ' + (ballotCounts[e.id] || 0) + '표">🗳️ ' + (ballotCounts[e.id] || 0) + '</span>' : '')) +
         (e.mine
           ? '<button data-edit-entry="' + e.id + '" aria-label="내 참가작 수정" style="flex:0 0 auto; margin-left:auto; background:none; border:none; color:var(--text2); min-width:44px; min-height:44px; font-size:12px;">수정</button>' +
             '<button data-delete-entry="' + e.id + '" aria-label="내 참가작 삭제" style="flex:0 0 auto; background:none; border:none; color:var(--text2); min-width:44px; min-height:44px; font-size:12px;">삭제</button>'
@@ -6752,6 +6757,7 @@
         if(r.data === 'removed'){ delete myBallots[k]; showToast('투표를 취소했어요'); }
         else { myBallots[k] = bEntry.id; showToast('투표했어요 · 이 챌린지에서 이번 달 한 표예요'); }
         hallAt = 0; loadHall(); renderChallenge();
+        fetchMyBallots().then(renderChallenge);
       });
       return;
     }

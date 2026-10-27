@@ -1888,6 +1888,8 @@
     if(user){ var mv = await sb.from('entry_votes').select('entry_id'); mine = (mv.data || []).map(function(x){ return x.entry_id; }); }
     var myB = null;
     if(user && chCurKey){ var br = await sb.from('entry_ballots').select('entry_id').eq('month', curMonthKST()).eq('challenge_key', chCurKey).maybeSingle(); myB = br.data ? br.data.entry_id : null; }
+    var bcnt = {};
+    if(user){ var bcr = await sb.rpc('entry_ballot_counts'); if(bcr.error) console.warn('[투표 수]', bcr.error.message); (bcr.data || []).forEach(function(x){ bcnt[x.entry_id] = x.n; }); }
     var urls = await signUrls(rows.map(function(e){ return e.media_path; }));
     var g = $('gallery'); if(!g) return;
     $('ch-count').textContent = '참가작 ' + rows.length + '개';
@@ -1898,7 +1900,7 @@
         '<div class="in"><span class="nm">' + esc(e.name || '우리 아이') + (e.age ? ' <span class="helper">· ' + esc(e.age) + '</span>' : '') + (e.status && e.status !== 'approved' ? ' <span class="badge" style="font-size:11px; background:#FFF3DF; color:#9C5B12; padding:2px 7px; border-radius:999px;">' + (e.status === 'rejected' ? '반려됨' : '검수 중 · 나만 보여요') + '</span>' : '') + '</span>' +
         '<span class="nt">' + esc(e.note || '') + '</span>' +
         '<div style="display:flex; gap:6px; flex-wrap:wrap;"><button class="cheer" data-cheer="' + e.id + '" aria-pressed="' + on + '">💛 응원 <span>' + (e.votes || 0) + '</span></button>' +
-        (e.owner_id !== user.id && (!e.status || e.status === 'approved') ? '<button class="cheer" data-ballot="' + e.id + '" aria-pressed="' + (myB === e.id) + '" aria-label="이 참가작에 투표하기 (챌린지마다 한 달에 한 표)">' + (myB === e.id ? '🗳️ 투표함' : '🗳️ 투표') + '</button>' : '') + '</div></div></div>';
+        (e.owner_id !== user.id && (!e.status || e.status === 'approved') ? '<button class="cheer" data-ballot="' + e.id + '" aria-pressed="' + (myB === e.id) + '" aria-label="이 참가작에 투표하기 (챌린지마다 한 달에 한 표)">' + (myB === e.id ? '🗳️ 투표함 ' : '🗳️ 투표 ') + (bcnt[e.id] || 0) + '</button>' : (user && e.owner_id === user.id && (!e.status || e.status === 'approved') ? '<span class="helper" style="align-self:center; font-weight:800;">🗳️ 투표 ' + (bcnt[e.id] || 0) + '</span>' : '')) + '</div></div></div>';
     }).join('') : emptyHtml('👣', '아직 공개된 참가작이 없어요. 앱에서 첫 번째 주인공이 되어 보세요!', '<a class="btn primary" href="./index.html#challenge">앱에서 참여하기</a>');
   }
 

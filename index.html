@@ -2169,9 +2169,9 @@
   // 운영자가 관리 화면에서 만든다. 표가 없는 환경(운영 SQL 전)은 첫걸음 하나로 예전처럼 동작한다.
   var CHALLENGE_FALLBACK = [{ id:'firststep', title:'첫걸음 챌린지', emoji:'👣',
     description:'걸음마 사진 한 장과 짧은 메모로 참여해요. 10~24개월 아이가 대상이에요.',
-    guide:['혼자 걷는 모습을 30초 이내 영상으로 올려 주세요', '어른 손을 잡지 않고 한두 걸음이라도 혼자 내딛는 순간이면 돼요', '영상이 어려우면 사진도 받아요. 얼굴이 부담되면 발만 담아도 돼요'],
+    guide:['혼자 걷는 모습을 30초 이내 영상으로 올려 주세요 (사진은 받지 않아요)', '어른 손을 잡지 않고 한두 걸음이라도 혼자 내딛는 순간이 담겨야 해요', '얼굴이 부담되면 발만 나오게 찍어도 돼요'],
     placeholder:'예: 오늘 처음으로 세 발짝 걸었어요!', target_label:'10~24개월', stage:'parenting', age_min_m:10, age_max_m:24,
-    ends_on:'2026-11-30', announce_on:'2026-12-03', prize:'참가하면 추첨으로 4명에게 2만 원 상당 육아용품을 드려요.', example_video:'./assets/challenge/firststep.mp4' }];
+    ends_on:'2026-11-30', announce_on:'2026-12-03', prize:'참가하면 추첨으로 4명에게 2만 원 상당 육아용품을 드려요.', example_video:'./assets/challenge/firststep.mp4', media_rule:'video' }];
   // 모든 챌린지 공통 촬영 규칙 (예시 영상 아래·참여 창에 함께 보인다)
   var CH_RULES = [
     '30초 이내 영상이나 사진 1장, 밝은 곳에서 세로로 찍으면 잘 보여요',
@@ -2188,6 +2188,7 @@
     return '<section class="card col" aria-label="이렇게 찍어 주세요" style="gap:12px; padding:16px;">' +
       '<div class="row" style="align-items:baseline; justify-content:space-between; gap:8px;"><b class="display" style="font-size:16px;">📹 이렇게 찍어 주세요</b>' + (v ? '<span class="helper">예시 영상 · Pexels</span>' : '') + '</div>' +
       (v ? '<video src="' + escapeHtml(v) + '"' + (poster ? ' poster="' + escapeHtml(poster) + '"' : '') + ' controls muted playsinline loop preload="none" style="width:100%; max-height:420px; border-radius:16px; background:#000; object-fit:contain;"></video>' : '') +
+      (c.media_rule === 'video' ? '<p style="margin:0; padding:10px 12px; border-radius:12px; background:#FFF1E8; color:#9A3A12; font-weight:800; font-size:14px;">🎬 이 챌린지는 영상만 참가할 수 있어요 (사진은 받지 않아요)</p>' : '<p style="margin:0; font-size:13.5px; color:var(--text2); font-weight:700;">📷 사진 1장이나 30초 이내 영상으로 참가해요</p>') +
       '<ul class="guide-list" style="margin:0;">' + (c.guide || []).map(function(g){ return '<li>' + escapeHtml(g) + '</li>'; }).join('') + '</ul>' +
       '<details><summary style="cursor:pointer; font-size:13px; font-weight:800; color:var(--text2);">모든 챌린지 공통 규칙</summary>' +
         '<ul class="guide-list" style="margin:8px 0 0;">' + CH_RULES.map(function(g){ return '<li>' + escapeHtml(g) + '</li>'; }).join('') + '</ul></details>' +
@@ -6291,7 +6292,9 @@
           CH_RULES.slice(1, 4).map(function(g){ return '<li style="color:var(--text2);">' + escapeHtml(g) + '</li>'; }).join('') +
         '</ul>' +
       '</div>' +
-      '<div class="field"><label for="entry-file">인증 사진·영상 *</label><label class="kfile"><input type="file" class="kfile-input" id="entry-file" accept="image/jpeg,image/png,image/webp,video/mp4,video/quicktime"><span class="kfile-btn">📷 사진·영상 고르기</span><span class="kfile-name">선택한 파일 없음</span></label><span class="helper" id="entry-file-hint">사진 1장 또는 30초 이하 영상 1개 (영상 50MB까지)</span></div>' +
+      (cur.media_rule === 'video'
+        ? '<div class="field"><label for="entry-file">인증 영상 *</label><label class="kfile"><input type="file" class="kfile-input" id="entry-file" accept="video/mp4,video/quicktime"><span class="kfile-btn">🎬 영상 고르기</span><span class="kfile-name">선택한 파일 없음</span></label><span class="helper" id="entry-file-hint">30초 이하 영상 1개 (50MB까지) · 이 챌린지는 사진은 받지 않아요</span></div>'
+        : '<div class="field"><label for="entry-file">인증 사진·영상 *</label><label class="kfile"><input type="file" class="kfile-input" id="entry-file" accept="image/jpeg,image/png,image/webp,video/mp4,video/quicktime"><span class="kfile-btn">📷 사진·영상 고르기</span><span class="kfile-name">선택한 파일 없음</span></label><span class="helper" id="entry-file-hint">사진 1장 또는 30초 이하 영상 1개 (영상 50MB까지)</span></div>') +
       '<div class="field"><label for="entry-note">한 줄 기록 *</label><textarea id="entry-note" rows="3" placeholder="' + escapeHtml(cur.placeholder || '한 줄로 남겨 주세요') + '"></textarea></div>' +
       '<label class="check-row"><input type="checkbox" id="entry-consent"> 보호자이며, 아이 사진을 챌린지에 게시하는 것에 동의해요 *</label>' +
       '<label class="check-row"><input type="checkbox" id="entry-consent2"> 참여 브랜드가 콘텐츠를 광고에 활용하는 것에 동의해요 (선택)</label>' +
@@ -6384,6 +6387,10 @@
     if(hint){ hint.textContent = !hasFile ? '사진 1장 또는 30초 이하 영상 1개 (영상 50MB까지)' : (isVid ? '영상이 첨부됐어요 (길이 확인 중…)' : '사진이 첨부됐어요'); }
     var ready = hasFile && note && note.value.trim().length > 0 && consent && consent.checked;
     btn.disabled = !ready;
+    if(chCurrent().media_rule === 'video'){
+      if(!hasFile && hint) hint.textContent = '30초 이하 영상 1개 (50MB까지) · 이 챌린지는 사진은 받지 않아요';
+      if(hasFile && !isVid){ if(hint) hint.textContent = '이 챌린지는 영상만 참가할 수 있어요. 영상을 골라 주세요.'; btn.disabled = true; return; }
+    }
     // 영상은 길이·용량을 바로 확인해 알려준다 (올리기 전에)
     if(isVid && hint){
       if(f.size > VIDEO_MAX_BYTES){ hint.textContent = '영상 용량이 50MB를 넘어요. 더 짧게 잘라 주세요.'; btn.disabled = true; return; }
@@ -6961,6 +6968,7 @@
     var fileEl = document.getElementById('entry-file');
     var noteVal = noteEl.value.trim();
     var file = (fileEl.files && fileEl.files[0]) ? fileEl.files[0] : null;
+    if(chCurrent().media_rule === 'video' && !(file && MEDIA_VIDEO.indexOf(file.type) > -1)){ showToast('이 챌린지는 영상만 참가할 수 있어요'); return; }
     if(btn){ btn.disabled = true; btn.textContent = '등록 중...'; }
     var up = file ? await uploadMedia(file) : { path:'', error:'' };
     if(up.error){

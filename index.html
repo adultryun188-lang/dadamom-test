@@ -2205,6 +2205,7 @@
   }
   // 협찬·체험단 글 표시 (표시광고법, 0038)
   function sponsoredBadge(p){ return p && p.sponsored ? '<span class="pill" style="padding:2px 8px; font-size:11px; font-weight:800; background:#FFF4D6; color:#7A5300; border:1px solid #F1DDAE;">제품 제공받음</span>' : ''; }
+  function audienceBadge(p){ return p && p.audience === 'members' ? '<span class="pill" style="padding:2px 8px; font-size:11px; font-weight:800; background:#EEF6FF; color:#1F4E8C; border:1px solid #D6E6FA;">🔒 회원만</span>' : ''; }
   function chExampleHtml(c){
     var v = c.example_video && /^(https:\/\/|\.\/assets\/)[^\s"<>]+$/.test(c.example_video) ? c.example_video : '';
     var poster = /^\.\/assets\/.+\.mp4$/.test(v) ? v.replace(/\.mp4$/, '.jpg') : '';
@@ -3125,7 +3126,7 @@
           text:r.text, media_path: r.media_path || '', media_url: '', img: false,
           likes:r.likes || 0, liked: likedIds.indexOf(r.id) > -1, comments:r.comments || 0,
           stage: r.stage || null, age_value: (r.age_value === 0 || r.age_value) ? r.age_value : null,
-          mine: isMineRow(r.owner_id, r.id, state.myPosts), status: r.status || 'approved', createdAt: new Date(r.created_at).getTime(), sponsored: !!r.sponsored
+          mine: isMineRow(r.owner_id, r.id, state.myPosts), status: r.status || 'approved', createdAt: new Date(r.created_at).getTime(), sponsored: !!r.sponsored, audience: r.audience || 'all'
         };
       });
       return await attachMediaUrls(rows);
@@ -3645,7 +3646,7 @@
       '<div class="row" style="align-items:center; gap:8px;">' +
         '<div class="feed-avatar" style="background:' + avatarBg(p.author) + ';" aria-hidden="true">' + escapeHtml(String(p.author || '?').charAt(0)) + '</div>' +
         '<span style="font-size:12.5px; font-weight:700;">' + escapeHtml(p.author) + '</span>' +
-        myStatusBadge(p) + sponsoredBadge(p) +
+        myStatusBadge(p) + sponsoredBadge(p) + audienceBadge(p) +
         '<span style="font-size:11px; color:var(--text2);">' + escapeHtml(p.time) + '</span></div>' +
       media +
       postTextHtml(p.text) +
@@ -4372,7 +4373,7 @@
           : (p.img ? '<div style="height:160px; border-radius:16px; background:' + p.bg + ';" role="img" aria-label="게시물 사진"></div>' : '');
         return '<div class="card col" style="gap:12px; padding:16px;">' +
           '<div class="row" style="align-items:center; gap:8px;"><div class="feed-avatar" style="background:' + avatarBg(p.author) + ';" aria-hidden="true">' + escapeHtml(String(p.author || '?').charAt(0)) + '</div>' +
-          '<span style="font-size:12.5px; font-weight:700;">' + escapeHtml(p.author) + '</span>' + myStatusBadge(p) + sponsoredBadge(p) + '<span style="font-size:11px; color:var(--text2);">' + escapeHtml(p.time) + '</span></div>' +
+          '<span style="font-size:12.5px; font-weight:700;">' + escapeHtml(p.author) + '</span>' + myStatusBadge(p) + sponsoredBadge(p) + audienceBadge(p) + '<span style="font-size:11px; color:var(--text2);">' + escapeHtml(p.time) + '</span></div>' +
           media +
           postTextHtml(p.text) +
           '<div class="row" style="align-items:center; gap:16px;">' +
@@ -6447,6 +6448,7 @@
       '<div class="field"><label>공개범위 *</label>' +
       '<div class="segmented round" role="tablist" aria-label="공개범위 선택" id="post-visibility-group" style="width:100%;">' +
       '<button type="button" data-post-visibility="public" role="tab" aria-selected="true" style="flex:1;">전체 공개</button>' +
+      '<button type="button" data-post-visibility="members" role="tab" aria-selected="false" style="flex:1;">회원만</button>' +
       '<button type="button" data-post-visibility="private" role="tab" aria-selected="false" style="flex:1;">나만 보기</button>' +
       '</div><span class="helper" id="post-visibility-hint">커뮤니티의 모든 사람이 볼 수 있어요</span></div>' +
       '<p class="helper" style="margin:0;">다른 사람·선생님·업체의 실명이나 아이 신상을 올리면 바로 내려가요. 서로 다른 3명이 신고하면 자동으로 숨겨지고, 신고는 하루 안에 확인해요.</p>' +
@@ -6814,7 +6816,7 @@
         postVis.setAttribute('aria-selected', 'true');
         var visHint = document.getElementById('post-visibility-hint');
         var visVal = postVis.getAttribute('data-post-visibility');
-        if(visHint){ visHint.textContent = visVal === 'private' ? '나만 볼 수 있어요 (커뮤니티에는 게시되지 않아요)' : '커뮤니티의 모든 사람이 볼 수 있어요'; }
+        if(visHint){ visHint.textContent = visVal === 'private' ? '나만 볼 수 있어요 (커뮤니티에는 게시되지 않아요)' : visVal === 'members' ? '로그인한 다다맘 회원만 볼 수 있어요 (비회원·검색에는 안 보여요)' : '커뮤니티의 모든 사람이 볼 수 있어요'; }
       }
       return;
     }
@@ -7196,8 +7198,8 @@
       // 검수 대기(pending) 행은 SELECT 정책상 본인도 읽을 수 없으므로 RETURNING 을 쓰지 않는다.
       var rowId = newUuid();
       var spEl = document.getElementById('post-sponsored');
-      var payload = { author:author, text:textVal, media_path:mediaPath || null, stage:myStage, age_value:myAgeVal, sponsored: !!(spEl && spEl.checked) };
-      newPost.sponsored = payload.sponsored;
+      var payload = { author:author, text:textVal, media_path:mediaPath || null, stage:myStage, age_value:myAgeVal, sponsored: !!(spEl && spEl.checked), audience: visibility === 'members' ? 'members' : 'all' };
+      newPost.sponsored = payload.sponsored; newPost.audience = payload.audience;
       if(rowId) payload.id = rowId;
       var res = await sb.from('community_posts').insert(payload);
       if(res.error){

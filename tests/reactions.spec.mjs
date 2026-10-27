@@ -67,8 +67,9 @@ async function login(email) {
 }
 const uidOf = async (tok) => (await req('GET', '/auth/v1/user', tok)).json.id;
 
+let READ = null;   // 0041: 챌린지 참가작은 회원만 보이므로 합계는 회원 토큰으로 읽는다
 const counter = async (table, col, id) =>
-  (await req('GET', `/rest/v1/${table}?select=${col}&id=eq.${id}`, null)).json?.[0]?.[col];
+  (await req('GET', `/rest/v1/${table}?select=${col}&id=eq.${id}`, READ)).json?.[0]?.[col];
 
 // 만들어 둔 행을 어떤 경로로 끝나든 지운다
 const cleanup = [];
@@ -82,8 +83,13 @@ const cleanup = [];
   const uidB = await uidOf(tokB);
   console.log('momA=' + uidA + NL + 'momB=' + uidB);
 
-  const entry = (await req('GET', '/rest/v1/challenge_entries?select=id,votes&status=eq.approved&limit=1', null)).json[0];
-  const post = (await req('GET', '/rest/v1/community_posts?select=id,likes,comments&status=eq.approved&limit=1', null)).json[0];
+  READ = tokB;
+  // 두 계정이 이미 반응한 것은 피한다 (화면 확인 등으로 남은 반응이 있으면 중복으로 실패한다)
+  const used = new Set();
+  for (const [t, q] of [[tokA, 'entry_votes?select=entry_id'], [tokB, 'entry_votes?select=entry_id'], [tokA, 'post_likes?select=post_id'], [tokB, 'post_likes?select=post_id']])
+    ((await req('GET', '/rest/v1/' + q, t)).json || []).forEach(r => used.add(r.entry_id || r.post_id));
+  const entry = ((await req('GET', '/rest/v1/challenge_entries?select=id,votes&status=eq.approved&limit=200', tokB)).json || []).find(r => !used.has(r.id));
+  const post = ((await req('GET', '/rest/v1/community_posts?select=id,likes,comments&status=eq.approved&limit=200', null)).json || []).find(r => !used.has(r.id));
   if (!entry || !post) { console.error('승인된 참가작/게시물이 없습니다. 시드를 먼저 넣으세요.'); process.exit(2); }
 
   const v0 = entry.votes, l0 = post.likes, c0 = post.comments;
@@ -138,7 +144,7 @@ const cleanup = [];
     check('비로그인은 반응 행 조회 차단', anonRows.status === 401 || anonRows.status === 403, 'HTTP ' + anonRows.status);
 
     const anonAgg = await req('GET', `/rest/v1/challenge_entries?select=votes&id=eq.${entry.id}`, null);
-    check('비로그인도 합계는 조회 가능', anonAgg.status === 200 && typeof anonAgg.json?.[0]?.votes === 'number', 'HTTP ' + anonAgg.status + ' ' + anonAgg.body.slice(0, 60));
+    check('비로그인은 참가작이 안 보임 (0041 회원만)', anonAgg.status === 200 && Array.isArray(anonAgg.json) && anonAgg.json.length === 0, 'HTTP ' + anonAgg.status + ' ' + anonAgg.body.slice(0, 60));
   }
 
   // ---------------------------------------------- 좋아요 (post_likes) --

@@ -571,7 +571,7 @@
                 <h1 class="display">우리 아이 <em>자랑 대회</em></h1>
                 <div class="hh-art" aria-hidden="true"><span>🏆</span></div>
               </div>
-              <p class="page-hero-desc">챌린지에 맞게 사진이나 1분 영상으로 참여하고, 응원을 가장 많이 받으면 이달의 주인공이 돼요.</p>
+              <p class="page-hero-desc">챌린지에 맞게 사진이나 1분 영상으로 참여하고, 응원과 투표를 가장 많이 받으면 이달의 주인공이 돼요.</p>
             </div>
           </header>
         </div>
@@ -591,7 +591,7 @@
               <div class="hh-art" aria-hidden="true"><span id="challenge-art">👣</span></div>
             </div>
             <p class="page-hero-desc" id="challenge-desc">아이가 혼자 걷는 모습을 1분 이내 영상과 짧은 메모로 참여해요. 10~24개월 아이가 대상이에요.</p>
-            <p id="challenge-prize"><span class="ch-prize-ico" aria-hidden="true">🎁</span><span><b>챌린지마다 매달 응원을 가장 많이 받은 1명에게 육아용품을 드려요.</b><br><span style="color:var(--text2);">상시 진행 · 매달 첫 주 발표 · 당첨되면 가입한 이메일로 연락드려요</span></span></p>
+            <p id="challenge-prize"><span class="ch-prize-ico" aria-hidden="true">🎁</span><span><b>챌린지마다 매달 점수(응원+투표)가 가장 높은 1명에게 육아용품을 드려요.</b><br><span style="color:var(--text2);">상시 진행 · 매달 첫 주 발표 · 당첨되면 가입한 이메일로 연락드려요</span></span></p>
           </div>
         </header>
       </div>
@@ -2181,7 +2181,7 @@
     description:'아이가 혼자 걷는 모습을 1분 이내 영상과 짧은 메모로 참여해요. 10~24개월 아이가 대상이에요.',
     guide:['아이가 혼자 걷는 모습을 1분 이내 영상으로 올려 주세요', '아이 전신이 보이게, 어른 손이 닿지 않은 채 걷는 장면이 담겨야 해요', '끊지 말고 한 번에 이어서 찍은 영상만 인정돼요'],
     placeholder:'예: 오늘 처음으로 세 발짝 걸었어요!', target_label:'10~24개월', stage:'parenting', age_min_m:10, age_max_m:24,
-    ends_on:null, announce_on:null, prize:'챌린지마다 매달 응원을 가장 많이 받은 1명에게 육아용품을 드려요.', example_video:'./assets/challenge/firststep.mp4', media_rule:'video' }];
+    ends_on:null, announce_on:null, prize:'챌린지마다 매달 점수(응원+투표)가 가장 높은 1명에게 육아용품을 드려요.', example_video:'./assets/challenge/firststep.mp4', media_rule:'video' }];
   // 모든 챌린지 공통 촬영 규칙 (예시 영상 아래·참여 창에 함께 보인다)
   var CH_RULES = [
     '챌린지마다 영상만, 또는 사진만 받아요. 밝은 곳에서 세로로 찍으면 잘 보여요',
@@ -2189,14 +2189,14 @@
     '이름표·주소·차 번호판처럼 집을 알 수 있는 정보가 나오지 않게 해 주세요',
     '다른 집 아이가 나오면 그 보호자에게 먼저 허락을 받아 주세요',
     '경품은 원본 사진·영상을 확인한 뒤 드려요. 인터넷에서 받은 것이나 우리 아이가 아닌 것은 제외돼요',
-    '이달의 주인공은 응원 수로 정하지만, 규칙에 맞지 않으면 다음 순위로 넘어가요. 한 챌린지에 한 아이는 한 달에 한 번만 참가해 주세요',
+    '이달의 주인공은 응원과 투표를 합한 점수로 정하지만, 규칙에 맞지 않으면 다음 순위로 넘어가요. 한 챌린지에 한 아이는 한 달에 한 번만 참가해 주세요',
     '처음 몇 번은 검수 후 공개돼요. 규칙에 맞지 않거나 신고가 쌓이면 내려갈 수 있어요'
   ];
   // 챌린지 규칙 전체 (공개 문서). 심사는 이 규칙대로만 한다.
   var CH_RULES_FULL = [
     ['참가 자격', ['다다맘 회원인 보호자가 우리 아이로 참가해요', '챌린지마다 적힌 대상(개월 수·임신 중)에 맞아야 해요']],
     ['참가 방법', ['챌린지마다 영상만, 또는 사진만 받아요', '한 챌린지에 한 아이는 한 달에 한 번만 참가해요', '사진·영상의 주인공은 우리 아이 한 명이에요. 다른 집 아이가 나오면 그 보호자의 허락이 필요해요', '영상은 끊지 말고 한 번에 이어서 찍은 것만 인정돼요']],
-    ['심사', ['응원 수로 매달 챌린지마다 1위를 정해요', '운영자가 챌린지 안내에 맞는지 확인하고, 맞지 않으면 다음 순위가 주인공이 돼요']],
+    ['심사', ['매달 챌린지마다 점수가 가장 높은 1위를 정해요. 점수는 응원 1개에 1점, 투표 1표에 5점이에요', '투표는 회원 한 명이 챌린지마다 한 달에 한 표만 할 수 있어요. 다른 참가작을 누르면 표가 옮겨 가요', '가짜 계정을 막으려고 가입한 지 7일이 안 된 계정의 응원·투표와 내 참가작에 누른 응원은 점수에 넣지 않아요', '운영자가 챌린지 안내에 맞는지 확인하고, 맞지 않으면 다음 순위가 주인공이 돼요']],
     ['원본 확인', ['당첨 후보에게는 찍은 날짜가 남아 있는 원본 사진·영상을 요청해요', '3일 안에 보내 주지 않거나 원본이 아니면 다음 순위로 넘어가요']],
     ['발표와 연락', ['매달 첫 주에 앱·웹에 발표해요', '당첨되면 가입한 이메일로 연락드리고, 7일 안에 답이 없으면 다음 순위로 넘어가요']],
     ['경품', ['경품은 육아용품이에요. 받으실 주소만 여쭤봐요', '경품에 세금이 붙는 경우에는 당첨 연락 때 미리 알려 드리고, 신고에 필요한 정보는 그때 당첨자에게만 따로 받아요']],
@@ -2276,9 +2276,12 @@
     if((location.hash || '') === '#challenge') renderChallengeHall();
   }
   function hallMonthKey(d){ return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'); }
+  function chLockedHtml(){ return '<div class="card col" style="grid-column:1/-1; padding:22px 18px; align-items:center; gap:8px; text-align:center;"><span style="font-size:28px;" aria-hidden="true">🔒</span><span style="font-size:14px; font-weight:800;">참가작은 회원만 볼 수 있어요</span><span class="helper">아이 사진을 지키려고 로그인한 회원에게만 보여 줘요.</span><button type="button" class="btn-primary" data-ch-login style="height:42px; padding:0 20px; font-size:14px;">로그인하고 보기</button></div>'; }
+  function chLocked(){ return !!sb && !authUser; }
   function renderChallengeHall(){
     var box = document.getElementById('challenge-hall');
     if(!box) return;
+    if(chLocked()){ box.innerHTML = chLockedHtml(); return; }
     if(hallRows == null){ loadHall(); return; }
     if(!hallRows.length && !challengesFromDb){ box.innerHTML = ''; return; }   // 함수가 없는 환경
     var now = new Date(), thisKey = hallMonthKey(now);
@@ -2295,14 +2298,14 @@
           (x.media_url ? mediaThumb(x.media_url, 'width:100%; height:100%; object-fit:cover;') : '<span aria-hidden="true">' + escapeHtml(c.emoji || '🏆') + '</span>') + '</span>' +
         '<span class="col" style="gap:2px; min-width:0; flex:1;"><b style="font-size:14px;">' + escapeHtml(x.name || '우리 아이') + '</b>' +
           '<span class="helper" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">' + escapeHtml((c.emoji || '') + ' ' + (c.title || '챌린지')) + '</span></span>' +
-        '<span style="flex:0 0 auto; font-size:12.5px; font-weight:800; color:var(--accent2);">💛 ' + x.month_votes + '</span></button>';
+        '<span style="flex:0 0 auto; text-align:right; font-size:12.5px; font-weight:800; color:var(--accent2);">' + (x.score != null ? x.score + '점' : '💛 ' + x.month_votes) + (x.score != null ? '<br><span class="helper" style="font-weight:600;">💛' + x.month_votes + ' · 🗳️' + (x.month_ballots || 0) + '</span>' : '') + '</span></button>';
     };
     box.innerHTML = '<div class="card col" style="gap:6px; padding:16px 16px 10px; background:linear-gradient(180deg,#FFF6E0,#FFFDF6); border-color:#F1DDAE;">' +
       '<div class="row" style="align-items:baseline; justify-content:space-between; gap:8px;"><b class="display" style="font-size:16px;">🏆 이달의 주인공</b>' +
         '<span class="helper">' + (now.getMonth() + 1) + '/' + lastDay + ' 마감</span></div>' +
-      '<span class="helper">챌린지마다 이번 달 응원을 가장 많이 받은 아이 1명에게 육아용품을 드려요.</span>' +
+      '<span class="helper">챌린지마다 이번 달 점수(응원 1점 + 투표 5점)가 가장 높은 아이 1명에게 육아용품을 드려요.</span>' +
       (cur.length ? '<div class="col" style="gap:2px; margin-top:4px;">' + cur.map(rowHtml).join('') + '</div>'
-                  : '<span class="helper" style="padding:10px 0;">아직 이번 달 응원이 없어요. 마음에 드는 참가작에 💛를 눌러 주세요.</span>') +
+                  : '<span class="helper" style="padding:10px 0;">아직 이번 달 점수가 없어요. 마음에 드는 참가작에 💛 응원과 🗳️ 투표를 해 주세요.</span>') +
       (past.length ? '<div class="row" style="gap:6px; flex-wrap:wrap; padding-top:8px; border-top:1px dashed #EAD8B6; margin-top:6px;"><span class="helper" style="font-weight:800;">지난 주인공</span>' +
         past.slice(0, 10).map(function(x){ return '<span class="pill" style="padding:4px 10px; font-size:12px; background:#fff; border:1px solid #EAD8B6;">' + (+x.month.slice(5)) + '월 ' + escapeHtml(x.name || '') + ' ' + escapeHtml(chOf(x.challenge_key).emoji || '') + '</span>'; }).join('') + '</div>' : '') +
     '</div>';
@@ -3084,6 +3087,17 @@
     });
   }
 
+  var myBallots = {};   // challenge_key → entry_id (이번 달)
+  function curMonthKST(){ return new Date(Date.now() + 9 * 3600000).toISOString().slice(0, 7); }
+  function ballotErrText(err){ var m = (err && (err.hint || err.message)) || ''; return /가입 7일|NEW_ACCOUNT/.test(m) ? '가입 7일이 지나면 투표할 수 있어요' : /내 참가작|OWN_ENTRY/.test(m) ? '내 참가작에는 투표할 수 없어요' : '투표를 저장하지 못했어요. 잠시 뒤 다시 눌러 주세요'; }
+  async function fetchMyBallots(){
+    myBallots = {};
+    if(!sb || !authUser) return;
+    try{
+      var r = await sb.from('entry_ballots').select('challenge_key,entry_id').eq('month', curMonthKST());
+      (r.data || []).forEach(function(b){ myBallots[b.challenge_key] = b.entry_id; });
+    }catch(e){}
+  }
   async function fetchEntries(){
     if(!sb) return null;
     var requestState = state;
@@ -3092,6 +3106,7 @@
       if(res.error || !res.data) return null;
       var merged = newestFirst(res.data.concat(await fetchOwnUnapproved('challenge_entries')));
       var mineVotes = await fetchMyReactionIds('entry_votes', 'entry_id');
+      await fetchMyBallots();
       if(state !== requestState) return null;
       if(mineVotes){ state.myVotes = mineVotes; save(); }
       var votedIds = mineVotes || state.myVotes;
@@ -4017,7 +4032,7 @@
         '<span style="flex:0 0 auto; width:58px; height:58px; border-radius:18px; background:var(--w-sun); display:flex; align-items:center; justify-content:center; font-size:30px;" aria-hidden="true">' + escapeHtml(c.emoji || '🏆') + '</span>' +
         '<span style="display:flex; flex-direction:column; gap:4px; min-width:0; flex:1;">' +
           '<span style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;"><b style="font-size:15px;">' + escapeHtml(c.title) + '</b>' + tag + badge + '</span>' +
-          '<span class="helper">' + escapeHtml(c.target_label || '전체') + ' · 참가작 ' + mine.length + '개' + (cheers ? ' · 💛 ' + cheers : '') + '</span>' +
+          '<span class="helper">' + escapeHtml(c.target_label || '전체') + (chLocked() ? ' · 🔒 회원 공개' : ' · 참가작 ' + mine.length + '개' + (cheers ? ' · 💛 ' + cheers : '')) + '</span>' +
           (pics.length ? '<span style="display:flex; gap:5px; margin-top:2px;">' + pics.map(function(e){ return '<span style="width:38px; height:38px; border-radius:10px; overflow:hidden; flex:0 0 auto;">' + mediaThumb(e.media_url, 'width:100%; height:100%; object-fit:cover;') + '</span>'; }).join('') + '</span>' : '') +
         '</span>' +
         '<svg style="flex:0 0 auto;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></button>';
@@ -4072,6 +4087,7 @@
       partBtn.textContent = challengeClosed ? '모집이 마감됐어요' : (ineligible ? (cur.stage === 'pregnant' ? '임신 중인 분이 참여하는 챌린지예요 · 💛 응원해 주세요' : '임신 중엔 💛 응원으로 함께해요 · 출산 후 참여할 수 있어요') : (cur.stage === 'pregnant' ? '참여하기 ' + (cur.emoji || '') : '우리 아이도 참여하기'));
     }
 
+    if(chLocked()){ document.getElementById('entry-count').textContent = '–'; document.getElementById('entries').innerHTML = chLockedHtml(); return; }
     var list = sortedEntries().filter(function(e){ return (e.challenge_key || 'firststep') === cur.id; });
     if(state.viewMineOnly === 'challenge'){ list = list.filter(function(e){ return e.mine; }); }
     document.getElementById('entry-count').textContent = list.length;
@@ -4079,7 +4095,7 @@
       ? '<div class="row" style="grid-column:1/-1; align-items:center; justify-content:space-between; background:var(--accent-soft); border-radius:12px; padding:10px 14px;"><span style="font-size:12.5px; font-weight:700; color:var(--accent2);">내 참여 기록만 보는 중</span><button type="button" data-clear-my-filter class="link-quiet" style="background:none; border:none;">전체보기</button></div>'
       : '';
     if(list.length === 0){
-      document.getElementById('entries').innerHTML = challengeMineBanner + '<div class="card col" style="grid-column:1/-1; padding:22px 18px; align-items:center; gap:6px; text-align:center;"><span style="font-size:28px;" aria-hidden="true">' + escapeHtml(cur.emoji || '🏆') + '</span><span style="font-size:14px; font-weight:800;">첫 주인공이 되어 보세요</span><span class="helper">' + (cur.media_rule === 'video' ? '1분 이내 영상 하나면' : '사진 한 장이면') + ' 참여할 수 있어요. 응원을 가장 많이 받으면 이달의 주인공!</span></div>';
+      document.getElementById('entries').innerHTML = challengeMineBanner + '<div class="card col" style="grid-column:1/-1; padding:22px 18px; align-items:center; gap:6px; text-align:center;"><span style="font-size:28px;" aria-hidden="true">' + escapeHtml(cur.emoji || '🏆') + '</span><span style="font-size:14px; font-weight:800;">첫 주인공이 되어 보세요</span><span class="helper">' + (cur.media_rule === 'video' ? '1분 이내 영상 하나면' : '사진 한 장이면') + ' 참여할 수 있어요. 응원과 투표를 가장 많이 받으면 이달의 주인공!</span></div>';
       return;
     }
     document.getElementById('entries').innerHTML = challengeMineBanner + list.map(function(e){
@@ -4099,6 +4115,7 @@
         '<button data-vote="' + e.id + '" aria-pressed="' + e.liked + '" aria-label="응원하기, 현재 ' + e.votes + '표" style="flex:0 0 auto; background:none; border:none; display:flex; align-items:center; gap:5px; min-width:44px; min-height:44px; padding:0 8px; justify-content:center;">' +
         '<svg width="20" height="20" viewBox="0 0 24 24" fill="' + (e.liked ? 'var(--accent)' : 'none') + '" stroke="var(--accent)" stroke-width="1.6" aria-hidden="true"><path d="M12 21s-7.5-4.6-10-9.3C0.4 8.4 2.4 5 6 5c2 0 3.4 1 4 2.3C10.6 6 12 5 14 5c3.6 0 5.6 3.4 4 6.7-2.5 4.7-10 9.3-10 9.3z"/></svg>' +
         '<span style="font-size:12.5px; color:var(--text2);">' + e.votes + '</span></button>' +
+        (!e.mine && e.status === 'approved' ? (function(){ var on = myBallots[cur.id] === e.id; return '<button type="button" data-ballot="' + escapeHtml(String(e.id)) + '" aria-pressed="' + on + '" aria-label="이 참가작에 투표하기 (챌린지마다 한 달에 한 표)" style="flex:0 0 auto; margin-left:auto; border:1px solid ' + (on ? 'var(--accent)' : 'var(--line)') + '; background:' + (on ? 'var(--accent-soft)' : '#fff') + '; color:' + (on ? 'var(--accent2)' : 'var(--text2)') + '; border-radius:999px; min-height:34px; padding:0 12px; font-size:12px; font-weight:800; margin-right:6px;">' + (on ? '🗳️ 투표함' : '🗳️ 투표') + '</button>'; })() : '') +
         (e.mine
           ? '<button data-edit-entry="' + e.id + '" aria-label="내 참가작 수정" style="flex:0 0 auto; margin-left:auto; background:none; border:none; color:var(--text2); min-width:44px; min-height:44px; font-size:12px;">수정</button>' +
             '<button data-delete-entry="' + e.id + '" aria-label="내 참가작 삭제" style="flex:0 0 auto; background:none; border:none; color:var(--text2); min-width:44px; min-height:44px; font-size:12px;">삭제</button>'
@@ -6720,6 +6737,24 @@
     var sort = e.target.closest('[data-sort]');
     if(sort){ state.sortMode = sort.getAttribute('data-sort'); save(); renderChallenge(); return; }
 
+    if(e.target.closest('[data-ch-login]')){ requireLogin('챌린지 참가작을 보'); return; }
+    var ballot = e.target.closest('[data-ballot]');
+    if(ballot){
+      if(!requireLogin('투표')) return;
+      var bid = ballot.getAttribute('data-ballot');
+      var bEntry = state.entries.filter(function(x){ return String(x.id) === bid; })[0];
+      if(!bEntry) return;
+      ballot.disabled = true;
+      sb.rpc('cast_ballot', { p_entry: bid }).then(function(r){
+        ballot.disabled = false;
+        if(r.error){ console.warn('[투표]', r.error); showToast(ballotErrText(r.error)); return; }
+        var k = bEntry.challenge_key || 'firststep';
+        if(r.data === 'removed'){ delete myBallots[k]; showToast('투표를 취소했어요'); }
+        else { myBallots[k] = bEntry.id; showToast('투표했어요 · 이 챌린지에서 이번 달 한 표예요'); }
+        hallAt = 0; loadHall(); renderChallenge();
+      });
+      return;
+    }
     var vote = e.target.closest('[data-vote]');
     if(vote){
       hallAt = 0; setTimeout(loadHall, 1500);

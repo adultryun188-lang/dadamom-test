@@ -34,7 +34,7 @@ try {
   // 응원 날짜 되돌리기: 공개된 참가작이 있어야 응원할 수 있다 → 관리자가 승인
   await fetch(U + '/rest/v1/challenge_entries?id=eq.' + eid, { method: 'PATCH', headers: h(ADM.access_token), body: JSON.stringify({ status: 'approved' }) });
   const vr = await fetch(U + '/rest/v1/entry_votes', { method: 'POST', headers: h(ADM.access_token), body: JSON.stringify({ entry_id: eid, created_at: '2026-01-15T00:00:00Z' }) });
-  const hall = await (await fetch(U + '/rest/v1/rpc/challenge_hall', { method: 'POST', headers: h(), body: JSON.stringify({ p_months: 12 }) })).json();
+  const hall = await (await fetch(U + '/rest/v1/rpc/challenge_hall', { method: 'POST', headers: h(B.access_token), body: JSON.stringify({ p_months: 12 }) })).json();
   ok('응원 날짜를 1월로 넣어도 1월 순위에 안 들어감', vr.status < 300 && !hall.some(x => x.month === '2026-01'), 'vote HTTP ' + vr.status);
 
   // 관리자는 그대로 (공지성 글 등)

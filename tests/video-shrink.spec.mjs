@@ -15,6 +15,8 @@ const ok = (n, c, x = '') => { console.log((c ? 'PASS ' : 'FAIL ') + n + (x ? ' 
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'dadamom-shrink-')), big = path.join(dir, 'big.mp4'), got = path.join(dir, 'got.mp4');
 execFileSync('ffmpeg', ['-loglevel', 'error', '-y', '-f', 'lavfi', '-i', 'testsrc2=s=1920x1080:r=30:d=10', '-f', 'lavfi', '-i', 'sine=f=440:d=10',
   '-c:v', 'libx264', '-preset', 'ultrafast', '-crf', '8', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-shortest', big]);
+// SRC=파일 로 다른 영상(고프로 HEVC 4K60, 세로 휴대폰 등)도 시험할 수 있다. WANT=예상 크기 (예: 720x1280)
+if (process.env.SRC) fs.copyFileSync(process.env.SRC, big);
 const bigSize = fs.statSync(big).size;
 const h = (t, x = {}) => ({ apikey: K, Authorization: 'Bearer ' + (t || K), ...x });
 const A = await (await fetch(U + '/auth/v1/token?grant_type=password', { method: 'POST', headers: h(null, { 'Content-Type': 'application/json' }), body: JSON.stringify({ email: 'momA@dadamom.test', password: 'dadamom-test-1234' }) })).json();
@@ -49,7 +51,7 @@ try {
   ok('올라간 영상이 작아짐 (12MB 아래)', size < 12 * 1048576, (bigSize / 1048576).toFixed(1) + 'MB → ' + (size / 1048576).toFixed(1) + 'MB');
   let probe = '';
   try { execFileSync('ffmpeg', ['-hide_banner', '-i', got], { stdio: 'pipe' }); } catch (e) { probe = String(e.stderr); }
-  ok('영상 트랙 720px', /Video:.*(1280x720|720x1280)/.test(probe), ((probe.match(/Video:[^\n]*/) || [''])[0].match(/\d{3,4}x\d{3,4}/) || [''])[0]);
+  ok('영상 트랙 720p' + (process.env.WANT ? ' (' + process.env.WANT + ')' : ''), process.env.WANT ? probe.includes(process.env.WANT) : /Video:.*(1280x720|720x1280)/.test(probe), ((probe.match(/Video:[^\n]*/) || [''])[0].match(/\d{3,4}x\d{3,4}/) || [''])[0]);
   ok('소리 트랙 있음', /Audio:/.test(probe));
   ok('페이지 오류 없음', errs.length === 0, errs.join(' | '));
 } catch (e) { failed++; console.log('FAIL 실행 중단: ' + e.message.split('\n')[0]); }

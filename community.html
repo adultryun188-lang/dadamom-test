@@ -773,6 +773,18 @@
     '이달의 주인공은 응원 수로 정하지만, 규칙에 맞지 않으면 다음 순위로 넘어가요. 한 챌린지에 한 아이는 한 달에 한 번만 참가해 주세요',
     '처음 몇 번은 검수 후 공개돼요. 규칙에 맞지 않거나 신고가 쌓이면 내려갈 수 있어요'
   ];
+  // 챌린지 규칙 전체 (공개 문서). 심사는 이 규칙대로만 한다.
+  var CH_RULES_FULL = [
+    ['참가 자격', ['다다맘 회원인 보호자가 우리 아이로 참가해요', '챌린지마다 적힌 대상(개월 수·임신 중)에 맞아야 해요']],
+    ['참가 방법', ['챌린지마다 영상만, 또는 사진만 받아요', '한 챌린지에 한 아이는 한 달에 한 번만 참가해요', '사진·영상의 주인공은 우리 아이 한 명이에요. 다른 집 아이가 나오면 그 보호자의 허락이 필요해요', '영상은 끊지 말고 한 번에 이어서 찍은 것만 인정돼요']],
+    ['심사', ['응원 수로 매달 챌린지마다 1위를 정해요', '운영자가 챌린지 안내에 맞는지 확인하고, 맞지 않으면 다음 순위가 주인공이 돼요']],
+    ['원본 확인', ['당첨 후보에게는 찍은 날짜가 남아 있는 원본 사진·영상을 요청해요', '3일 안에 보내 주지 않거나 원본이 아니면 다음 순위로 넘어가요']],
+    ['발표와 연락', ['매달 첫 주에 앱·웹에 발표해요', '당첨되면 가입한 이메일로 연락드리고, 7일 안에 답이 없으면 다음 순위로 넘어가요']],
+    ['경품', ['경품은 육아용품이에요. 받으실 주소만 여쭤봐요', '경품에 세금이 붙는 경우에는 당첨 연락 때 미리 알려 드리고, 신고에 필요한 정보는 그때 당첨자에게만 따로 받아요']],
+    ['홍보 활용', ['참가하면 다다맘 앱·웹·SNS와 경품을 주는 브랜드의 SNS·광고에 참가작이 쓰일 수 있어요', '기간은 참가한 날부터 2년이에요. 참가작을 지우면 그 뒤 새 홍보에는 쓰지 않아요']],
+    ['이런 참가작은 받지 않아요', ['인터넷에서 받은 사진·영상, 우리 아이가 아닌 사진·영상', '높은 곳·물가처럼 위험한 연출', '이름표·주소·차 번호판처럼 집을 알 수 있는 정보가 나온 것']]
+  ];
+  function spBadge(p){ return p && p.sponsored ? '<span style="display:inline-block; padding:1px 8px; border-radius:999px; font-size:11.5px; font-weight:800; background:#FFF4D6; color:#7A5300; border:1px solid #F1DDAE;">제품 제공받음</span>' : ''; }
   function chExampleWeb(c){
     var v = c.example_video && /^(https:\/\/|\.\/assets\/)[^\s"<>]+$/.test(c.example_video) ? c.example_video : '';
     var poster = /^\.\/assets\/.+\.mp4$/.test(v) ? v.replace(/\.mp4$/, '.jpg') : '';
@@ -785,7 +797,9 @@
         (photoEx ? '<img src="' + esc(poster) + '" alt="예시 사진" loading="lazy" style="width:100%; max-height:480px; border-radius:18px; background:#000; object-fit:contain;">'
           : v ? '<video src="' + esc(v) + '"' + (poster ? ' poster="' + esc(poster) + '"' : '') + ' controls muted playsinline loop preload="none" style="width:100%; max-height:480px; border-radius:18px; background:#000; object-fit:contain;"></video>' : '') +
         '<div>' + (c.media_rule === 'video' ? '<p style="margin:0 0 12px; padding:10px 12px; border-radius:12px; background:#FFF1E8; color:#9A3A12; font-weight:800;">🎬 이 챌린지는 1분 이내 영상으로만 참가할 수 있어요</p>' : c.media_rule === 'photo' ? '<p style="margin:0 0 12px; padding:10px 12px; border-radius:12px; background:#EEF6FF; color:#1F4E8C; font-weight:800;">📷 이 챌린지는 사진으로만 참가할 수 있어요</p>' : '<p style="margin:0 0 12px; color:var(--text2); font-weight:700;">📷 사진 1장이나 1분 이내 영상으로 참가해요</p>') + '<b>' + esc(c.title) + ' 안내</b><ul style="padding-left:18px; margin:8px 0 16px;">' + li(c.guide || []) + '</ul>' +
-          '<b>모든 챌린지 공통 규칙</b><ul style="padding-left:18px; margin:8px 0 0; font-size:13.5px;">' + li(CH_RULES, true) + '</ul></div>' +
+          '<b>모든 챌린지 공통 규칙</b><ul style="padding-left:18px; margin:8px 0 0; font-size:13.5px;">' + li(CH_RULES, true) + '</ul>' +
+          '<details style="margin-top:12px;"><summary style="cursor:pointer; font-weight:800;">📜 챌린지 규칙 전체 보기 (심사·원본 확인·경품·홍보 활용)</summary>' +
+            CH_RULES_FULL.map(function(r){ return '<b style="display:block; margin-top:10px;">' + esc(r[0]) + '</b><ul style="padding-left:18px; margin:4px 0 0; font-size:13.5px;">' + li(r[1], true) + '</ul>'; }).join('') + '</details></div>' +
       '</div></section>';
   }
   var chList = CH_FALLBACK, chFromDb = false, chLoaded = null;
@@ -836,7 +850,7 @@
     { id:'m25', name:'🎒 25개월+' }
   ];
   var SORTS = [ { id:'new', name:'최신순' }, { id:'like', name:'추천순' }, { id:'cmt', name:'댓글순' } ];
-  var COLS = 'id,author,text,likes,comments,created_at,stage,age_value,media_path,owner_id,status';
+  var COLS = 'id,author,text,likes,comments,created_at,stage,age_value,media_path,owner_id,status,sponsored';
 
   var user = null, profile = null;
 
@@ -1056,6 +1070,7 @@
           '<div class="facts"><span>대상 <strong>10~24개월</strong></span><span>상시 진행 · <strong>매달</strong> 발표</span><span>경품 <strong>매달 1명</strong> · 육아용품</span><span id="fc-count">참가작 –</span></div>' +
           '<div class="cta">' + (open ? '<a class="btn primary" href="./index.html#challenge">앱에서 참여하기</a>' : '') + '<a class="btn" href="#/challenge?c=firststep">참가작 보고 응원하기</a></div>' +
           '<div class="sub" id="fc-more" style="padding:12px 0 0; flex-wrap:wrap;"></div>' +
+          '<p style="font-size:13px;">🛡️ <b>아이 사진이 안전한 곳</b> — 사진·영상은 10분만 열리는 링크로만 보여 주고, 처음 올린 사진은 운영자가 확인해요. 3명이 신고하면 바로 숨기고, 광고 추적 도구는 쓰지 않아요.</p>' +
         '</div>' +
         '<div class="mosaic" id="home-ch"><span>참가작을 불러오는 중…</span></div>' +
       '</section>' +
@@ -1121,7 +1136,7 @@
       '<div style="display:flex; gap:6px; align-items:center;">' + tagHtml(pp.topic) + (p.media_path ? '<span class="ico">📷</span>' : '') + '</div>' +
       '<span class="t">' + esc(pp.title) + '</span>' +
       '<span class="b">' + esc(pp.body || ' ') + '</span>' +
-      '<span class="m"><span>' + esc(p.author || '익명') + '</span>' + (stageText(p) ? '<span>' + esc(stageText(p)) + '</span>' : '') +
+      '<span class="m"><span>' + esc(p.author || '익명') + '</span>' + spBadge(p) + (stageText(p) ? '<span>' + esc(stageText(p)) + '</span>' : '') +
         '<span class="r"><span class="hot">👍 ' + (p.likes || 0) + '</span><span>💬 ' + (p.comments || 0) + '</span></span></span>' +
     '</a>';
   }
@@ -1169,7 +1184,7 @@
             (p.likes >= HOT_MIN ? '<span class="ico" title="인기글">🔥</span>' : '') +
             '<a href="#/p/' + p.id + '">' + hl(pp.title, qt) + '</a>' +
             (p.media_path ? '<span class="ico" title="사진">📷</span>' : '') +
-            (p.comments ? '<span class="cmt">[' + p.comments + ']</span>' : '') + st +
+            (p.comments ? '<span class="cmt">[' + p.comments + ']</span>' : '') + st + (p.sponsored ? ' ' + spBadge(p) : '') +
           '</div></td>' +
           '<td class="c-author"><div class="author">' + hl(p.author || '익명', qa) + (stageText(p) ? ' <span class="stage">· ' + esc(stageText(p)) + '</span>' : '') + '</div></td>' +
           '<td class="c-date">' + shortDate(p.created_at) + '</td>' +
@@ -1338,7 +1353,7 @@
       '<div class="post-h">' +
         '<a class="crumb" href="#/b/' + b.id + '">' + b.em + ' ' + esc(b.name) + ' 게시판 ›</a>' +
         '<h1 class="display">' + esc(pp.title) + '</h1>' +
-        '<div class="post-meta"><span class="who"><span class="avatar" aria-hidden="true">' + stageEmoji(p.stage) + '</span>' + esc(p.author || '익명') + '</span>' +
+        '<div class="post-meta"><span class="who"><span class="avatar" aria-hidden="true">' + stageEmoji(p.stage) + '</span>' + esc(p.author || '익명') + '</span>' + spBadge(p) +
           tagHtml(pp.topic) +
           (stageText(p) ? '<span>' + esc(stageText(p)) + '</span>' : '') +
           '<span>' + fullDate(p.created_at) + '</span><span>👍 <b data-post-likes>' + (p.likes || 0) + '</b></span><span>💬 <b data-post-comments>' + (p.comments || 0) + '</b></span>' +
@@ -1641,7 +1656,8 @@
         '<div><label for="w-body">내용</label><textarea id="w-body" maxlength="1800" required placeholder="아이 개월 수나 상황을 함께 적으면 더 좋은 답을 받을 수 있어요."></textarea>' +
           '<span class="draft-note" id="draft-note" aria-live="polite"></span></div>' +
         '<div><label for="w-photo">사진 (선택, 1장)</label><label class="kfile"><input type="file" class="kfile-input" id="w-photo" accept="image/jpeg,image/png,image/webp"><span class="kfile-btn">📷 사진 고르기</span><span class="kfile-name">선택한 파일 없음</span></label><div class="photo-preview" id="w-preview"></div></div>' +
-        '<div class="note">🛡️ 글은 바로 공개돼요. 사진이 있거나 연락처·링크가 들어간 글은 운영자 확인 후 공개돼요. 아이 얼굴·이름·주소 같은 개인정보가 드러나지 않게 주의해주세요. 다른 사람·선생님·업체의 실명이나 아이 신상을 올리면 바로 내려가고, 서로 다른 3명이 신고하면 자동으로 숨겨져요.<br>글쓴이에는 <b>' + esc(myName()) + '</b> 와 ' + esc(profileStageText() || '아이 단계') + ' 가 함께 표시돼요.</div>' +
+        '<label style="display:flex; gap:8px; align-items:flex-start; font-size:14px;"><input type="checkbox" id="w-sponsored" style="margin-top:3px;"> 업체에서 제품이나 돈을 받고 쓰는 글이에요 (체험단·협찬) — 글에 \'제품 제공받음\'이 표시돼요</label>' +
+        '<div class="note">🛡️ 글은 바로 공개돼요. 사진이 있거나 연락처·링크가 들어간 글은 운영자 확인 후 공개돼요. 아이 얼굴·이름·주소 같은 개인정보가 드러나지 않게 주의해주세요. 다른 사람·선생님·업체의 실명이나 아이 신상을 올리면 바로 내려가고, 서로 다른 3명이 신고하면 자동으로 숨겨지고, 신고는 하루 안에 확인해요.<br>글쓴이에는 <b>' + esc(myName()) + '</b> 와 ' + esc(profileStageText() || '아이 단계') + ' 가 함께 표시돼요.</div>' +
         '<div style="display:flex; gap:8px; justify-content:flex-end;"><a class="btn" href="#/b/all">취소</a><button class="btn primary" type="submit" id="w-submit">등록</button></div>' +
       '</form></section></section>';
     restoreDraft(pre);
@@ -1728,7 +1744,8 @@
     var res = await sb.from('community_posts').insert({
       id: id, author: myName(),
       text: (topic ? '[' + topic + '] ' : '') + title + '\n' + body,
-      media_path: up.path || null, stage: (profile && profile.kid_type) || null, age_value: profileAge()
+      media_path: up.path || null, stage: (profile && profile.kid_type) || null, age_value: profileAge(),
+      sponsored: !!($('w-sponsored') && $('w-sponsored').checked)
     });
     if(res.error){
       if(up.path) await sb.storage.from('media').remove([up.path]);

@@ -769,7 +769,7 @@
     '아이 안전이 먼저예요. 높은 곳·물가처럼 위험한 연출은 하지 말아 주세요',
     '이름표·주소·차 번호판처럼 집을 알 수 있는 정보가 나오지 않게 해 주세요',
     '다른 집 아이가 나오면 그 보호자에게 먼저 허락을 받아 주세요',
-    '검수 후 공개돼요. 규칙에 맞지 않으면 반려될 수 있어요'
+    '처음 몇 번은 검수 후 공개돼요. 규칙에 맞지 않거나 신고가 쌓이면 내려갈 수 있어요'
   ];
   function chExampleWeb(c){
     var v = c.example_video && /^(https:\/\/|\.\/assets\/)[^\s"<>]+$/.test(c.example_video) ? c.example_video : '';
@@ -1637,7 +1637,7 @@
         '<div><label for="w-body">내용</label><textarea id="w-body" maxlength="1800" required placeholder="아이 개월 수나 상황을 함께 적으면 더 좋은 답을 받을 수 있어요."></textarea>' +
           '<span class="draft-note" id="draft-note" aria-live="polite"></span></div>' +
         '<div><label for="w-photo">사진 (선택, 1장)</label><label class="kfile"><input type="file" class="kfile-input" id="w-photo" accept="image/jpeg,image/png,image/webp"><span class="kfile-btn">📷 사진 고르기</span><span class="kfile-name">선택한 파일 없음</span></label><div class="photo-preview" id="w-preview"></div></div>' +
-        '<div class="note">🛡️ 글은 운영자 검수 후 공개돼요. 아이 얼굴·이름·주소 같은 개인정보가 드러나지 않게 주의해주세요.<br>글쓴이에는 <b>' + esc(myName()) + '</b> 와 ' + esc(profileStageText() || '아이 단계') + ' 가 함께 표시돼요.</div>' +
+        '<div class="note">🛡️ 글은 바로 공개돼요. 사진이 있거나 연락처·링크가 들어간 글은 운영자 확인 후 공개돼요. 아이 얼굴·이름·주소 같은 개인정보가 드러나지 않게 주의해주세요.<br>글쓴이에는 <b>' + esc(myName()) + '</b> 와 ' + esc(profileStageText() || '아이 단계') + ' 가 함께 표시돼요.</div>' +
         '<div style="display:flex; gap:8px; justify-content:flex-end;"><a class="btn" href="#/b/all">취소</a><button class="btn primary" type="submit" id="w-submit">등록</button></div>' +
       '</form></section></section>';
     restoreDraft(pre);
@@ -1733,7 +1733,8 @@
     }
     await sb.from('consent_records').insert({ kind:'post_visibility', granted:true, doc_version:'v1', scope:'public', subject_id:id });
     clearTimeout(draftTimer); clearDraft();
-    toast('등록했어요. 검수 후 공개됩니다');
+    var live = await sb.from('community_posts').select('id').eq('id', id).eq('status', 'approved').maybeSingle();
+    toast(live && live.data ? '등록했어요. 바로 공개됐어요' : '등록했어요. 검수 후 공개됩니다');
     location.hash = '#/p/' + id;
   }
 

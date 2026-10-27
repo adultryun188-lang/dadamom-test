@@ -2178,7 +2178,7 @@
     '아이 안전이 먼저예요. 높은 곳·물가처럼 위험한 연출은 하지 말아 주세요',
     '이름표·주소·차 번호판처럼 집을 알 수 있는 정보가 나오지 않게 해 주세요',
     '다른 집 아이가 나오면 그 보호자에게 먼저 허락을 받아 주세요',
-    '검수 후 공개돼요. 규칙에 맞지 않으면 반려될 수 있어요'
+    '처음 몇 번은 검수 후 공개돼요. 규칙에 맞지 않거나 신고가 쌓이면 내려갈 수 있어요'
   ];
   function chExampleHtml(c){
     var v = c.example_video && /^(https:\/\/|\.\/assets\/)[^\s"<>]+$/.test(c.example_video) ? c.example_video : '';
@@ -7001,6 +7001,9 @@
         return;
       }
       if(rowId) newEntry.id = rowId;
+      // 믿을 만한 회원은 서버가 바로 공개한다 (0034). 공개됐으면 읽힌다.
+      var liveE = rowId ? await sb.from('challenge_entries').select('id').eq('id', rowId).eq('status', 'approved').maybeSingle() : null;
+      if(liveE && liveE.data) newEntry.status = 'approved';
       await recordConsents([
         { kind:'entry_photo',     granted:true, subjectId:rowId },
         { kind:'entry_brand_use', granted: !!(brandConsent2El && brandConsent2El.checked), subjectId:rowId }
@@ -7013,7 +7016,7 @@
     state.entries.unshift(newEntry);
     state.sortMode = 'new'; save();
     closeModal(); renderChallenge();
-    showToast(sb ? '제출했어요. 검수 후 공개됩니다' : '참여가 등록됐어요');
+    showToast(!sb ? '참여가 등록됐어요' : (newEntry.status === 'approved' ? '참가했어요. 바로 공개됐어요' : '제출했어요. 검수 후 공개됩니다'));
   }
 
   async function handlePostSubmit(){
@@ -7054,6 +7057,8 @@
         return;
       }
       if(rowId) newPost.id = rowId;
+      var liveP = rowId ? await sb.from('community_posts').select('id').eq('id', rowId).eq('status', 'approved').maybeSingle() : null;
+      if(liveP && liveP.data) newPost.status = 'approved';
       await recordConsents([
         { kind:'post_visibility', granted:true, scope:visibility, subjectId:rowId }
       ]);
@@ -7066,7 +7071,7 @@
     state.posts.unshift(newPost);
     save();
     closeModal(); renderCommunity(); renderHome();
-    showToast(visibility === 'private' ? '나만 보기로 저장했어요' : '등록했어요. 검수 후 공개됩니다');
+    showToast(visibility === 'private' ? '나만 보기로 저장했어요' : (newPost.status === 'approved' ? '등록했어요. 바로 공개됐어요' : '등록했어요. 검수 후 공개됩니다'));
   }
 
   // ---------- 내가 올린 글·참가작 지우기 ----------

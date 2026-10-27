@@ -73,7 +73,8 @@ try {
   await p.click('#entry-submit'); await p.waitForTimeout(4000);
   const mine = (await req('/rest/v1/challenge_entries?select=id,challenge_key,note,status&owner_id=eq.' + A.uid + '&note=eq.' + encodeURIComponent('시험 참가 — 호박 모자'), 'GET', undefined, A.token)).body;
   madeIds = mine.map(r => r.id);
-  ok('DB 에 할로윈으로 저장', mine.length === 1 && mine[0].challenge_key === 'halloween' && mine[0].status === 'pending', JSON.stringify(mine));
+  // momA 는 공개 참가작이 3개 넘는 '믿을 만한 회원'이라 0034 규칙으로 바로 공개된다
+  ok('DB 에 할로윈으로 저장 (믿을 만한 회원 → 바로 공개)', mine.length === 1 && mine[0].challenge_key === 'halloween' && mine[0].status === 'approved', JSON.stringify(mine));
   await p.click('[data-challenge-back]'); await p.waitForTimeout(400);
   await p.click('[data-challenge-open="firststep"]'); await p.waitForTimeout(600);
   ok('첫걸음 목록엔 방금 글 없음', !(await p.textContent('#entries')).includes('호박 모자'));

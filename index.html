@@ -989,8 +989,8 @@
   // 환경설정은 env.js 에서 주입된다 (개발/스테이징/운영 분리).
   // anon key 는 공개용으로 설계된 키이고, service_role 등 비밀키는 이 파일에 절대 넣지 않는다.
   var ENV = (window.DADAMOM_ENV || {});
-  // 아이폰 앱(App Store)은 앱 안 웹뷰라 구글이 로그인을 막는다(disallowed_useragent). 그 앱에서만 구글 버튼을 숨긴다.
-  var IOS_SHELL = /DadamomiOS/.test(navigator.userAgent);
+  // 아이폰·안드로이드 앱은 앱 안 웹뷰라 구글이 로그인을 막는다(disallowed_useragent). 그 앱에서만 구글 버튼을 숨긴다.
+  var IOS_SHELL = /Dadamom(iOS|Android)/.test(navigator.userAgent);
   var SUPABASE_URL = ENV.SUPABASE_URL || '';
   var SUPABASE_KEY = ENV.SUPABASE_ANON_KEY || '';
   if(!SUPABASE_URL || !SUPABASE_KEY){
@@ -2169,7 +2169,7 @@
   // 운영자가 관리 화면에서 만든다. 표가 없는 환경(운영 SQL 전)은 첫걸음 하나로 예전처럼 동작한다.
   var CHALLENGE_FALLBACK = [{ id:'firststep', title:'첫걸음 챌린지', emoji:'👣',
     description:'걸음마 사진 한 장과 짧은 메모로 참여해요. 10~24개월 아이가 대상이에요.',
-    guide:['걷는 모습이 담긴 사진 1장', '아직 걷지 못해도 걸음을 시도하는 모습이면 됩니다', '아이 얼굴이 부담되면 뒷모습이나 발만 담아도 돼요'],
+    guide:['혼자 걷는 모습을 30초 이내 영상으로 올려 주세요', '어른 손을 잡지 않고 한두 걸음이라도 혼자 내딛는 순간이면 돼요', '영상이 어려우면 사진도 받아요. 얼굴이 부담되면 발만 담아도 돼요'],
     placeholder:'예: 오늘 처음으로 세 발짝 걸었어요!', target_label:'10~24개월', stage:'parenting', age_min_m:10, age_max_m:24,
     ends_on:'2026-11-30', announce_on:'2026-12-03', prize:'참가하면 추첨으로 4명에게 2만 원 상당 육아용품을 드려요.', example_video:'./assets/challenge/firststep.mp4' }];
   // 모든 챌린지 공통 촬영 규칙 (예시 영상 아래·참여 창에 함께 보인다)

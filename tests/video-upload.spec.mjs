@@ -37,7 +37,7 @@ try {
   ok('5초 영상: 첨부됨 표시 + 제출 가능', (await p.textContent('#entry-file-hint')).includes('5초') && !(await p.isDisabled('#entry-submit')), await p.textContent('#entry-file-hint'));
   await p.click('#entry-submit'); await p.waitForTimeout(5000);
   const rows = await (await fetch(U + '/rest/v1/challenge_entries?select=id,media_path,status,challenge_key&note=eq.' + encodeURIComponent(NOTE), { headers: h(A.access_token) })).json();
-  ok('DB 에 영상 참가작 (검수 대기, 볼살)', rows.length === 1 && /\.mp4$/.test(rows[0].media_path) && rows[0].status === 'pending' && rows[0].challenge_key === 'cheeks', JSON.stringify(rows));
+  ok('DB 에 영상 참가작 (볼살, momA 는 믿을 만한 회원이라 바로 공개 — 0034)', rows.length === 1 && /\.mp4$/.test(rows[0].media_path) && rows[0].status === 'approved' && rows[0].challenge_key === 'cheeks', JSON.stringify(rows));
   ok('목록에 내 영상 카드(▶) 보임', await p.locator('#entries video').count() >= 1);
   // 저장소: 50MB 넘는 영상은 거절
   const big = Buffer.alloc(51 * 1024 * 1024);

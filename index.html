@@ -2773,6 +2773,77 @@
       }catch(e){ done(null); }
     });
   }
+  // 영상 줄이기 (2026-10-27): 휴대폰 영상을 기기 안에서 다시 녹화해 긴 변 1280px(720p)·약 2.5Mbps 로 (30초 ≈ 10MB).
+  // 저장 공간·전송량이 5배쯤 오래 간다. 기기가 못 하거나 실패하면 원본을 그대로 올린다.
+  // 줄일 수 있는 기기는 원본 300MB 까지 받는다 (올라가는 건 줄인 것). 못 줄이면 원본 50MB 제한 그대로.
+  // shortcut: 실제 재생 속도로 다시 녹화해서 영상 길이만큼(최대 30초) 걸린다. 느리다는 말이 나오면 WebCodecs 로 바꿀 것.
+  var VIDEO_SHRINK_OVER = 12 * 1024 * 1024, VIDEO_SRC_MAX = 300 * 1024 * 1024, shrinkJob = null;
+  function shrinkMime(){
+    try{
+      if(!window.MediaRecorder || !HTMLCanvasElement.prototype.captureStream || !(window.AudioContext || window.webkitAudioContext)) return '';
+      return ['video/mp4;codecs=avc1.42E01E,mp4a.40.2', 'video/mp4;codecs=avc1,mp4a.40.2', 'video/mp4'].filter(function(m){ return MediaRecorder.isTypeSupported(m); })[0] || '';
+    }catch(e){ return ''; }
+  }
+  function videoSrcMax(){ return shrinkMime() ? VIDEO_SRC_MAX : VIDEO_MAX_BYTES; }
+  function mbText(n){ return (n / 1048576).toFixed(n < 10485760 ? 1 : 0) + 'MB'; }
+  function shrinkVideo(file, onProgress){
+    return new Promise(function(done){
+      var v, u, ac, rec, timer, ended = false;
+      function finish(out){
+        if(ended) return; ended = true; clearTimeout(timer);
+        try{ v && v.pause(); }catch(e){} try{ u && URL.revokeObjectURL(u); }catch(e){} try{ ac && ac.close(); }catch(e){}
+        done(out || file);
+      }
+      try{
+        var mime = shrinkMime(); if(!mime) return finish(file);
+        v = document.createElement('video'); u = URL.createObjectURL(file);
+        v.playsInline = true; v.setAttribute('playsinline', ''); v.preload = 'auto'; v.src = u;
+        v.onerror = function(){ finish(file); };
+        v.onloadedmetadata = function(){
+          try{
+            var w = v.videoWidth, h = v.videoHeight; if(!w || !h) return finish(file);
+            var k = Math.min(1, 1280 / Math.max(w, h));
+            var cv = document.createElement('canvas');
+            cv.width = Math.round(w * k / 2) * 2; cv.height = Math.round(h * k / 2) * 2;
+            var cx = cv.getContext('2d'), stream = cv.captureStream(30);
+            var AC = window.AudioContext || window.webkitAudioContext; ac = new AC();
+            var dest = ac.createMediaStreamDestination();
+            ac.createMediaElementSource(v).connect(dest);   // 소리는 녹화로만 보내고 스피커로는 안 낸다
+            dest.stream.getAudioTracks().forEach(function(t){ stream.addTrack(t); });
+            var chunks = [];
+            rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 2500000, audioBitsPerSecond: 96000 });
+            rec.ondataavailable = function(e){ if(e.data && e.data.size) chunks.push(e.data); };
+            rec.onstop = function(){
+              var blob = new Blob(chunks, { type: 'video/mp4' });
+              // 줄인 게 원본보다 별로 안 작으면 원본을 쓴다
+              finish(blob.size > 0 && blob.size < file.size * 0.85 ? new File([blob], 'video.mp4', { type: 'video/mp4' }) : file);
+            };
+            var draw = function(){
+              if(ended) return;
+              try{ cx.drawImage(v, 0, 0, cv.width, cv.height); }catch(e){}
+              if(onProgress && v.duration) onProgress(v.currentTime, v.duration);
+              if(!v.ended){ if(v.requestVideoFrameCallback) v.requestVideoFrameCallback(draw); else requestAnimationFrame(draw); }
+            };
+            v.onended = function(){ try{ if(rec.state !== 'inactive') rec.stop(); }catch(e){ finish(file); } };
+            timer = setTimeout(function(){ try{ if(rec.state !== 'inactive') rec.stop(); }catch(e){} finish(file); }, ((isFinite(v.duration) ? v.duration : 30) * 1000) + 20000);
+            Promise.resolve(ac.resume()).then(function(){ return v.play(); }).then(function(){ rec.start(1000); draw(); }).catch(function(){ finish(file); });
+          }catch(e){ finish(file); }
+        };
+      }catch(e){ finish(file); }
+    });
+  }
+  // 파일을 고르자마자 시작해 두고(글 쓰는 동안 줄인다), 올릴 때 끝나기를 기다린다.
+  function startShrink(file, hint){
+    if(shrinkJob && shrinkJob.file === file) return shrinkJob.promise;
+    if(!file || MEDIA_VIDEO.indexOf(file.type) === -1 || file.size <= VIDEO_SHRINK_OVER || !shrinkMime()) return null;
+    var job = { file: file };
+    var say = function(t){ job.text = t; if(hint && shrinkJob === job) hint.textContent = t; };
+    say('영상 크기 줄이는 중…');
+    job.promise = shrinkVideo(file, function(t, d){ say('영상 크기 줄이는 중… ' + Math.round(t) + '/' + Math.round(d) + '초'); })
+      .then(function(out){ say(out !== file ? '영상이 준비됐어요 (' + mbText(file.size) + ' → ' + mbText(out.size) + ')' : '영상이 첨부됐어요'); return out; });
+    shrinkJob = job;
+    return job.promise;
+  }
   var MEDIA_TTL = 600;                    // 10분
   var mediaUrlCache = Object.create(null); // path -> { url, until }
 
@@ -2800,9 +2871,12 @@
     if(!authUser) return { path:'', error:'로그인이 필요해요' };
     try{
       if(MEDIA_VIDEO.indexOf(file.type) > -1){
-        if(file.size > VIDEO_MAX_BYTES) return { path:'', error:'영상 용량이 너무 커요 (50MB까지)' };
+        if(file.size > videoSrcMax()) return { path:'', error:'영상 용량이 너무 커요 (' + mbText(videoSrcMax()) + '까지)' };
         var sec = await videoSeconds(file);
         if(sec != null && sec > VIDEO_MAX_SEC + 0.5) return { path:'', error:'영상은 30초까지 올릴 수 있어요 (지금 ' + Math.round(sec) + '초)' };
+        var shrunk = startShrink(file, null);
+        if(shrunk) file = await shrunk;
+        if(file.size > VIDEO_MAX_BYTES) return { path:'', error:'영상 용량이 너무 커요 (50MB까지). 더 짧게 잘라 주세요' };
         var vpath = authUser.id + '/' + Date.now() + '-' + Math.random().toString(36).slice(2,8) + '.' + (file.type === 'video/quicktime' ? 'mov' : 'mp4');
         var vup = await sb.storage.from('media').upload(vpath, file, { contentType: file.type });
         if(vup.error){ console.error('media upload error', vup.error); return { path:'', error:'영상 업로드에 실패했어요' }; }
@@ -6293,8 +6367,8 @@
         '</ul>' +
       '</div>' +
       (cur.media_rule === 'video'
-        ? '<div class="field"><label for="entry-file">인증 영상 *</label><label class="kfile"><input type="file" class="kfile-input" id="entry-file" accept="video/mp4,video/quicktime"><span class="kfile-btn">🎬 영상 고르기</span><span class="kfile-name">선택한 파일 없음</span></label><span class="helper" id="entry-file-hint">30초 이하 영상 1개 (50MB까지) · 이 챌린지는 사진은 받지 않아요</span></div>'
-        : '<div class="field"><label for="entry-file">인증 사진·영상 *</label><label class="kfile"><input type="file" class="kfile-input" id="entry-file" accept="image/jpeg,image/png,image/webp,video/mp4,video/quicktime"><span class="kfile-btn">📷 사진·영상 고르기</span><span class="kfile-name">선택한 파일 없음</span></label><span class="helper" id="entry-file-hint">사진 1장 또는 30초 이하 영상 1개 (영상 50MB까지)</span></div>') +
+        ? '<div class="field"><label for="entry-file">인증 영상 *</label><label class="kfile"><input type="file" class="kfile-input" id="entry-file" accept="video/mp4,video/quicktime"><span class="kfile-btn">🎬 영상 고르기</span><span class="kfile-name">선택한 파일 없음</span></label><span class="helper" id="entry-file-hint">30초 이하 영상 1개 · 이 챌린지는 사진은 받지 않아요</span></div>'
+        : '<div class="field"><label for="entry-file">인증 사진·영상 *</label><label class="kfile"><input type="file" class="kfile-input" id="entry-file" accept="image/jpeg,image/png,image/webp,video/mp4,video/quicktime"><span class="kfile-btn">📷 사진·영상 고르기</span><span class="kfile-name">선택한 파일 없음</span></label><span class="helper" id="entry-file-hint">사진 1장 또는 30초 이하 영상 1개</span></div>') +
       '<div class="field"><label for="entry-note">한 줄 기록 *</label><textarea id="entry-note" rows="3" placeholder="' + escapeHtml(cur.placeholder || '한 줄로 남겨 주세요') + '"></textarea></div>' +
       '<label class="check-row"><input type="checkbox" id="entry-consent"> 보호자이며, 아이 사진을 챌린지에 게시하는 것에 동의해요 *</label>' +
       '<label class="check-row"><input type="checkbox" id="entry-consent2"> 참여 브랜드가 콘텐츠를 광고에 활용하는 것에 동의해요 (선택)</label>' +
@@ -6311,7 +6385,7 @@
             return '<button type="button" class="chip-f" data-post-topic="' + t + '" aria-pressed="false">' + t + '</button>';
           }).join('') +
         '</div></div>' +
-      '<div class="field"><label for="post-photo">사진·영상 (선택)</label><label class="kfile"><input type="file" class="kfile-input" id="post-photo" accept="image/jpeg,image/png,image/webp,video/mp4,video/quicktime"><span class="kfile-btn">📷 사진·영상 고르기</span><span class="kfile-name">선택한 파일 없음</span></label><span class="helper">사진 25MB · 영상 30초·50MB까지</span></div>' +
+      '<div class="field"><label for="post-photo">사진·영상 (선택)</label><label class="kfile"><input type="file" class="kfile-input" id="post-photo" accept="image/jpeg,image/png,image/webp,video/mp4,video/quicktime"><span class="kfile-btn">📷 사진·영상 고르기</span><span class="kfile-name">선택한 파일 없음</span></label><span class="helper" id="post-photo-hint">사진 25MB · 영상 30초까지</span></div>' +
       '<div class="field"><label for="post-text">내용 *</label><textarea id="post-text" rows="4" placeholder="질문이나 이야기를 적어주세요"></textarea></div>' +
       '<div class="field"><label>공개범위 *</label>' +
       '<div class="segmented round" role="tablist" aria-label="공개범위 선택" id="post-visibility-group" style="width:100%;">' +
@@ -6384,20 +6458,22 @@
     var hasFile = !!(fileEl && fileEl.files && fileEl.files.length);
     var hint = document.getElementById('entry-file-hint');
     var f = hasFile ? fileEl.files[0] : null, isVid = !!(f && MEDIA_VIDEO.indexOf(f.type) > -1);
-    if(hint){ hint.textContent = !hasFile ? '사진 1장 또는 30초 이하 영상 1개 (영상 50MB까지)' : (isVid ? '영상이 첨부됐어요 (길이 확인 중…)' : '사진이 첨부됐어요'); }
+    if(hint){ hint.textContent = !hasFile ? '사진 1장 또는 30초 이하 영상 1개' : (isVid ? '영상이 첨부됐어요 (길이 확인 중…)' : '사진이 첨부됐어요'); }
     var ready = hasFile && note && note.value.trim().length > 0 && consent && consent.checked;
     btn.disabled = !ready;
     if(chCurrent().media_rule === 'video'){
-      if(!hasFile && hint) hint.textContent = '30초 이하 영상 1개 (50MB까지) · 이 챌린지는 사진은 받지 않아요';
+      if(!hasFile && hint) hint.textContent = '30초 이하 영상 1개 · 이 챌린지는 사진은 받지 않아요';
       if(hasFile && !isVid){ if(hint) hint.textContent = '이 챌린지는 영상만 참가할 수 있어요. 영상을 골라 주세요.'; btn.disabled = true; return; }
     }
     // 영상은 길이·용량을 바로 확인해 알려준다 (올리기 전에)
     if(isVid && hint){
-      if(f.size > VIDEO_MAX_BYTES){ hint.textContent = '영상 용량이 50MB를 넘어요. 더 짧게 잘라 주세요.'; btn.disabled = true; return; }
+      if(f.size > videoSrcMax()){ hint.textContent = '영상 용량이 ' + mbText(videoSrcMax()) + '를 넘어요. 더 짧게 잘라 주세요.'; btn.disabled = true; return; }
+      if(shrinkJob && shrinkJob.file === f){ if(shrinkJob.text) hint.textContent = shrinkJob.text; return; }   // 이미 줄이는 중
       videoSeconds(f).then(function(sec){
         if(fileEl.files[0] !== f) return;
-        if(sec != null && sec > VIDEO_MAX_SEC + 0.5){ hint.textContent = '영상이 ' + Math.round(sec) + '초예요. 30초까지만 올릴 수 있어요.'; btn.disabled = true; }
-        else hint.textContent = '영상이 첨부됐어요' + (sec != null ? ' (' + Math.round(sec) + '초)' : '');
+        if(sec != null && sec > VIDEO_MAX_SEC + 0.5){ hint.textContent = '영상이 ' + Math.round(sec) + '초예요. 30초까지만 올릴 수 있어요.'; btn.disabled = true; return; }
+        hint.textContent = '영상이 첨부됐어요' + (sec != null ? ' (' + Math.round(sec) + '초)' : '');
+        startShrink(f, hint);
       });
     }
   }
@@ -7600,6 +7676,7 @@
     if(e.target.id === 'birth-month'){ state.birthMonth = e.target.value; save(); renderOnboarding(); }
     if(e.target.id === 'entry-consent'){ updateEntrySubmit(); }
     if(e.target.id === 'entry-file'){ updateEntrySubmit(); }
+    if(e.target.id === 'post-photo' && e.target.files && e.target.files[0]){ startShrink(e.target.files[0], document.getElementById('post-photo-hint')); }
     if(e.target.id === 'post-consent'){ updatePostSubmit(); }
     if(e.target.id === 'apply-consent'){ updateApplySubmit(); }
   });

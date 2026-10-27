@@ -45,6 +45,7 @@ try {
   ok('서버: 배밀이에 사진 → 거절', (await enter('crawl', pJpg)) === 403);
   ok('서버: 첫걸음에 영상 → 받음', (await enter('firststep', pVid)) === 201);
   ok('서버: 할로윈에 사진 → 받음', (await enter('halloween', pJpg)) === 201);
+  ok('서버: 할로윈에 영상 → 거절 (사진만)', (await enter('halloween', pVid)) === 403);
 
   const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, serviceWorkers: 'block' });
   await ctx.route('**/env.js*', r => r.fulfill({ contentType: 'text/javascript', body: env }));
@@ -59,7 +60,7 @@ try {
   ok('화면: 첫걸음 상세에 "영상만" 안내', (await p.textContent('#challenge-example')).includes('영상만 참가'));
   await p.click('[data-open-challenge-modal]'); await p.waitForTimeout(600);
   ok('화면: 파일 고르기가 영상만', (await p.getAttribute('#entry-file', 'accept')) === 'video/mp4,video/quicktime');
-  await p.fill('#entry-note', '시험'); await p.check('#entry-consent');
+  await p.fill('#entry-note', '시험'); await p.check('#entry-consent'); await p.check('#entry-consent2');
   await p.setInputFiles('#entry-file', jpg); await p.waitForTimeout(800);
   ok('화면: 사진 고르면 안내 + 제출 잠김', (await p.textContent('#entry-file-hint')).includes('영상만') && await p.isDisabled('#entry-submit'), await p.textContent('#entry-file-hint'));
   await p.setInputFiles('#entry-file', vid); await p.waitForTimeout(1500);
@@ -67,7 +68,11 @@ try {
   await p.keyboard.press('Escape'); await p.waitForTimeout(400);
   await p.click('[data-challenge-back]'); await p.waitForTimeout(600);
   await p.click('[data-challenge-open="halloween"]'); await p.waitForTimeout(800);
-  ok('화면: 할로윈은 사진도 된다는 안내', (await p.textContent('#challenge-example')).includes('사진 1장이나'));
+  ok('화면: 할로윈은 사진만 안내 + 예시도 사진', (await p.textContent('#challenge-example')).includes('사진만 참가') && await p.locator('#challenge-example img').count() === 1);
+  await p.click('[data-open-challenge-modal]'); await p.waitForTimeout(600);
+  ok('화면: 할로윈 파일 고르기가 사진만', (await p.getAttribute('#entry-file', 'accept')) === 'image/jpeg,image/png,image/webp');
+  await p.fill('#entry-note', '시험'); await p.check('#entry-consent');
+  ok('화면: 홍보 활용 동의 안 하면 제출 잠김', await p.isDisabled('#entry-submit'));
   ok('페이지 오류 없음', errs.length === 0, errs.join(' | '));
 } catch (e) { failed++; console.log('FAIL 실행 중단: ' + e.message.split('\n')[0]); }
 finally {

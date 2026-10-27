@@ -68,7 +68,7 @@ try {
   ok('참여 창에 할로윈 안내', (await p.textContent('#modal-card')).includes('코스튬'));
   await p.setInputFiles('#entry-file', fileURLToPath(pngPath));
   await p.fill('#entry-note', '시험 참가 — 호박 모자');
-  await p.check('#entry-consent');
+  await p.check('#entry-consent'); await p.check('#entry-consent2');
   await p.waitForTimeout(500);
   await p.click('#entry-submit'); await p.waitForTimeout(4000);
   const mine = (await req('/rest/v1/challenge_entries?select=id,challenge_key,note,status&owner_id=eq.' + A.uid + '&note=eq.' + encodeURIComponent('시험 참가 — 호박 모자'), 'GET', undefined, A.token)).body;

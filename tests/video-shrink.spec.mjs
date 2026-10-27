@@ -33,13 +33,13 @@ try {
   await p.click('#auth-password-submit'); await p.waitForTimeout(4500);
   await p.locator('[data-popup-today]').click({ timeout: 1500 }).catch(() => {});
   await p.evaluate(() => { location.hash = '#challenge'; }); await p.waitForTimeout(2500);
-  await p.click('[data-challenge-open="cheeks"]'); await p.waitForTimeout(600);
+  await p.click('[data-challenge-open="firststep"]'); await p.waitForTimeout(600);
   await p.click('[data-open-challenge-modal]'); await p.waitForTimeout(600);
-  await p.fill('#entry-note', NOTE); await p.check('#entry-consent');
+  await p.fill('#entry-note', NOTE); await p.check('#entry-consent'); await p.check('#entry-consent2');
   await p.setInputFiles('#entry-file', big);
   await p.waitForFunction(() => /줄이는 중/.test(document.getElementById('entry-file-hint').textContent), null, { timeout: 8000 });
   ok('고르자마자 줄이기 시작', true);
-  await p.waitForFunction(() => /준비됐어요|첨부됐어요$/.test(document.getElementById('entry-file-hint').textContent), null, { timeout: 40000 });
+  await p.waitForFunction(() => /준비됐어요|첨부됐어요$/.test(document.getElementById('entry-file-hint').textContent), null, { timeout: 100000 });
   const hint = await p.textContent('#entry-file-hint');
   ok('안내에 줄어든 크기 (A → B)', /→/.test(hint), hint);
   await p.click('#entry-submit'); await p.waitForTimeout(6000);
@@ -48,11 +48,13 @@ try {
   const dl = await fetch(U + '/storage/v1/object/authenticated/media/' + rows[0].media_path, { headers: h(A.access_token) });
   fs.writeFileSync(got, Buffer.from(await dl.arrayBuffer()));
   const size = fs.statSync(got).size;
-  ok('올라간 영상이 작아짐 (12MB 아래)', size < 12 * 1048576, (bigSize / 1048576).toFixed(1) + 'MB → ' + (size / 1048576).toFixed(1) + 'MB');
+  ok('올라간 영상이 작아짐 (' + (process.env.LONG ? 25 : 12) + 'MB 아래)', size < (process.env.LONG ? 25 : 12) * 1048576, (bigSize / 1048576).toFixed(1) + 'MB → ' + (size / 1048576).toFixed(1) + 'MB');
   let probe = '';
   try { execFileSync('ffmpeg', ['-hide_banner', '-i', got], { stdio: 'pipe' }); } catch (e) { probe = String(e.stderr); }
   ok('영상 트랙 720p' + (process.env.WANT ? ' (' + process.env.WANT + ')' : ''), process.env.WANT ? probe.includes(process.env.WANT) : /Video:.*(1280x720|720x1280)/.test(probe), ((probe.match(/Video:[^\n]*/) || [''])[0].match(/\d{3,4}x\d{3,4}/) || [''])[0]);
   ok('소리 트랙 있음', /Audio:/.test(probe));
+  const dur = (probe.match(/Duration: (\d+):(\d+):([\d.]+)/) || []).slice(1).map(Number);
+  if (process.env.LONG) ok('1분 넘는 원본 → 앞 1분만 (60초 안팎)', dur.length === 3 && Math.abs(dur[1] * 60 + dur[2] - 60) < 2, dur.join(':'));
   ok('페이지 오류 없음', errs.length === 0, errs.join(' | '));
 } catch (e) { failed++; console.log('FAIL 실행 중단: ' + e.message.split('\n')[0]); }
 finally {

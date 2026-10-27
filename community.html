@@ -762,10 +762,10 @@
   var CHALLENGE_DEADLINE = '2026-11-30';
   var CH_FALLBACK = [{ id:'firststep', title:'첫걸음 챌린지', emoji:'👣', description:'걸음마 사진 한 장과 짧은 메모로 참여해요. 처음의 순간을 함께 남기고 응원해요.',
     target_label:'10~24개월', ends_on:CHALLENGE_DEADLINE, announce_on:'2026-12-03', prize:'참가하면 추첨으로 4명에게 2만 원 상당 육아용품을 드려요.', example_video:'./assets/challenge/firststep.mp4',
-    guide:['혼자 걷는 모습을 30초 이내 영상으로 올려 주세요 (사진은 받지 않아요)', '어른 손을 잡지 않고 한두 걸음이라도 혼자 내딛는 순간이 담겨야 해요', '얼굴이 부담되면 발만 나오게 찍어도 돼요'], media_rule:'video' }];
+    guide:['혼자 걷는 모습을 1분 이내 영상으로 올려 주세요 (사진은 받지 않아요)', '어른 손을 잡지 않고 한두 걸음이라도 혼자 내딛는 순간이 담겨야 해요', '얼굴이 부담되면 발만 나오게 찍어도 돼요'], media_rule:'video' }];
   // 모든 챌린지 공통 촬영 규칙 (앱 index.html 의 CH_RULES 와 같은 문장)
   var CH_RULES = [
-    '30초 이내 영상이나 사진 1장, 밝은 곳에서 세로로 찍으면 잘 보여요',
+    '챌린지마다 영상만, 또는 사진만 받아요. 밝은 곳에서 세로로 찍으면 잘 보여요',
     '아이 안전이 먼저예요. 높은 곳·물가처럼 위험한 연출은 하지 말아 주세요',
     '이름표·주소·차 번호판처럼 집을 알 수 있는 정보가 나오지 않게 해 주세요',
     '다른 집 아이가 나오면 그 보호자에게 먼저 허락을 받아 주세요',
@@ -777,10 +777,12 @@
     // 예시 영상을 같은 이름으로 바꿔 넣으면 브라우저가 예전 파일을 기억한다 — 바꿀 때마다 이 날짜를 올린다
     if(poster){ v += '?v=20261027'; poster += '?v=20261027'; }
     var li = function(arr, muted){ return arr.map(function(g){ return '<li style="margin:4px 0;' + (muted ? ' color:var(--text2);' : '') + '">' + esc(g) + '</li>'; }).join(''); };
-    return '<section class="panel" aria-labelledby="ch-ex-title"><div class="panel-h"><h2 class="display" id="ch-ex-title">📹 이렇게 찍어 주세요</h2>' + (v ? '<span class="helper">예시 영상 · Pexels</span>' : '') + '</div>' +
+    var photoEx = c.media_rule === 'photo' && poster;   // 사진만 챌린지는 예시도 사진으로
+    return '<section class="panel" aria-labelledby="ch-ex-title"><div class="panel-h"><h2 class="display" id="ch-ex-title">' + (c.media_rule === 'photo' ? '📷' : '📹') + ' 이렇게 찍어 주세요</h2>' + (v ? '<span class="helper">' + (photoEx ? '예시 사진' : '예시 영상') + ' · Pexels</span>' : '') + '</div>' +
       '<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:20px; padding:0 20px 20px; align-items:start;">' +
-        (v ? '<video src="' + esc(v) + '"' + (poster ? ' poster="' + esc(poster) + '"' : '') + ' controls muted playsinline loop preload="none" style="width:100%; max-height:480px; border-radius:18px; background:#000; object-fit:contain;"></video>' : '') +
-        '<div>' + (c.media_rule === 'video' ? '<p style="margin:0 0 12px; padding:10px 12px; border-radius:12px; background:#FFF1E8; color:#9A3A12; font-weight:800;">🎬 이 챌린지는 영상만 참가할 수 있어요 (사진은 받지 않아요)</p>' : '<p style="margin:0 0 12px; color:var(--text2); font-weight:700;">📷 사진 1장이나 30초 이내 영상으로 참가해요</p>') + '<b>' + esc(c.title) + ' 안내</b><ul style="padding-left:18px; margin:8px 0 16px;">' + li(c.guide || []) + '</ul>' +
+        (photoEx ? '<img src="' + esc(poster) + '" alt="예시 사진" loading="lazy" style="width:100%; max-height:480px; border-radius:18px; background:#000; object-fit:contain;">'
+          : v ? '<video src="' + esc(v) + '"' + (poster ? ' poster="' + esc(poster) + '"' : '') + ' controls muted playsinline loop preload="none" style="width:100%; max-height:480px; border-radius:18px; background:#000; object-fit:contain;"></video>' : '') +
+        '<div>' + (c.media_rule === 'video' ? '<p style="margin:0 0 12px; padding:10px 12px; border-radius:12px; background:#FFF1E8; color:#9A3A12; font-weight:800;">🎬 이 챌린지는 영상만 참가할 수 있어요 (1분 이내, 사진은 받지 않아요)</p>' : c.media_rule === 'photo' ? '<p style="margin:0 0 12px; padding:10px 12px; border-radius:12px; background:#EEF6FF; color:#1F4E8C; font-weight:800;">📷 이 챌린지는 사진만 참가할 수 있어요 (영상은 받지 않아요)</p>' : '<p style="margin:0 0 12px; color:var(--text2); font-weight:700;">📷 사진 1장이나 1분 이내 영상으로 참가해요</p>') + '<b>' + esc(c.title) + ' 안내</b><ul style="padding-left:18px; margin:8px 0 16px;">' + li(c.guide || []) + '</ul>' +
           '<b>모든 챌린지 공통 규칙</b><ul style="padding-left:18px; margin:8px 0 0; font-size:13.5px;">' + li(CH_RULES, true) + '</ul></div>' +
       '</div></section>';
   }
@@ -1741,7 +1743,7 @@
   // ---------- 챌린지 (앱과 같은 challenge_entries · entry_votes) ----------
   // 챌린지 첫 화면: 이달의 주인공 + 챌린지 카드 세로 목록 (참가작 수·응원·최근 사진)
   async function renderChallengeList(main){
-    main.innerHTML = '<section class="warm-page challenge-page">' + webHero('다다맘 챌린지', '우리 아이 <em>자랑 대회</em>', '사진이나 30초 영상으로 참여하고, 응원을 가장 많이 받으면 이달의 주인공이 돼요.', '🏆') +
+    main.innerHTML = '<section class="warm-page challenge-page">' + webHero('다다맘 챌린지', '우리 아이 <em>자랑 대회</em>', '챌린지에 맞게 사진이나 1분 영상으로 참여하고, 응원을 가장 많이 받으면 이달의 주인공이 돼요.', '🏆') +
       '<section class="panel" id="ch-hall" hidden></section>' +
       '<section class="panel"><div class="panel-h"><h2 class="display">진행 중인 챌린지</h2><span class="helper">' + chList.length + '개</span></div>' +
       '<div id="ch-list" style="display:flex; flex-direction:column; gap:12px; padding:0 20px 20px;"><div class="helper">불러오는 중…</div></div></section></section>';
@@ -2065,7 +2067,8 @@
     ['description','소개 (300자)','textarea',300], ['guide','참여 안내 (한 줄에 하나씩)','lines',400], ['placeholder','한 줄 기록 예시 (예: 오늘 처음 뒤집었어요!)','text',80],
     ['target_label','대상 표시 (예: 4~10개월, 전체)','text',30], ['stage','참여할 수 있는 사람','select',['parenting:육아 중','pregnant:임신 중','all:모두']],
     ['age_min_m','추천 개월 수 (부터, 비우면 전체)','number'], ['age_max_m','추천 개월 수 (까지)','number'],
-    ['example_video','예시 영상 (./assets/challenge/파일.mp4 또는 https:// 주소, 비우면 안 보임)','text',300],
+    ['media_rule','참가 방식 *','select',['photo:사진만 (모습 자랑)','video:영상만 (움직임을 보는 챌린지)']],
+    ['example_video','예시 영상 (./assets/challenge/파일.mp4 또는 https:// 주소, 비우면 안 보임. 사진만 챌린지는 첫 장면이 예시 사진)','text',300],
     ['ends_on','마감일 (비우면 상시)','date'], ['announce_on','발표일 (비우면 매달 첫 주)','date'], ['prize','경품 문구 (200자)','text',200],
     ['visible','공개','check'], ['sort_order','순서 (작을수록 앞)','number'] ] };
   var mallCache = { brand:[], product:[], banner:[], magazine:[], challenge:[] };

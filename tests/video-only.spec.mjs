@@ -57,7 +57,7 @@ try {
   await p.locator('[data-popup-today]').click({ timeout: 1500 }).catch(() => {});
   await p.evaluate(() => { location.hash = '#challenge'; }); await p.waitForTimeout(2500);
   await p.click('[data-challenge-open="firststep"]'); await p.waitForTimeout(800);
-  ok('화면: 첫걸음 상세에 "영상만" 안내', (await p.textContent('#challenge-example')).includes('영상만 참가'));
+  ok('화면: 첫걸음 상세에 "영상만" 안내', (await p.textContent('#challenge-example')).includes('영상으로만 참가'));
   await p.click('[data-open-challenge-modal]'); await p.waitForTimeout(600);
   ok('화면: 파일 고르기가 영상만', (await p.getAttribute('#entry-file', 'accept')) === 'video/mp4,video/quicktime');
   await p.fill('#entry-note', '시험'); await p.check('#entry-consent'); await p.check('#entry-consent2');
@@ -68,7 +68,7 @@ try {
   await p.keyboard.press('Escape'); await p.waitForTimeout(400);
   await p.click('[data-challenge-back]'); await p.waitForTimeout(600);
   await p.click('[data-challenge-open="halloween"]'); await p.waitForTimeout(800);
-  ok('화면: 할로윈은 사진만 안내 + 예시도 사진', (await p.textContent('#challenge-example')).includes('사진만 참가') && await p.locator('#challenge-example img').count() === 1);
+  ok('화면: 할로윈은 사진만 안내 + 예시도 사진', (await p.textContent('#challenge-example')).includes('사진으로만 참가') && await p.locator('#challenge-example img').count() === 1);
   await p.click('[data-open-challenge-modal]'); await p.waitForTimeout(600);
   ok('화면: 할로윈 파일 고르기가 사진만', (await p.getAttribute('#entry-file', 'accept')) === 'image/jpeg,image/png,image/webp');
   await p.fill('#entry-note', '시험'); await p.check('#entry-consent');

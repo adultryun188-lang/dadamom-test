@@ -2183,6 +2183,8 @@
   function chExampleHtml(c){
     var v = c.example_video && /^(https:\/\/|\.\/assets\/)[^\s"<>]+$/.test(c.example_video) ? c.example_video : '';
     var poster = /^\.\/assets\/.+\.mp4$/.test(v) ? v.replace(/\.mp4$/, '.jpg') : '';
+    // 예시 영상을 같은 이름으로 바꿔 넣으면 브라우저가 예전 파일을 기억한다 — 바꿀 때마다 이 날짜를 올린다
+    if(poster){ v += '?v=20261027'; poster += '?v=20261027'; }
     return '<section class="card col" aria-label="이렇게 찍어 주세요" style="gap:12px; padding:16px;">' +
       '<div class="row" style="align-items:baseline; justify-content:space-between; gap:8px;"><b class="display" style="font-size:16px;">📹 이렇게 찍어 주세요</b>' + (v ? '<span class="helper">예시 영상 · Pexels</span>' : '') + '</div>' +
       (v ? '<video src="' + escapeHtml(v) + '"' + (poster ? ' poster="' + escapeHtml(poster) + '"' : '') + ' controls muted playsinline loop preload="none" style="width:100%; max-height:420px; border-radius:16px; background:#000; object-fit:contain;"></video>' : '') +

@@ -774,6 +774,8 @@
   function chExampleWeb(c){
     var v = c.example_video && /^(https:\/\/|\.\/assets\/)[^\s"<>]+$/.test(c.example_video) ? c.example_video : '';
     var poster = /^\.\/assets\/.+\.mp4$/.test(v) ? v.replace(/\.mp4$/, '.jpg') : '';
+    // 예시 영상을 같은 이름으로 바꿔 넣으면 브라우저가 예전 파일을 기억한다 — 바꿀 때마다 이 날짜를 올린다
+    if(poster){ v += '?v=20261027'; poster += '?v=20261027'; }
     var li = function(arr, muted){ return arr.map(function(g){ return '<li style="margin:4px 0;' + (muted ? ' color:var(--text2);' : '') + '">' + esc(g) + '</li>'; }).join(''); };
     return '<section class="panel" aria-labelledby="ch-ex-title"><div class="panel-h"><h2 class="display" id="ch-ex-title">📹 이렇게 찍어 주세요</h2>' + (v ? '<span class="helper">예시 영상 · Pexels</span>' : '') + '</div>' +
       '<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:20px; padding:0 20px 20px; align-items:start;">' +

@@ -251,6 +251,9 @@
   .hero{ display:block; padding:22px; border-radius:24px; background:var(--accent-strong); color:var(--accent-ink); text-decoration:none; }
   .hero-eyebrow{ display:inline-flex; font-size:12px; font-weight:700; background:rgba(0,0,0,0.16); padding:4px 10px; border-radius:999px; }
   .hero-title{ font-size:22px; line-height:1.35; margin:12px 0 6px; }
+  .sens{ position:relative; display:block; overflow:hidden; }
+  .sens > img, .sens > video{ filter:blur(22px); transform:scale(1.08); }
+  .sens-btn{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; text-align:center; padding:12px; border:none; background:rgba(40,30,20,.35); color:#fff; font-weight:800; font-size:13px; cursor:pointer; }
   .hero-sub{ font-size:13px; line-height:1.6; opacity:0.95; margin:0 0 16px; }
   .hero-cta{ display:inline-flex; align-items:center; gap:6px; font-size:13.5px; font-weight:700; background:var(--surface); color:var(--accent); padding:10px 16px; border-radius:14px; }
 
@@ -621,7 +624,7 @@
               <h1 class="display">체험단과 <em>이벤트</em></h1>
               <div class="hh-art" aria-hidden="true"><span>🎁</span></div>
             </div>
-            <p class="page-hero-desc">먼저 써 보고 솔직하게 나누는 육아템 체험단과 이벤트를 모았어요.</p>
+            <p class="page-hero-desc">먼저 써 보고 솔직하게 나누는 육아템 체험단과 이벤트를 모았어요. 육아기록을 7일 이어 쓴 분을 먼저 뽑아요.</p>
           </div>
         </header>
       </div>
@@ -673,7 +676,7 @@
           <div class="page-hero-copy">
             <span class="mall-eyebrow">다다맘 커뮤니티</span>
             <h1 class="display">함께 나누는 <em>이야기</em></h1>
-            <p class="page-hero-desc">궁금한 일도, 자랑하고 싶은 순간도 함께 나눠요.</p>
+            <p class="page-hero-desc">엄마도 아빠도 함께해요. 궁금한 일도, 자랑하고 싶은 순간도 나눠요.</p>
           </div>
         </header>
       </div>
@@ -3126,7 +3129,7 @@
           text:r.text, media_path: r.media_path || '', media_url: '', img: false,
           likes:r.likes || 0, liked: likedIds.indexOf(r.id) > -1, comments:r.comments || 0,
           stage: r.stage || null, age_value: (r.age_value === 0 || r.age_value) ? r.age_value : null,
-          mine: isMineRow(r.owner_id, r.id, state.myPosts), status: r.status || 'approved', createdAt: new Date(r.created_at).getTime(), sponsored: !!r.sponsored, audience: r.audience || 'all'
+          mine: isMineRow(r.owner_id, r.id, state.myPosts), status: r.status || 'approved', createdAt: new Date(r.created_at).getTime(), sponsored: !!r.sponsored, audience: r.audience || 'all', sensitive: !!r.sensitive
         };
       });
       return await attachMediaUrls(rows);
@@ -3548,8 +3551,32 @@
   }
 
   // 챌린지 + 체험단을 하나의 '미션' 목록으로 — 홈에서 바로 확인하고 시작
+  // 육아기록을 며칠째 이어 쓰는지 (돌봄 기록은 앱에 2주치만 두므로 최대 14일). 오늘 아직 안 썼으면 어제까지로 센다.
+  function careStreak(){
+    var days = {};
+    (state.careLog || []).forEach(function(e){ var d = new Date(e.ts); days[d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate()] = true; });
+    var key = function(d){ return d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate(); };
+    var d = new Date(), n = 0;
+    if(!days[key(d)]) d.setDate(d.getDate() - 1);
+    while(days[key(d)] && n < 60){ n++; d.setDate(d.getDate() - 1); }
+    return n;
+  }
   function homeMissionsHtml(){
     var rows = [];
+
+    // 0) 육아기록 이어 쓰기 (꾸준히 쓰면 체험단을 먼저 뽑는다 — 경쟁 조사 9번)
+    if(authUser && state.kidType === 'parenting'){
+      var streak = careStreak();
+      rows.push(
+      '<a href="#growth" class="mission-row">' +
+        '<div class="mission-ico" style="background:var(--w-leaf);" aria-hidden="true">' + (streak ? '🔥' : '🍼') + '</div>' +
+        '<div class="mission-main">' +
+          '<span class="mission-title">' + (streak ? '육아기록 ' + streak + '일째 이어 쓰는 중' : '오늘 육아기록 남기기') + '</span>' +
+          '<span class="helper">' + (streak >= 7 ? '체험단을 뽑을 때 먼저 뽑아 드려요' : '7일 이어 쓰면 체험단을 뽑을 때 먼저 뽑아 드려요') + '</span>' +
+        '</div>' +
+        '<span class="mission-go">기록</span>' +
+      '</a>');
+    }
 
     // 1) 챌린지
     // 마감된 챌린지는 홈에 띄우지 않는다 (챌린지 탭에서는 결과를 계속 볼 수 있다). 우리 아이에게 맞는 것부터 둘까지.
@@ -3638,9 +3665,18 @@
     return AVATAR_BGS[h % AVATAR_BGS.length];
   }
 
+  // 민감할 수 있는 사진은 흐리게 두고 눌러야 보여 준다 (0040)
+  function sensWrap(p, html){ return p && p.sensitive && html ? '<div class="sens">' + html + '<button type="button" class="sens-btn" data-sens-show>민감할 수 있는 사진이에요 · 눌러서 보기</button></div>' : html; }
+  document.addEventListener('click', function(e){
+    var b = e.target.closest && e.target.closest('[data-sens-show]');
+    if(!b) return;
+    e.preventDefault(); e.stopPropagation();
+    if(b.parentElement) b.parentElement.classList.remove('sens');
+    b.remove();
+  }, true);
   function feedCardHtml(p){
     var media = p.media_url
-      ? mediaTag(p.media_url, 'width:100%; height:170px; object-fit:cover; border-radius:16px;')
+      ? sensWrap(p, mediaTag(p.media_url, 'width:100%; height:170px; object-fit:cover; border-radius:16px;'))
       : (p.img ? '<div style="height:170px; border-radius:16px; background:' + p.bg + ';" role="img" aria-label="게시물 사진"></div>' : '');
     return '<div class="card col" style="gap:12px; padding:16px;">' +
       '<div class="row" style="align-items:center; gap:8px;">' +
@@ -4324,7 +4360,7 @@
       body.innerHTML = guestBanner + (pics.length
         ? '<div class="photo-grid">' + pics.map(function(p){
             return '<button type="button" class="photo-tile" data-open-comments="' + escapeHtml(String(p.id)) + '" aria-label="' + escapeHtml(p.author) + '의 사진 글 보기, 좋아요 ' + (p.likes || 0) + '개">' +
-              mediaTag(p.media_url, 'width:100%; height:100%; object-fit:cover;') + '<span class="photo-meta">♡ ' + (p.likes || 0) + '</span></button>';
+              sensWrap(p, mediaTag(p.media_url, 'width:100%; height:100%; object-fit:cover;')) + '<span class="photo-meta">♡ ' + (p.likes || 0) + '</span></button>';
           }).join('') + '</div>'
         : '<div class="card col" style="padding:22px; align-items:center; gap:7px;"><span style="font-size:13.5px; font-weight:700;">아직 사진 글이 없어요</span><span class="helper">육아템이나 아이 사진을 자랑해 보세요</span>' +
           '<button type="button" data-open-compose class="pill" style="margin-top:6px; padding:9px 16px; background:var(--accent-soft); color:var(--accent2); border:none; font-size:12.5px; font-weight:700;">사진 올리기</button></div>');
@@ -4369,7 +4405,7 @@
 
       var listHtml = posts.length ? posts.map(function(p){
         var media = p.media_url
-          ? mediaTag(p.media_url, 'width:100%; height:160px; object-fit:cover; border-radius:16px;')
+          ? sensWrap(p, mediaTag(p.media_url, 'width:100%; height:160px; object-fit:cover; border-radius:16px;'))
           : (p.img ? '<div style="height:160px; border-radius:16px; background:' + p.bg + ';" role="img" aria-label="게시물 사진"></div>' : '');
         return '<div class="card col" style="gap:12px; padding:16px;">' +
           '<div class="row" style="align-items:center; gap:8px;"><div class="feed-avatar" style="background:' + avatarBg(p.author) + ';" aria-hidden="true">' + escapeHtml(String(p.author || '?').charAt(0)) + '</div>' +
@@ -6452,6 +6488,8 @@
       '<button type="button" data-post-visibility="private" role="tab" aria-selected="false" style="flex:1;">나만 보기</button>' +
       '</div><span class="helper" id="post-visibility-hint">커뮤니티의 모든 사람이 볼 수 있어요</span></div>' +
       '<p class="helper" style="margin:0;">다른 사람·선생님·업체의 실명이나 아이 신상을 올리면 바로 내려가요. 서로 다른 3명이 신고하면 자동으로 숨겨지고, 신고는 하루 안에 확인해요.</p>' +
+      '<label class="check-row"><input type="checkbox" id="post-anon"> 이름 숨기고 올리기 (다른 회원에게는 \'익명\'으로 보여요. 운영자는 누가 썼는지 알 수 있어요)</label>' +
+      '<label class="check-row"><input type="checkbox" id="post-sensitive"> 사진이 민감할 수 있어요 (수유·목욕 등) — 흐리게 보이고 눌러야 보여요</label>' +
       '<label class="check-row"><input type="checkbox" id="post-sponsored"> 업체에서 제품이나 돈을 받고 쓰는 글이에요 (체험단·협찬) — 글에 \'제품 제공받음\'이 표시돼요</label>' +
       '<label class="check-row"><input type="checkbox" id="post-consent"> 아이 사진이 포함된다면 위 공개범위를 확인했고, 선택한 범위로 게시하는 것에 동의해요 *</label>' +
       '<button class="btn-primary" id="post-submit" style="width:100%;" disabled>글 올리기</button>';
@@ -7186,7 +7224,8 @@
     }
     var mediaPath = upP.path;
     var signedNow = mediaPath ? (await signMediaPaths([mediaPath]))[mediaPath] || '' : '';
-    var author = state.nickname ? state.nickname + roleLabel() : '나';
+    var anonEl = document.getElementById('post-anon');
+    var author = (anonEl && anonEl.checked) ? '익명 ' + roleLabel() : (state.nickname ? state.nickname + roleLabel() : '나');
     var myStage = state.kidType;
     var myAgeVal = myStage === 'pregnant' ? pregWeeks(state.dueDate) : (myStage === 'parenting' ? ageMonths(state.birthMonth) : null);
     var visBtn = document.querySelector('#post-visibility-group [data-post-visibility][aria-selected="true"]');
@@ -7198,8 +7237,8 @@
       // 검수 대기(pending) 행은 SELECT 정책상 본인도 읽을 수 없으므로 RETURNING 을 쓰지 않는다.
       var rowId = newUuid();
       var spEl = document.getElementById('post-sponsored');
-      var payload = { author:author, text:textVal, media_path:mediaPath || null, stage:myStage, age_value:myAgeVal, sponsored: !!(spEl && spEl.checked), audience: visibility === 'members' ? 'members' : 'all' };
-      newPost.sponsored = payload.sponsored; newPost.audience = payload.audience;
+      var payload = { author:author, text:textVal, media_path:mediaPath || null, stage:myStage, age_value:myAgeVal, sponsored: !!(spEl && spEl.checked), audience: visibility === 'members' ? 'members' : 'all', sensitive: !!(document.getElementById('post-sensitive') || {}).checked };
+      newPost.sponsored = payload.sponsored; newPost.audience = payload.audience; newPost.sensitive = payload.sensitive;
       if(rowId) payload.id = rowId;
       var res = await sb.from('community_posts').insert(payload);
       if(res.error){
@@ -7516,7 +7555,8 @@
       return;
     }
     if(btn) btn.disabled = true;
-    var author = state.nickname ? state.nickname + roleLabel() : '나';
+    var anonEl = document.getElementById('post-anon');
+    var author = (anonEl && anonEl.checked) ? '익명 ' + roleLabel() : (state.nickname ? state.nickname + roleLabel() : '나');
     var post = state.posts.filter(function(x){ return x.id === postId; })[0];
     var res = await sb.from('post_comments').insert({ post_id: postId, author: author, content: val }).select().single();
     if(res.error || !res.data){

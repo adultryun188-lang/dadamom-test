@@ -531,6 +531,9 @@
   .footer{ background:#fff; border-top:1px solid var(--border); }
 
   /* 홈: 챌린지 대표 영역 */
+  .sens{ position:relative; display:block; overflow:hidden; }
+  .sens > img, .sens > video{ filter:blur(22px); transform:scale(1.08); }
+  .sens-btn{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; text-align:center; padding:12px; border:none; background:rgba(40,30,20,.35); color:#fff; font-weight:800; font-size:13px; cursor:pointer; }
   .feature-ch{ display:grid; grid-template-columns:minmax(0,1.1fr) minmax(0,1fr); gap:0; background:linear-gradient(120deg,#FFE9DD 0%,#FFF3DC 55%,#FFF9EC 100%); color:var(--text); border-radius:20px; overflow:hidden; border:1px solid #F8DCCB; }
   .feature-ch .fc-in{ padding:34px 34px 30px; display:flex; flex-direction:column; gap:14px; justify-content:center; }
   .feature-ch .lbl{ display:inline-flex; align-self:flex-start; gap:8px; align-items:center; font-size:12.5px; font-weight:700; color:var(--deep); letter-spacing:.02em; }
@@ -786,6 +789,15 @@
   ];
   function spBadge(p){ return p && p.sponsored ? '<span style="display:inline-block; padding:1px 8px; border-radius:999px; font-size:11.5px; font-weight:800; background:#FFF4D6; color:#7A5300; border:1px solid #F1DDAE;">제품 제공받음</span>' : ''; }
   function audBadge(p){ return p && p.audience === 'members' ? '<span style="display:inline-block; padding:1px 8px; border-radius:999px; font-size:11.5px; font-weight:800; background:#EEF6FF; color:#1F4E8C; border:1px solid #D6E6FA;">🔒 회원만</span>' : ''; }
+  // 민감할 수 있는 사진은 흐리게 두고 눌러야 보여 준다 (0040)
+  function sensWrap(p, html){ return p && p.sensitive && html ? '<div class="sens">' + html + '<button type="button" class="sens-btn" data-sens-show>민감할 수 있는 사진이에요 · 눌러서 보기</button></div>' : html; }
+  document.addEventListener('click', function(e){
+    var b = e.target.closest && e.target.closest('[data-sens-show]');
+    if(!b) return;
+    e.preventDefault(); e.stopPropagation();
+    if(b.parentElement) b.parentElement.classList.remove('sens');
+    b.remove();
+  }, true);
   function chExampleWeb(c){
     var v = c.example_video && /^(https:\/\/|\.\/assets\/)[^\s"<>]+$/.test(c.example_video) ? c.example_video : '';
     var poster = /^\.\/assets\/.+\.mp4$/.test(v) ? v.replace(/\.mp4$/, '.jpg') : '';
@@ -851,7 +863,7 @@
     { id:'m25', name:'🎒 25개월+' }
   ];
   var SORTS = [ { id:'new', name:'최신순' }, { id:'like', name:'추천순' }, { id:'cmt', name:'댓글순' } ];
-  var COLS = 'id,author,text,likes,comments,created_at,stage,age_value,media_path,owner_id,status,sponsored,audience';
+  var COLS = 'id,author,text,likes,comments,created_at,stage,age_value,media_path,owner_id,status,sponsored,audience,sensitive';
 
   var user = null, profile = null;
 
@@ -1360,7 +1372,7 @@
           '<span>' + fullDate(p.created_at) + '</span><span>👍 <b data-post-likes>' + (p.likes || 0) + '</b></span><span>💬 <b data-post-comments>' + (p.comments || 0) + '</b></span>' +
           (p.status !== 'approved' ? '<span class="st">' + (p.status === 'pending' ? '검수 중 — 나에게만 보여요' : '게시 안 됨') + '</span>' : '') +
         '</div></div>' +
-      '<div class="post-body">' + (img ? '<img src="' + esc(img) + '" alt="첨부 사진 (누르면 크게 보기)" data-zoom>' : '') + esc(pp.body) + '</div>' +
+      '<div class="post-body">' + (img ? sensWrap(p, '<img src="' + esc(img) + '" alt="첨부 사진 (누르면 크게 보기)" data-zoom>') : '') + esc(pp.body) + '</div>' +
       '<div class="vote"><button id="like-btn" aria-pressed="' + liked + '" aria-label="추천"><span>👍 추천</span><b id="like-n">' + (p.likes || 0) + '</b></button></div>' +
       '<div class="post-act">' +
         '<button class="link-btn" data-share>📤 공유</button>' +
@@ -1658,6 +1670,8 @@
           '<span class="draft-note" id="draft-note" aria-live="polite"></span></div>' +
         '<div><label for="w-photo">사진 (선택, 1장)</label><label class="kfile"><input type="file" class="kfile-input" id="w-photo" accept="image/jpeg,image/png,image/webp"><span class="kfile-btn">📷 사진 고르기</span><span class="kfile-name">선택한 파일 없음</span></label><div class="photo-preview" id="w-preview"></div></div>' +
         '<label style="display:flex; gap:8px; align-items:flex-start; font-size:14px;"><input type="checkbox" id="w-sponsored" style="margin-top:3px;"> 업체에서 제품이나 돈을 받고 쓰는 글이에요 (체험단·협찬) — 글에 \'제품 제공받음\'이 표시돼요</label>' +
+        '<label style="display:flex; gap:8px; align-items:flex-start; font-size:14px;"><input type="checkbox" id="w-anon" style="margin-top:3px;"> 이름 숨기고 올리기 (다른 회원에게는 \'익명\'으로 보여요. 운영자는 누가 썼는지 알 수 있어요)</label>' +
+        '<label style="display:flex; gap:8px; align-items:flex-start; font-size:14px;"><input type="checkbox" id="w-sensitive" style="margin-top:3px;"> 사진이 민감할 수 있어요 (수유·목욕 등) — 흐리게 보이고 눌러야 보여요</label>' +
         '<label style="display:flex; gap:8px; align-items:center; font-size:14px;">누가 볼까요 <select id="w-audience"><option value="all">모두</option><option value="members">다다맘 회원만 (비회원·검색에는 안 보여요)</option></select></label>' +
         '<div class="note">🛡️ 글은 바로 공개돼요. 사진이 있거나 연락처·링크가 들어간 글은 운영자 확인 후 공개돼요. 아이 얼굴·이름·주소 같은 개인정보가 드러나지 않게 주의해주세요. 다른 사람·선생님·업체의 실명이나 아이 신상을 올리면 바로 내려가고, 서로 다른 3명이 신고하면 자동으로 숨겨지고, 신고는 하루 안에 확인해요.<br>글쓴이에는 <b>' + esc(myName()) + '</b> 와 ' + esc(profileStageText() || '아이 단계') + ' 가 함께 표시돼요.</div>' +
         '<div style="display:flex; gap:8px; justify-content:flex-end;"><a class="btn" href="#/b/all">취소</a><button class="btn primary" type="submit" id="w-submit">등록</button></div>' +
@@ -1744,11 +1758,12 @@
     var id = newUuid();
     // 검수 대기(pending) 글은 SELECT 정책상 RETURNING 이 막히므로 select() 를 붙이지 않는다.
     var res = await sb.from('community_posts').insert({
-      id: id, author: myName(),
+      id: id, author: ($('w-anon') && $('w-anon').checked) ? '익명' : myName(),
       text: (topic ? '[' + topic + '] ' : '') + title + '\n' + body,
       media_path: up.path || null, stage: (profile && profile.kid_type) || null, age_value: profileAge(),
       sponsored: !!($('w-sponsored') && $('w-sponsored').checked),
-      audience: ($('w-audience') && $('w-audience').value === 'members') ? 'members' : 'all'
+      audience: ($('w-audience') && $('w-audience').value === 'members') ? 'members' : 'all',
+      sensitive: !!($('w-sensitive') && $('w-sensitive').checked)
     });
     if(res.error){
       if(up.path) await sb.storage.from('media').remove([up.path]);

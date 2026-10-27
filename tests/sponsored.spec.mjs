@@ -31,13 +31,14 @@ try {
   await p.waitForTimeout(800);
   const hasForm = await p.locator('#post-sponsored').count();
   ok('앱 글쓰기에 체험단·협찬 체크', hasForm === 1);
+  ok('앱 글쓰기에 이름 숨기기·민감한 사진 체크 (13번)', await p.locator('#post-anon').count() === 1 && await p.locator('#post-sensitive').count() === 1);
   if (hasForm) {
     await p.locator('#post-topic-group [data-post-topic]').first().click();
-    await p.fill('#post-text', TXT); await p.check('#post-sponsored'); await p.check('#post-consent');
+    await p.fill('#post-text', TXT); await p.check('#post-sponsored'); await p.check('#post-anon'); await p.check('#post-sensitive'); await p.check('#post-consent');
     await p.click('#post-submit'); await p.waitForTimeout(5000);
   }
-  rows = await (await fetch(U + '/rest/v1/community_posts?select=id,sponsored,status&text=like.*' + encodeURIComponent(TXT), { headers: h(A.access_token) })).json();
-  ok('DB: sponsored = true', rows.length === 1 && rows[0].sponsored === true, JSON.stringify(rows));
+  rows = await (await fetch(U + '/rest/v1/community_posts?select=id,sponsored,status,author,sensitive&text=like.*' + encodeURIComponent(TXT), { headers: h(A.access_token) })).json();
+  ok('DB: sponsored·sensitive = true, 이름은 익명', rows.length === 1 && rows[0].sponsored === true && rows[0].sensitive === true && /^익명/.test(rows[0].author), JSON.stringify(rows));
   await p.evaluate(() => { location.hash = '#home'; }); await p.waitForTimeout(300); await p.evaluate(() => { location.hash = '#community'; }); await p.waitForTimeout(2500);
   ok('앱 커뮤니티에 제품 제공받음 표시', await p.locator('span.pill', { hasText: /^제품 제공받음$/ }).count() >= 1);
   const w = await ctx.newPage(); w.on('pageerror', e => errs.push(e.message));

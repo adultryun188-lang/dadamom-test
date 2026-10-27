@@ -761,7 +761,7 @@
   // 첫걸음 마감일 — 팝업이 쓴다. 챌린지 목록은 표 challenges(0025), 표가 없으면 아래 첫걸음 하나.
   var CHALLENGE_DEADLINE = '2026-11-30';
   var CH_FALLBACK = [{ id:'firststep', title:'첫걸음 챌린지', emoji:'👣', description:'아이가 혼자 걷는 모습을 1분 이내 영상과 짧은 메모로 참여해요. 처음의 순간을 함께 남기고 응원해요.',
-    target_label:'10~24개월', ends_on:CHALLENGE_DEADLINE, announce_on:'2026-12-03', prize:'참가하면 추첨으로 4명에게 2만 원 상당 육아용품을 드려요.', example_video:'./assets/challenge/firststep.mp4',
+    target_label:'10~24개월', ends_on:null, announce_on:null, prize:'챌린지마다 매달 응원을 가장 많이 받은 1명에게 육아용품을 드려요.', example_video:'./assets/challenge/firststep.mp4',
     guide:['아이가 혼자 걷는 모습을 1분 이내 영상으로 올려 주세요', '아이 전신이 보이게, 어른 손이 닿지 않은 채 걷는 장면이 담겨야 해요', '끊지 말고 한 번에 이어서 찍은 영상만 인정돼요'], media_rule:'video' }];
   // 모든 챌린지 공통 촬영 규칙 (앱 index.html 의 CH_RULES 와 같은 문장)
   var CH_RULES = [
@@ -1051,8 +1051,8 @@
         '<div class="fc-in">' +
           '<span class="lbl"><b>' + dd + '</b>다다맘 챌린지</span>' +
           '<h1 class="display" id="fc-title">첫걸음 <em>챌린지</em></h1>' +
-          '<p>아이의 첫걸음, 1분 이내 영상으로 남겨요. 참가작마다 또래 부모들의 응원이 모이고, 추첨으로 육아용품을 드려요.</p>' +
-          '<div class="facts"><span>대상 <strong>10~24개월</strong></span><span>마감 <strong>11/30</strong> · 발표 12/3</span><span>경품 <strong>4명</strong> · 2만 원 상당 육아용품</span><span id="fc-count">참가작 –</span></div>' +
+          '<p>아이의 첫걸음, 1분 이내 영상으로 남겨요. 참가작마다 또래 부모들의 응원이 모이고, 매달 응원을 가장 많이 받은 1명에게 육아용품을 드려요.</p>' +
+          '<div class="facts"><span>대상 <strong>10~24개월</strong></span><span>상시 진행 · <strong>매달</strong> 발표</span><span>경품 <strong>매달 1명</strong> · 육아용품</span><span id="fc-count">참가작 –</span></div>' +
           '<div class="cta">' + (open ? '<a class="btn primary" href="./index.html#challenge">앱에서 참여하기</a>' : '') + '<a class="btn" href="#/challenge?c=firststep">참가작 보고 응원하기</a></div>' +
           '<div class="sub" id="fc-more" style="padding:12px 0 0; flex-wrap:wrap;"></div>' +
         '</div>' +
@@ -1809,14 +1809,14 @@
     if(r.error || !$('ch-hall')) return;
     var rows = r.data || [];
     var now = new Date(), key = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
-    var cur = rows.filter(function(x){ return x.month === key; });
+    var cur = rows.filter(function(x){ return x.month === key && x.rnk === 1; });   // 챌린지마다 1위 (0037)
     var past = rows.filter(function(x){ return x.month < key && x.rnk === 1; }).sort(function(a, b){ return a.month < b.month ? 1 : -1; });
     var urls = await signUrls(cur.map(function(x){ return x.media_path; }));
     var chOf = function(k){ return chList.filter(function(c){ return c.id === k; })[0] || {}; };
     var medal = ['🥇', '🥈', '🥉'];
     var lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
     box.hidden = false;
-    box.innerHTML = '<div class="panel-h"><h2 class="display">🏆 이달의 주인공</h2><span class="helper">' + (now.getMonth() + 1) + '/' + lastDay + ' 마감 · 이번 달 응원을 가장 많이 받은 아이에게 육아용품을 드려요</span></div>' +
+    box.innerHTML = '<div class="panel-h"><h2 class="display">🏆 이달의 주인공</h2><span class="helper">' + (now.getMonth() + 1) + '/' + lastDay + ' 마감 · 챌린지마다 이번 달 응원을 가장 많이 받은 아이 1명에게 육아용품을 드려요</span></div>' +
       '<div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:12px; padding:0 20px 16px;">' +
       (cur.length ? cur.map(function(x){
         var c = chOf(x.challenge_key);
@@ -1827,7 +1827,7 @@
           '<span style="display:flex; flex-direction:column; min-width:0;"><b>' + esc(x.name || '우리 아이') + '</b><span class="helper">' + esc((c.emoji || '') + ' ' + (c.title || '')) + ' · 💛 ' + x.month_votes + '</span></span></a>';
       }).join('') : '<p class="helper">아직 이번 달 응원이 없어요. 마음에 드는 참가작에 💛 응원을 눌러 주세요.</p>') + '</div>' +
       (past.length ? '<div class="sub" style="padding:0 20px 16px; flex-wrap:wrap;"><span class="helper" style="font-weight:800;">지난 주인공</span>' +
-        past.slice(0, 6).map(function(x){ return '<span class="chip">' + (+x.month.slice(5)) + '월 ' + esc(x.name || '') + ' ' + esc(chOf(x.challenge_key).emoji || '') + '</span>'; }).join('') + '</div>' : '');
+        past.slice(0, 10).map(function(x){ return '<span class="chip">' + (+x.month.slice(5)) + '월 ' + esc(x.name || '') + ' ' + esc(chOf(x.challenge_key).emoji || '') + '</span>'; }).join('') + '</div>' : '');
   }
 
   async function loadGallery(sort){
@@ -2278,7 +2278,7 @@
   // 새 팝업은 id 를 새로 정해 앞에 추가한다 (id 가 같으면 이미 닫은 사람에게 다시 안 뜬다). until 이 지나면 자동으로 안 뜬다.
   var POPUPS = [
     { id:'first-step-2026', until: CHALLENGE_DEADLINE, emoji:'👣', title:'첫걸음 챌린지',
-      body:'아이가 혼자 걷는 영상으로 참여하고<br><b>추첨 4명에게 2만 원 상당 육아용품</b>을 드려요.<br>10~24개월 · 11/30 마감 · 12/3 발표',
+      body:'아이가 혼자 걷는 영상으로 참여하고<br><b>매달 응원 1등 1명에게 육아용품</b>을 드려요.<br>10~24개월 · 상시 진행 · 매달 첫 주 발표',
       cta:'참여하러 가기', href:'#/challenge', hideOn:['challenge', 'p'] }
   ];
   var POPUP_KEY = 'dadamom.popup.';

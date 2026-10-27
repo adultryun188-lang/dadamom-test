@@ -11,10 +11,13 @@ const h = (t, pref = 'return=minimal') => ({ apikey: K, Authorization: 'Bearer '
 const login = async e => (await (await fetch(U + '/auth/v1/token?grant_type=password', { method: 'POST', headers: h(), body: JSON.stringify({ email: e, password: 'dadamom-test-1234' }) })).json());
 const B = await login('momB@dadamom.test'), ADM = await login('admin@dadamom.test');
 const get = async (path, t) => (await fetch(U + '/rest/v1/' + path, { headers: h(t) })).json();
-const cleanup = [];
+const cleanup = []; let mp = '';
 try {
   const eid = crypto.randomUUID();
-  await fetch(U + '/rest/v1/challenge_entries', { method: 'POST', headers: h(B.access_token), body: JSON.stringify({ id: eid, name: 'x', note: 'force test https://x.example', challenge_key: 'cheeks', status: 'approved', votes: 999, created_at: '2020-01-01T00:00:00Z' }) });
+  // 볼살은 사진만 받는다 (0035) — 사진 파일이 있어야 참가작을 넣을 수 있다
+  mp = B.user.id + '/force-' + Date.now() + '.jpg';
+  await fetch(U + '/storage/v1/object/media/' + mp, { method: 'POST', headers: { apikey: K, Authorization: 'Bearer ' + B.access_token, 'Content-Type': 'image/jpeg' }, body: Buffer.from('test') });
+  await fetch(U + '/rest/v1/challenge_entries', { method: 'POST', headers: h(B.access_token), body: JSON.stringify({ id: eid, name: 'x', note: 'force test https://x.example', media_path: mp, challenge_key: 'cheeks', status: 'approved', votes: 999, created_at: '2020-01-01T00:00:00Z' }) });
   cleanup.push('challenge_entries?id=eq.' + eid);
   const e = (await get('challenge_entries?select=status,votes,created_at&id=eq.' + eid, B.access_token))[0];
   ok('참가작: approved 로 넣어도 서버 규칙대로 (링크 있음 → 대기)', e && e.status === 'pending', JSON.stringify(e));
@@ -43,6 +46,7 @@ try {
 } catch (e) { failed++; console.log('FAIL 실행 중단: ' + e.message); }
 finally {
   for (const c of cleanup) await fetch(U + '/rest/v1/' + c, { method: 'DELETE', headers: h(ADM.access_token) });
+  await fetch(U + '/storage/v1/object/media/' + mp, { method: 'DELETE', headers: { apikey: K, Authorization: 'Bearer ' + B.access_token } }).catch(() => {});
 }
 console.log(failed ? `\n${failed}개 실패` : '\n전부 통과');
 process.exit(failed ? 1 : 0);

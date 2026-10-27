@@ -336,7 +336,7 @@ function check(name, ok, detail) {
     await page.waitForTimeout(2500);
     check('광고 주소로 챌린지가 바로 열림', (await cur()) === 'screen-challenge', await cur());
     const prize = await page.evaluate(() => (document.getElementById('challenge-prize') || {}).textContent || '');
-    check('경품 안내가 보임', prize.includes('4명') && prize.includes('12/3'), prize);
+    check('경품 안내가 보임 (챌린지마다 매달 1명, 0037)', prize.includes('1명') && prize.includes('매달'), prize);
 
     await page.click('[data-open-challenge-modal]');
     await page.waitForTimeout(500);

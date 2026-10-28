@@ -63,7 +63,7 @@ try{
       const a=luminance(data.button),b=luminance(data.ink);
       check(width+' '+hash+' 버튼 대비 4.5 이상',(Math.max(a,b)+.05)/(Math.min(a,b)+.05)>=4.5);
       check(width+' '+hash+' 테스트 환경 표시',data.testVisible);
-      check(width+' '+hash+' 실제 둥근 폰트 로드',await page.evaluate(()=>document.fonts.check('700 16px "NanumSquareRound"','따뜻한 우리 아이')&&document.fonts.check('800 25px "NanumSquareRound"','첫걸음 챌린지')&&getComputedStyle(document.body).fontFamily.startsWith('NanumSquareRound')));
+      check(width+' '+hash+' 실제 둥근 폰트 로드',await page.evaluate(()=>document.fonts.check('700 16px "DadaRound"','따뜻한 우리 아이')&&document.fonts.check('800 25px "DadaRound"','첫걸음 챌린지')&&getComputedStyle(document.body).fontFamily.startsWith('DadaRound')));
       check(width+' '+hash+' 본문 굵기 보강',await page.evaluate(()=>Number(getComputedStyle(document.body).fontWeight)>=700));
       if(data.hero)check(width+' '+hash+' 어두운 히어로 없음',!data.hero.includes('30, 26, 23'));
       if(hash==='#/'){
@@ -93,8 +93,8 @@ try{
     await page.locator('#nav a[href="#/"]').click();await page.locator('#home-ch.is-empty').waitFor();
     check(width+' 참가작 0개 안내 카드',await page.locator('#home-ch > *').count()===1);
     await page.getByRole('button',{name:'로그인',exact:true}).first().click();
-    await page.locator('#l-email').waitFor();
-    check(width+' 로그인 창 유지',await page.locator('#login-form').isVisible());
+    await page.locator('#modal a',{hasText:'인증번호'}).waitFor();
+    check(width+' 로그인 창 유지',await page.locator('#modal a',{hasText:'인증번호'}).isVisible());
     await ctx.close();console.log('PASS '+width+'px 홈·게시판·챌린지·브랜드관·나들이·로그인');
   }
   check('런타임 오류 없음',errors.length===0);

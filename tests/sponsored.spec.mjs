@@ -18,11 +18,11 @@ try {
   const p = await ctx.newPage(); p.on('pageerror', e => errs.push(e.message));
   await p.goto('http://localhost:8000/index.html'); await p.waitForTimeout(2000);
   await p.locator('[data-popup-today]').click({ timeout: 1500 }).catch(() => {});
-  await p.fill('#auth-email', 'momA@dadamom.test'); await p.fill('#auth-password', 'dadamom-test-1234');
+  await p.click('[data-auth-view="password"]'); await p.fill('#auth-email', 'momA@dadamom.test'); await p.fill('#auth-password', 'dadamom-test-1234');
   await p.click('#auth-password-submit'); await p.waitForTimeout(4500);
   await p.locator('[data-popup-today]').click({ timeout: 1500 }).catch(() => {});
   await p.evaluate(() => { location.hash = '#home'; }); await p.waitForTimeout(1200);
-  ok('앱 첫 화면: 아이 사진이 안전한 곳', (await p.textContent('#screen-home').catch(() => '') || await p.textContent('body')).includes('아이 사진이 안전한 곳'));
+  ok('앱 첫 화면: 안전 안내 칸 뺌 (10-28 사장님)', !(await p.textContent('body')).includes('아이 사진이 안전한 곳'));
   await p.evaluate(() => { location.hash = '#challenge'; }); await p.waitForTimeout(2000);
   await p.click('[data-challenge-open="firststep"]'); await p.waitForTimeout(800);
   ok('앱 챌린지: 규칙 전체 보기(원본 확인·경품 세금)', /원본 확인/.test(await p.textContent('#challenge-example')) && /세금/.test(await p.textContent('#challenge-example')));
@@ -44,7 +44,7 @@ try {
   const w = await ctx.newPage(); w.on('pageerror', e => errs.push(e.message));
   await w.goto('http://localhost:8000/community.html#/b/all'); await w.waitForTimeout(3500);
   ok('웹 목록에 제품 제공받음 표시', await w.locator('span', { hasText: /^제품 제공받음$/ }).count() >= 1);
-  ok('웹 첫 화면 안전 안내', await (async () => { await w.goto('http://localhost:8000/community.html#/'); await w.waitForTimeout(2500); return (await w.textContent('body')).includes('아이 사진이 안전한 곳'); })());
+  ok('웹 첫 화면 안전 안내 칸 뺌', await (async () => { await w.goto('http://localhost:8000/community.html#/'); await w.waitForTimeout(2500); return !(await w.textContent('body')).includes('아이 사진이 안전한 곳'); })());
   ok('페이지 오류 없음', errs.length === 0, errs.join(' | '));
 } catch (e) { failed++; console.log('FAIL 실행 중단: ' + e.message.split('\n')[0]); }
 finally {

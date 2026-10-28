@@ -74,7 +74,7 @@ async function noOverflow(page,label){
   await page.evaluate(async()=>{await document.fonts.ready;});
   const v=await page.evaluate(()=>({w:document.documentElement.clientWidth,s:document.documentElement.scrollWidth,bg:getComputedStyle(document.body).backgroundColor}));
   check(label+' 가로 넘침 없음',v.s<=v.w);check(label+' 밝은 바탕',lum(v.bg)>.85);
-  check(label+' 둥근 폰트 적용',await page.evaluate(()=>document.fonts.check('700 16px "NanumSquareRound"','따뜻한 이야기')&&getComputedStyle(document.body).fontFamily.startsWith('NanumSquareRound')));
+  check(label+' 둥근 폰트 적용',await page.evaluate(()=>document.fonts.check('700 16px "DadaRound"','따뜻한 이야기')&&getComputedStyle(document.body).fontFamily.startsWith('DadaRound')));
   check(label+' 본문 굵기 보강',await page.evaluate(()=>Number(getComputedStyle(document.body).fontWeight)>=700));
 }
 async function brightButton(page,selector,label){
@@ -153,7 +153,7 @@ try{
     // 가입·로그인 창은 작은 높이에서도 닫기 버튼까지 내부 스크롤로 도달할 수 있다.
     const guest=await setup(width,false);await guest.page.setViewportSize({width,height:600});
     await guest.page.goto(base+'/community.html#/write');
-    await guest.page.locator('#main [data-login]').click();await guest.page.locator('#l-email').waitFor();
+    await guest.page.locator('#main [data-login]').click();await guest.page.locator('#modal a',{hasText:'인증번호'}).waitFor();
     const modal=await guest.page.locator('#modal-card').evaluate(el=>{const r=el.getBoundingClientRect(),s=getComputedStyle(el);return {top:r.top,bottom:r.bottom,height:innerHeight,overflow:s.overflowY,bg:s.backgroundColor};});
     check(width+' 로그인 창 화면 안',modal.top>=0&&modal.bottom<=modal.height+1);
     check(width+' 로그인 창 스크롤',modal.overflow==='auto');
@@ -170,15 +170,15 @@ try{
   }
   await page.route(base+'/nested/missing-page',async r=>r.fulfill({contentType:'text/html; charset=utf-8',body:await fs.readFile(path.join(root,'404.html'),'utf8')}));
   await page.goto(base+'/nested/missing-page');await noOverflow(page,'중첩 경로 404');
-  check('404 스타일시트 루트 경로 복구',await page.locator('#rounded-ui-style').getAttribute('href')==='/rounded-ui.css?v=20261023-11');
+  check('404 스타일시트 루트 경로 복구',await page.locator('#rounded-ui-style').getAttribute('href')==='/rounded-ui.css?v=20261028-1');
   await page.goto(base+'/index.html#onboarding');await page.locator('#auth-email').waitFor();
   await page.evaluate(()=>document.documentElement.dataset.theme='dark');
   check('남은 다크 테마 속성도 밝게 유지',await page.evaluate(()=>getComputedStyle(document.documentElement).colorScheme==='light'));
   await page.emulateMedia({reducedMotion:'reduce'});
   check('움직임 줄이기 설정 존중',await page.locator('#screen-onboarding .btn-primary').first().evaluate(el=>getComputedStyle(el).transitionDuration==='0s'));
   for(const weight of ['R','B','EB']){
-    const bytes=await fs.readFile(path.join(root,'assets/fonts/NanumSquareRound'+weight+'.woff2'));
-    check(weight+' 원본 WOFF2 형식',bytes.subarray(0,4).toString()==='wOF2');
+    const bytes=await fs.readFile(path.join(root,'assets/fonts/DadaRound'+weight+'.woff2'));
+    check(weight+' 줄인 WOFF2 형식',bytes.subarray(0,4).toString()==='wOF2');
   }
   await ctx.close();check('런타임 오류 없음',errors.length===0);check('외부 DB·운영 요청 없음',blocked.length===0);
   console.log('완료: '+passed+'개 검증 통과. 실제 DB·회원 데이터 변경 없음.');

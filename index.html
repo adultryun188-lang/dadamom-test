@@ -523,13 +523,6 @@
         <div class="card col" style="gap:0; padding:0; overflow:hidden;" id="home-missions"></div>
       </div>
 
-      <div class="home-sec">
-        <div class="card col" style="gap:6px; padding:14px 16px; background:#F3F8FF; border-color:#D6E6FA;">
-          <b style="font-size:14px;">🛡️ 아이 사진이 안전한 곳</b>
-          <span class="helper">사진·영상은 10분만 열리는 링크로만 보여 줘요 · 처음 올린 사진은 운영자가 확인해요 · 3명이 신고하면 바로 숨겨요 · 광고 추적 도구를 쓰지 않아요</span>
-        </div>
-      </div>
-
       <div class="home-sec" id="home-hot-sec" hidden>
         <div class="home-sec-head">
           <h2 class="home-sec-title display">🔥 이번 주 인기글</h2>
@@ -1145,7 +1138,7 @@
     if(!otpSent){
       return '<div class="field"><label for="auth-email">이메일</label><input type="email" id="auth-email" placeholder="you@example.com" autocomplete="email" inputmode="email" value="' + escapeHtml(authDraft.email) + '"></div>' +
         '<label class="check-row" style="font-size:12.5px; align-items:flex-start;"><input type="checkbox" id="consent-quick"' + (authDraft.quick ? ' checked' : '') + '> ' +
-          '<span>[필수] <a href="#terms" class="link-quiet">이용약관</a>·<a href="#policy" class="link-quiet">개인정보 수집·이용</a>에 동의하고, 만 14세 이상이에요</span></label>' +
+          '<span>[필수] <a href="#terms" class="link-quiet">약관</a>·<a href="#policy" class="link-quiet">개인정보 수집</a> 동의 · 만 14세 이상</span></label>' +
         '<button class="btn-primary" id="otp-send" style="width:100%; margin-top:8px;" disabled>인증번호 받기</button>' +
         '<span class="helper" style="text-align:center;">처음이면 바로 가입되고, 가입했던 이메일이면 로그인돼요</span>' +
         linkBtn('password', '비밀번호로 로그인') +

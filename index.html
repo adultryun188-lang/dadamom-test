@@ -6340,7 +6340,10 @@
     var ua = navigator.userAgent || '';
     var ios = /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
     var how, btn = '';
-    if(/KAKAOTALK/i.test(ua)){
+    if(!ios && /Android/i.test(ua)){
+      how = '구글 플레이 스토어에 다다맘 앱이 있어요.';
+      btn = '<a class="btn-primary" href="https://play.google.com/store/apps/details?id=kr.dadaran.dadamom" target="_blank" rel="noopener" style="height:38px; padding:0 16px; font-size:13px; flex:0 0 auto; display:inline-flex; align-items:center; text-decoration:none;">앱 받기</a>';
+    } else if(/KAKAOTALK/i.test(ua)){
       how = '카카오톡 안에서는 설치가 안 돼요. 오른쪽 아래 메뉴에서 <b>다른 브라우저로 열기</b>를 누른 뒤 다시 보세요.';
     } else if(/Instagram|NAVER|FBAN|FBAV|Line\//i.test(ua)){
       how = '앱 안 브라우저에서는 설치가 안 돼요. 메뉴에서 <b>' + (ios ? 'Safari' : 'Chrome') + '로 열기</b>를 눌러 주세요.';

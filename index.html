@@ -31,6 +31,8 @@
 <script src="./community-flow.js"></script>
 <script src="./shared-content.js"></script>
 <script>
+  // 서버(Supabase) 연결을 미리 열어 둔다 — 첫 자료 요청이 0.3~0.5초 빨라진다
+  (function(u){ if(!u) return; var l = document.createElement('link'); l.rel = 'preconnect'; l.href = u; l.crossOrigin = ''; document.head.appendChild(l); })((window.DADAMOM_ENV || {}).SUPABASE_URL);
   // PC 로 첫 화면(주소만)을 열면 커뮤니티 사이트로 보낸다. 앱 기능은 #home 처럼 해시를 붙여 들어온다.
   // 로그인 콜백(?code= 등)은 앱이 처리해야 하므로 쿼리가 있으면 보내지 않는다.
   // 단 홍보 링크의 ?from= 하나만 있으면 커뮤니티로 보내되 그 값을 그대로 넘긴다 (커뮤니티가 기기에 남김).
@@ -387,7 +389,7 @@
     .toast{ bottom:40px; }
   }
 </style>
-<link rel="stylesheet" href="./rounded-ui.css?v=20261023-11">
+<link rel="stylesheet" href="./rounded-ui.css?v=20261028-1">
 
 <div class="app" id="app">
   <div class="test-banner" id="test-banner" role="status" hidden>
@@ -974,7 +976,7 @@
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js"></script>
 <script>
 (function(){
   var LEGACY_STORAGE_KEY  = 'dadamom_v2';         // 계정 분리 이전에 쓰던 단일 키
@@ -5657,12 +5659,13 @@
 
   // ---------- 매거진 (홈 칸 + #magazine) ----------
   // 표 magazine_items(0022). 카드 모양은 shared-content.js — 웹과 같다.
-  var magItems = null, magKind = '';
+  var magItems = null, magKind = '', magLoading = null;
   function fetchMagazine(){
     if(magItems || !sb) return Promise.resolve(magItems || []);
-    return sb.from('magazine_items').select('*').eq('visible', true).order('sort_order', { ascending:true })
+    if(magLoading) return magLoading;   // 홈을 여러 번 그려도 요청은 한 번만
+    return magLoading = sb.from('magazine_items').select('*').eq('visible', true).order('sort_order', { ascending:true })
       .order('published_on', { ascending:false, nullsFirst:false }).order('created_at', { ascending:false }).limit(60)
-      .then(function(r){ if(r.error){ console.warn('[magazine]', r.error); return []; } magItems = r.data || []; return magItems; });
+      .then(function(r){ magLoading = null; if(r.error){ console.warn('[magazine]', r.error); return []; } magItems = r.data || []; return magItems; });
   }
   function renderHomeMag(){
     var sec = document.getElementById('home-mag-sec'), row = document.getElementById('home-mag');

@@ -1,10 +1,11 @@
 /* 다다맘의 둥근 글꼴과 클릭 표면. 동작/인증/데이터 로직에는 관여하지 않는다.
    이 파일을 바꿔 배포할 때 HTML의 ?v= 값도 갱신한다(SW cache-first 대응).
-   NanumSquareRound: NAVER Corporation, SIL OFL 1.1 (assets/fonts/OFL.txt). */
-@font-face{font-family:'NanumSquareRound';src:url('./assets/fonts/NanumSquareRoundR.woff2') format('woff2');font-style:normal;font-weight:400;font-display:swap;}
-@font-face{font-family:'NanumSquareRound';src:url('./assets/fonts/NanumSquareRoundB.woff2') format('woff2');font-style:normal;font-weight:700;font-display:swap;}
-@font-face{font-family:'NanumSquareRound';src:url('./assets/fonts/NanumSquareRoundEB.woff2') format('woff2');font-style:normal;font-weight:800;font-display:swap;}
-:root{--font-ui:'NanumSquareRound',-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;--soft-edge:#EFCDB9;--soft-lift:0 4px 12px rgba(150,95,60,.08);}
+   DadaRound: 나눔스퀘어라운드(NAVER Corporation, SIL OFL 1.1, assets/fonts/OFL.txt)를 자주 쓰는 글자만 남겨 줄인 것.
+   OFL 규칙상 고친 글꼴은 원래 이름을 못 써서 이름을 바꿨다. 없는 드문 글자는 아래 시스템 글꼴로 보인다. */
+@font-face{font-family:'DadaRound';src:url('./assets/fonts/DadaRoundR.woff2') format('woff2');font-style:normal;font-weight:400;font-display:swap;}
+@font-face{font-family:'DadaRound';src:url('./assets/fonts/DadaRoundB.woff2') format('woff2');font-style:normal;font-weight:700;font-display:swap;}
+@font-face{font-family:'DadaRound';src:url('./assets/fonts/DadaRoundEB.woff2') format('woff2');font-style:normal;font-weight:800;font-display:swap;}
+:root{--font-ui:'DadaRound',-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;--soft-edge:#EFCDB9;--soft-lift:0 4px 12px rgba(150,95,60,.08);}
 body{font-family:var(--font-ui);letter-spacing:0;font-weight:700;font-size:15px;line-height:1.6;}
 button,input,select,textarea,.display,.logo-text small,.brand b,.brand .mark,.tag,.rank,.stat b,.kid .v{font-family:var(--font-ui);}
 button,input,select,textarea{font-weight:700;}

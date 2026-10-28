@@ -25,7 +25,7 @@ const STUB_SRC = USE_STUB ? fs.readFileSync(path.join(__dirname, 'supabase-stub.
 
 async function prep(page) {
   if (USE_STUB) {
-    await page.route('**/supabase-js@2', r => r.fulfill({ contentType: 'application/javascript', body: STUB_SRC }));
+    await page.route('**/supabase-js@2**', r => r.fulfill({ contentType: 'application/javascript', body: STUB_SRC }));
     await page.route('**/css2**', r => r.fulfill({ contentType: 'text/css', body: '' }));
   }
 }

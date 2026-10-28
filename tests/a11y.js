@@ -7,7 +7,7 @@ const AXE = 'https://cdnjs.cloudflare.com/ajax/libs/axe-core/4.10.2/axe.min.js';
 (async () => {
   const b = await chromium.launch();
   const p = await b.newPage({ viewport: { width: 390, height: 844 } });
-  await p.route('**/supabase-js@2', (r) => r.fulfill({ contentType: 'application/javascript', body: STUB }));
+  await p.route('**/supabase-js@2**', (r) => r.fulfill({ contentType: 'application/javascript', body: STUB }));
   const agg = {};
   const run = async (label) => {
     await p.addStyleTag({ content: '#test-banner{display:none !important}' }).catch(() => {});

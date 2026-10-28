@@ -110,7 +110,13 @@
           // 기본은 새 가입(인증 메일 대기). 테스트에서 __SBSTUB.signUpResult 로 바꾼다.
           signUp: function(){ return Promise.resolve(window.__SBSTUB.signUpResult ||
             { data:{ user:{ id:'u-new', identities:[{ provider:'email' }] }, session:null }, error:null }); },
-          signInWithOtp: function(){ return Promise.resolve({ error:null }); },
+          signInWithOtp: function(a){ window.__SBSTUB.otpSentTo = a && a.email; return Promise.resolve(window.__SBSTUB.otpSendResult || { data:{}, error:null }); },
+          // 인증번호 123456 만 맞다고 한다
+          verifyOtp: function(a){
+            if(a.token !== '123456') return Promise.resolve({ data:{ session:null }, error:{ message:'Token has expired or is invalid' } });
+            window.__SBSTUB.signIn('u-otp', a.email);
+            return Promise.resolve({ data:{ session: session, user: session.user }, error:null });
+          },
           signInWithOAuth: function(){ return Promise.resolve({ error:null }); }
         }
       };

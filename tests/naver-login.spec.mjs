@@ -92,8 +92,6 @@ try{
     check('연결 준비 안내 '+width,(await p.locator('#naver-login-note').textContent()).includes('연결 준비 중'));
     check('로그인 시작 요청 0 '+width,await p.evaluate(()=>window.__naverCalls.length)===0);
     check('가로 넘침 없음 '+width,await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
-    await p.click('[data-auth-mode="signup"]');
-    check('회원가입 화면도 네이버 표시 '+width,await p.locator('#naver-signin-btn').isVisible());
     if(width===390 && process.env.SCREENSHOT_PATH) await p.screenshot({path:process.env.SCREENSHOT_PATH,fullPage:true});
   },true,width);
   await run('네이버 단독 표시','preview',async p=>{

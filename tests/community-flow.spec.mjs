@@ -101,7 +101,7 @@ stub += `\n(function(){
   window.supabase.createClient=function(){const c=create();const on=c.auth.onAuthStateChange;
     c.auth.onAuthStateChange=function(f){const r=on(f);queueMicrotask(()=>f('INITIAL_SESSION',session));return r;};
     c.auth.signInWithPassword=async function(args){S.lastAuth=args;S.signIn('u-flow','flow@dadamom.test');return {data:{session},error:null};};
-    c.auth.signUp=async function(args){S.signupArgs=args;return {data:{user:{id:'u-flow',identities:[{}]},session:null},error:null};};
+    c.auth.signInWithOtp=async function(args){S.otpArgs=args;return {data:{},error:null};};c.auth.signUp=async function(args){S.signupArgs=args;return {data:{user:{id:'u-flow',identities:[{}]},session:null},error:null};};
     c.auth.signInWithOAuth=async function(args){S.oauthArgs=args;return {error:null};};
     const upsert=c.from;
     c.from=function(name){const q=upsert(name);if(name==='profiles'&&F.failProfile)q.upsert=async()=>{S.upsertFailure=true;return {error:{message:'test save failure'}};};return q;};
@@ -153,9 +153,9 @@ try{
   });
   await run('기존 회원 로그인 복귀',fixture(false),async p=>{
     await p.goto(WEB+'?from=ig-01#/p/p-public'); await p.locator('#main [data-login]').click();
-    const href=await p.locator('#modal a').getAttribute('href');
+    const href=await p.locator('#modal a').first().getAttribute('href');
     check('웹 가입 링크에 원글 전달',new URL(href).searchParams.get('returnTo')==='#/p/p-public');
-    await p.locator('#modal a').click(); await p.fill('#auth-email','flow@dadamom.test'); await p.fill('#auth-password','test-password');
+    await p.locator('#modal a').first().click(); await p.click('[data-auth-view="password"]'); await p.fill('#auth-email','flow@dadamom.test'); await p.fill('#auth-password','test-password');
     await p.click('#auth-password-submit'); await p.waitForURL(u=>u.pathname.endsWith('community.html')&&u.hash==='#/p/p-public');
     await p.locator('#cmt-form').waitFor(); check('로그인 후 원글 댓글 참여 가능',true);
   });
@@ -163,7 +163,7 @@ try{
     // 운영처럼 카카오·구글·네이버가 다 켜진 환경
     await p.route('**/env.js',r=>r.fulfill({contentType:'application/javascript',body:'window.DADAMOM_ENV={SUPABASE_URL:"https://example.invalid",SUPABASE_ANON_KEY:"k",NAVER_LOGIN:true};'}));
     await p.goto(WEB+'?from=ig-01#/p/p-public'); await p.locator('#main [data-login]').click();
-    check('PC 로그인 창에 카카오·구글·네이버 + 이메일', (await p.$$eval('#modal [data-social]',a=>a.map(x=>x.dataset.social).join(',')))==='kakao,google,custom:naver' && await p.locator('#modal #l-email').isVisible());
+    check('PC 로그인 창에 카카오·구글·네이버 + 이메일', (await p.$$eval('#modal [data-social]',a=>a.map(x=>x.dataset.social).join(',')))==='kakao,google,custom:naver' && await p.locator('#modal a', { hasText: '인증번호' }).isVisible());
     await p.click('#modal [data-social="custom:naver"]'); await p.waitForFunction(()=>window.__SBSTUB.oauthArgs);
     const a=await p.evaluate(()=>window.__SBSTUB.oauthArgs), u=new URL(a.options.redirectTo);
     check('소셜 로그인 뒤 앱을 거쳐 원글로 복귀', a.provider==='custom:naver' && u.pathname.endsWith('/index.html') && u.searchParams.get('returnTo')==='#/p/p-public' && u.searchParams.get('from')==='ig-01');
@@ -202,11 +202,9 @@ try{
   });
   await run('가입 인증 콜백',fixture(false,false),async p=>{
     await p.goto(APP+'?returnTo=%23%2Fp%2Fp-public&from=ig-01#onboarding');
-    await p.click('[data-auth-mode="signup"]'); await p.fill('#auth-email','new@dadamom.test');
-    await p.fill('#auth-password','test1234'); await p.fill('#auth-password2','test1234');
-    await p.click('#signup-next'); for(const k of ['terms','privacy','age14']) await p.check('#consent-'+k);
-    await p.click('#signup-submit'); await p.waitForFunction(()=>!!window.__SBSTUB.signupArgs);
-    const callback=await p.evaluate(()=>window.__SBSTUB.signupArgs.options.emailRedirectTo);
+    await p.fill('#auth-email','new@dadamom.test'); await p.check('#consent-quick');
+    await p.click('#otp-send'); await p.waitForFunction(()=>!!window.__SBSTUB.otpArgs);
+    const callback=await p.evaluate(()=>window.__SBSTUB.otpArgs.options.emailRedirectTo);
     check('가입 인증 메일 복귀 경로 보존',new URL(callback).searchParams.get('returnTo')==='#/p/p-public');
     check('가입 인증 대기 중 임의 복귀 안 함',new URL(p.url()).pathname.endsWith('index.html'));
   });

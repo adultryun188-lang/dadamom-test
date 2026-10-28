@@ -2395,14 +2395,17 @@
   }
 
   function openLogin(){
+    // 이메일은 앱 화면(index.html)의 인증번호 방식으로 보낸다 — 가입·로그인을 한 곳에서. 끝나면 지금 보던 곳으로 돌아온다.
     openModal('<h3 class="display">👋 다시 만나서 반가워요</h3>' + socialLoginHtml() +
-      '<form id="login-form" style="display:flex; flex-direction:column; gap:10px;">' +
+      '<a class="btn primary" href="' + esc(window.DadamomCommunityFlow.authEntry(location.href)) + '" style="padding:12px; text-align:center;">📧 이메일 인증번호로 시작하기</a>' +
+      '<span class="helper" id="l-hint" role="alert"></span>' +
+      '<details><summary class="helper" style="cursor:pointer;">비밀번호로 로그인</summary>' +
+      '<form id="login-form" style="display:flex; flex-direction:column; gap:10px; margin-top:8px;">' +
         '<label class="sr" for="l-email">이메일</label><input id="l-email" type="email" autocomplete="email" placeholder="이메일" required>' +
         '<label class="sr" for="l-pw">비밀번호</label><input id="l-pw" type="password" autocomplete="current-password" placeholder="비밀번호" required>' +
-        '<span class="helper" id="l-hint" role="alert"></span>' +
-        '<button class="btn primary" type="submit" style="padding:12px;">로그인</button>' +
-      '</form>' +
-      '<span class="helper">처음이세요? <a href="' + esc(window.DadamomCommunityFlow.authEntry(location.href)) + '" style="text-decoration:underline;">이메일로 회원가입</a> · 소셜 계정은 위 버튼으로 바로 가입돼요.</span>' +
+        '<button class="btn" type="submit" style="padding:12px;">로그인</button>' +
+      '</form></details>' +
+      '<span class="helper">처음이면 바로 가입되고, 가입했던 이메일이면 로그인돼요.</span>' +
       '<button class="btn" data-close>닫기</button>');
   }
 

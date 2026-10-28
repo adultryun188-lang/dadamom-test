@@ -1074,7 +1074,7 @@
     }catch(e){ /* 인증을 지원하지 않는 클라이언트에서도 앱 초기화는 계속 진행 */ }
   }
 
-  var authView = 'password';
+  var authView = 'code';   // 'code' 이메일 인증번호 · 'password' 비밀번호 로그인
   var authMode = 'login';
 
   function naverButtonLabelHtml(){
@@ -1101,14 +1101,7 @@
           '<span style="font-size:12.5px; font-weight:700;">이 환경에서는 이메일 로그인만 됩니다</span>' +
           '<span class="helper">카카오·구글 로그인은 이 환경에서 꺼져 있어요.</span>' +
         '</div>';
-      if(authView === 'magiclink'){
-        return head + socialOff +
-          '<div class="field"><label for="auth-email">이메일</label><input type="email" id="auth-email" placeholder="you@example.com" autocomplete="email" value="' + escapeHtml(authDraft.email) + '"></div>' +
-          '<button class="btn-primary" id="auth-submit" style="width:100%;" disabled>로그인 링크 받기</button>' +
-          '<button type="button" data-auth-view="password" class="link-quiet" style="background:none; border:none; margin-top:10px; padding:2px 0;">비밀번호로 로그인·회원가입</button>' +
-          '<span class="helper" id="auth-hint"></span>';
-      }
-      return head + socialOff + authPasswordFormHtml();
+      return head + socialOff + (authView === 'password' ? authPasswordFormHtml() : authCodeHtml());
     }
 
     var social = ENV.SOCIAL_LOGIN === false ? '' : ''+
@@ -1140,22 +1133,110 @@
     }
     social += '<div class="auth-divider">또는 이메일로</div>';
 
-    if(authView === 'magiclink'){
-      return head + social +
-        '<div class="field"><label for="auth-email">이메일</label><input type="email" id="auth-email" placeholder="you@example.com" autocomplete="email" value="' + escapeHtml(authDraft.email) + '"></div>' +
-        '<button class="btn-primary" id="auth-submit" style="width:100%;" disabled>로그인 링크 받기</button>' +
-        '<button type="button" data-auth-view="password" class="link-quiet" style="background:none; border:none; margin-top:10px; padding:2px 0;">비밀번호로 로그인·회원가입</button>' +
-        '<span class="helper" id="auth-hint"></span>';
-    }
+    return head + social + (authView === 'password' ? authPasswordFormHtml() : authCodeHtml());
+  }
 
-    return head + social + authPasswordFormHtml();
+  // ---------- 이메일 인증번호로 시작하기 (2026-10-28) ----------
+  // 이메일 → 6자리 번호 → 끝. 처음이면 그대로 가입, 이미 있으면 로그인. 비밀번호·링크 메일 없음.
+  var otpSent = null;   // { email, at } 번호를 보낸 뒤
+  var OTP_WAIT = 60;    // Supabase 는 같은 주소로 60초에 한 번만 보낸다
+  function authCodeHtml(){
+    var linkBtn = function(view, text){ return '<button type="button" data-auth-view="' + view + '" class="link-quiet" style="background:none; border:none; margin-top:10px; padding:2px 0;">' + text + '</button>'; };
+    if(!otpSent){
+      return '<div class="field"><label for="auth-email">이메일</label><input type="email" id="auth-email" placeholder="you@example.com" autocomplete="email" inputmode="email" value="' + escapeHtml(authDraft.email) + '"></div>' +
+        '<label class="check-row" style="font-size:12.5px; align-items:flex-start;"><input type="checkbox" id="consent-quick"' + (authDraft.quick ? ' checked' : '') + '> ' +
+          '<span>[필수] <a href="#terms" class="link-quiet">이용약관</a>·<a href="#policy" class="link-quiet">개인정보 수집·이용</a>에 동의하고, 만 14세 이상이에요</span></label>' +
+        '<button class="btn-primary" id="otp-send" style="width:100%; margin-top:8px;" disabled>인증번호 받기</button>' +
+        '<span class="helper" style="text-align:center;">처음이면 바로 가입되고, 가입했던 이메일이면 로그인돼요</span>' +
+        linkBtn('password', '비밀번호로 로그인') +
+        '<span class="helper" id="auth-hint" role="alert"></span>';
+    }
+    return '<div class="card col" style="gap:4px; padding:12px 14px; margin-bottom:12px;">' +
+        '<span style="font-size:14px; font-weight:700; word-break:break-all;">' + escapeHtml(otpSent.email) + '</span>' +
+        '<span class="helper" style="margin:0;">이 주소로 인증번호를 보냈어요. 메일이 안 보이면 스팸함도 확인해 주세요.</span>' +
+      '</div>' +
+      '<div class="field"><label for="auth-code">인증번호</label><input type="text" id="auth-code" inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="숫자 6자리" style="font-size:20px; letter-spacing:6px; text-align:center;"></div>' +
+      '<button class="btn-primary" id="otp-verify" style="width:100%;" disabled>확인</button>' +
+      '<div class="row" style="justify-content:center; gap:16px;">' +
+        '<button type="button" id="otp-resend" class="link-quiet" style="background:none; border:none; margin-top:10px; padding:2px 0;">인증번호 다시 받기</button>' +
+        '<button type="button" id="otp-change" class="link-quiet" style="background:none; border:none; margin-top:10px; padding:2px 0;">이메일 바꾸기</button>' +
+      '</div>' +
+      '<span class="helper" id="auth-hint" role="alert"></span>';
+  }
+
+  function otpErrText(err){
+    var m = (err && err.message) || '';
+    if(/rate|seconds|security purposes|too many/i.test(m)) return '잠시 후 다시 시도해 주세요. 인증번호는 1분에 한 번 보낼 수 있어요.';
+    if(/expired|invalid|token/i.test(m)) return '인증번호가 맞지 않거나 시간이 지났어요. 다시 받아 주세요.';
+    if(/signups not allowed|disabled/i.test(m)) return '지금은 이메일 가입을 받을 수 없어요. 카카오·네이버로 들어와 주세요.';
+    return '문제가 생겼어요. 잠시 후 다시 시도해 주세요.';
+  }
+
+  async function handleOtpSend(resend){
+    captureAuthDraft();
+    var hint = document.getElementById('auth-hint');
+    var email = resend && otpSent ? otpSent.email : (authDraft.email || '').trim();
+    if(!sb || !sb.auth || typeof sb.auth.signInWithOtp !== 'function'){ if(hint) hint.textContent = '지금은 로그인 기능을 사용할 수 없어요.'; return; }
+    if(!EMAIL_RE.test(email) || (!resend && !authDraft.quick)) return;
+    if(resend && otpSent && Date.now() - otpSent.at < OTP_WAIT * 1000){
+      if(hint) hint.textContent = Math.ceil(OTP_WAIT - (Date.now() - otpSent.at) / 1000) + '초 뒤에 다시 받을 수 있어요.';
+      return;
+    }
+    var btn = document.getElementById(resend ? 'otp-resend' : 'otp-send');
+    if(btn){ btn.disabled = true; if(!resend) btn.textContent = '보내는 중...'; }
+    try{
+      var res = await sb.auth.signInWithOtp({ email: email, options: { shouldCreateUser: true, emailRedirectTo: authCallbackUrl() } });
+      if(res.error){
+        if(hint) hint.textContent = otpErrText(res.error);
+        if(btn){ btn.disabled = false; if(!resend) btn.textContent = '인증번호 받기'; }
+        return;
+      }
+      if(!resend){
+        // 동의는 계정이 생긴 뒤에야 원장에 남길 수 있다 → 로그인되면 flushPendingConsents 가 올린다
+        try{ localStorage.setItem(PENDING_CONSENT_KEY, JSON.stringify([
+          { kind:'signup_terms', granted:true }, { kind:'signup_privacy', granted:true }, { kind:'signup_age14', granted:true }])); }catch(e){}
+      }
+      otpSent = { email: email, at: Date.now() };
+      refreshAuthForms();
+      var h2 = document.getElementById('auth-hint');
+      if(h2 && resend) h2.textContent = '인증번호를 다시 보냈어요.';
+      var code = document.getElementById('auth-code');
+      if(code) code.focus();
+    }catch(e){
+      if(hint) hint.textContent = otpErrText(e);
+      if(btn){ btn.disabled = false; if(!resend) btn.textContent = '인증번호 받기'; }
+    }
+  }
+
+  var otpVerifying = false;
+  async function handleOtpVerify(){
+    var codeEl = document.getElementById('auth-code');
+    var btn = document.getElementById('otp-verify');
+    var hint = document.getElementById('auth-hint');
+    var token = codeEl ? codeEl.value.replace(/\D/g, '') : '';
+    if(!otpSent || token.length < 6 || otpVerifying) return;
+    otpVerifying = true;
+    if(btn){ btn.disabled = true; btn.textContent = '확인하는 중...'; }
+    try{
+      var res = await sb.auth.verifyOtp({ email: otpSent.email, token: token, type: 'email' });
+      if(res.error || !(res.data && res.data.session)){
+        if(hint) hint.textContent = otpErrText(res.error || { message: 'invalid' });
+        if(btn){ btn.disabled = false; btn.textContent = '확인'; }
+        return;
+      }
+      otpSent = null;
+      closeModal();   // 로그인 뒤 처리(동의 올리기·환영 알림)는 onAuthStateChange 가 한다
+    }catch(e){
+      if(hint) hint.textContent = otpErrText(e);
+      if(btn){ btn.disabled = false; btn.textContent = '확인'; }
+    }finally{ otpVerifying = false; }
   }
 
   // 폼을 다시 그리면 input 이 통째로 교체되므로, 치던 값이 사라진다.
   // 그래서 화면이 아니라 여기를 원본으로 삼는다. 그려낼 때 value / checked 로 박아 넣고,
   // 사용자가 칠 때마다 여기로 되받는다. 단계를 오가도 값이 유지된다.
   var AUTH_BLANK = { email:'', password:'', password2:'', nickname:'',
-                     terms:false, privacy:false, age14:false, marketing:false };
+                     terms:false, privacy:false, age14:false, marketing:false, quick:false };
   var authDraft = Object.assign({}, AUTH_BLANK);
   var signupStep = 1;          // 1 = 계정 정보, 2 = 약관 동의
   var signupDone = null;       // 가입 직후 완료 화면에 쓸 값 { email, needVerify }
@@ -1165,14 +1246,14 @@
     var map = { email:'auth-email', password:'auth-password',
                 password2:'auth-password2', nickname:'auth-nickname' };
     Object.keys(map).forEach(function(k){ var el=g(map[k]); if(el) authDraft[k]=el.value; });
-    ['terms','privacy','age14','marketing'].forEach(function(k){
+    ['terms','privacy','age14','marketing','quick'].forEach(function(k){
       var el=g('consent-'+k); if(el) authDraft[k]=el.checked;
     });
   }
 
   function clearAuthDraft(){
     authDraft = Object.assign({}, AUTH_BLANK);
-    signupStep = 1; signupDone = null;
+    signupStep = 1; signupDone = null; otpSent = null;
   }
 
   // 가입 1단계를 넘어갈 수 있는 조건
@@ -1200,6 +1281,10 @@
     if(login) login.disabled = !(EMAIL_RE.test((authDraft.email||'').trim()) && (authDraft.password||'').length >= 6);
     var link = g('auth-submit');
     if(link) link.disabled = !EMAIL_RE.test((authDraft.email||'').trim());
+    var send = g('otp-send');
+    if(send) send.disabled = !(EMAIL_RE.test((authDraft.email||'').trim()) && authDraft.quick);
+    var code = g('auth-code'), verify = g('otp-verify');
+    if(verify) verify.disabled = !(code && code.value.replace(/\D/g, '').length >= 6);
   }
 
   // 로그인 폼은 모달과 첫 화면 두 군데에 있을 수 있다.
@@ -1214,18 +1299,15 @@
   }
 
   // 이메일·비밀번호 폼. 소셜 로그인이 있든 없든 같은 폼을 쓴다.
+  // 비밀번호로 가입했던 회원(관리자 등)만 쓰는 로그인. 새 가입은 인증번호(authCodeHtml)로만 받는다.
+  // shortcut: 예전 비밀번호 가입 단계(signupHtml 등)는 화면에서 뺐지만 코드는 남겨 둠 — 인증번호 가입이 자리 잡으면 지운다.
   function authPasswordFormHtml(){
-    var tabs = '<div class="segmented" role="tablist" aria-label="로그인 방식" id="auth-mode-tabs">' +
-        '<button data-auth-mode="login" role="tab" aria-selected="' + (authMode === 'login') + '">로그인</button>' +
-        '<button data-auth-mode="signup" role="tab" aria-selected="' + (authMode === 'signup') + '">회원가입</button>' +
-      '</div>';
-    if(authMode === 'signup') return tabs + signupHtml();
-    return tabs +
-      '<div class="field"><label for="auth-email">이메일</label><input type="email" id="auth-email" placeholder="you@example.com" autocomplete="email" value="' + escapeHtml(authDraft.email) + '"></div>' +
+    authMode = 'login';
+    return '<div class="field"><label for="auth-email">이메일</label><input type="email" id="auth-email" placeholder="you@example.com" autocomplete="email" value="' + escapeHtml(authDraft.email) + '"></div>' +
       '<div class="field"><label for="auth-password">비밀번호</label><input type="password" id="auth-password" autocomplete="current-password" value="' + escapeHtml(authDraft.password) + '"></div>' +
       '<button class="btn-primary" id="auth-password-submit" style="width:100%;" disabled>로그인하기</button>' +
-      '<button type="button" data-auth-view="magiclink" class="link-quiet" style="background:none; border:none; margin-top:10px; padding:2px 0;">이메일 링크로 로그인하기</button>' +
-      '<span class="helper" id="auth-hint"></span>';
+      '<button type="button" data-auth-view="code" class="link-quiet" style="background:none; border:none; margin-top:10px; padding:2px 0;">이메일 인증번호로 시작하기</button>' +
+      '<span class="helper" id="auth-hint" role="alert"></span>';
   }
 
   // ---------- 회원가입 (2단계) ----------
@@ -7168,6 +7250,10 @@
     if(e.target.closest('#naver-signin-btn')){ handleNaverSignIn(); return; }
     if(e.target.closest('#apple-signin-btn')){ handleAppleSignIn(); return; }
     if(e.target.closest('#auth-submit')){ handleAuthSubmit(); return; }
+    if(e.target.closest('#otp-send')){ handleOtpSend(false); return; }
+    if(e.target.closest('#otp-resend')){ handleOtpSend(true); return; }
+    if(e.target.closest('#otp-verify')){ handleOtpVerify(); return; }
+    if(e.target.closest('#otp-change')){ otpSent = null; refreshAuthForms(); return; }
     if(e.target.closest('#auth-password-submit')){ handlePasswordAuth(); return; }
 
     var authModeTab = e.target.closest('[data-auth-mode]');
@@ -7798,12 +7884,18 @@
       syncAuthButtons();
       return;
     }
-    if(/^consent-(terms|privacy|age14|marketing)$/.test(e.target.id)){
+    if(e.target.id === 'auth-code'){
+      syncAuthButtons();
+      if(e.target.value.replace(/\D/g, '').length === 6) handleOtpVerify();   // 6자리 다 넣으면 바로 확인
+      return;
+    }
+    if(/^consent-(terms|privacy|age14|marketing|quick)$/.test(e.target.id)){
       authDraft[e.target.id.replace('consent-','')] = e.target.checked;
       syncAuthButtons();
       return;
     }
     if(e.target.id === 'auth-email'){
+      syncAuthButtons();
       var abtn = document.getElementById('auth-submit');
       if(abtn) abtn.disabled = !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.target.value.trim());
     }

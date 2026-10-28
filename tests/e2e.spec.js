@@ -360,43 +360,52 @@ function check(name, ok, detail) {
     await page.close();
   }
 
-  // ------------------------------------------------- 이미 가입된 이메일 --
-  // Supabase 는 이미 있는 이메일이면 성공처럼 답하고(identities 빈 배열) 메일을 안 보낸다.
-  console.log(NL + '[가입 — 이미 가입된 이메일]');
-  if (!USE_STUB) console.log('  SKIP  스텁에서만 응답을 바꿀 수 있음 (배포본은 손으로 확인)');
+  // ------------------------------------------------- 이메일 인증번호로 시작하기 --
+  // 이메일 → 6자리 번호 → 로그인(처음이면 가입). 비밀번호·링크 메일 없음 (2026-10-28)
+  console.log(NL + '[이메일 인증번호]');
+  if (!USE_STUB) console.log('  SKIP  스텁에서만 (배포본은 실제 메일로 손으로 확인)');
   else {
-    const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+    let page = await browser.newPage({ viewport: { width: 390, height: 844 } });
     await prep(page);
     const errs = [];
     page.on('pageerror', e => errs.push(e.message));
-    const signup = async (result) => {
-      await page.goto(BASE + '#onboarding', { waitUntil: 'load' });
-      await page.evaluate((r) => { window.__SBSTUB.signUpResult = r; }, result);
-      await page.click('[data-auth-mode="signup"]');
-      await page.fill('#auth-email', 'exists@dadamom.test');
-      await page.fill('#auth-password', 'abcd1234');
-      await page.fill('#auth-password2', 'abcd1234');
-      await page.click('#signup-next');
-      for (const id of ['terms', 'privacy', 'age14']) await page.check('#consent-' + id);
-      await page.click('#signup-submit');
-      await page.waitForTimeout(800);
-      return page.evaluate(() => ({
-        hint: (document.getElementById('auth-hint') || {}).textContent || '',
-        body: document.body.innerText,
-        pending: localStorage.getItem('dadamom.pendingConsents')
-      }));
-    };
+    await page.goto(BASE + '#onboarding', { waitUntil: 'load' });
+    await page.waitForTimeout(800);
+    check('첫 화면에 인증번호 받기 버튼', await page.isVisible('#otp-send'));
+    check('회원가입 탭·비밀번호 가입이 없음', !(await page.$('[data-auth-mode="signup"]')) && !(await page.$('#auth-password2')));
+    await page.fill('#auth-email', 'new@dadamom.test');
+    check('동의 전에는 못 보냄', await page.isDisabled('#otp-send'));
+    await page.check('#consent-quick');
+    check('동의하면 보낼 수 있음', !(await page.isDisabled('#otp-send')));
+    await page.click('#otp-send');
+    await page.waitForTimeout(500);
+    const sent = await page.evaluate(() => ({ to: window.__SBSTUB.otpSentTo, pending: localStorage.getItem('dadamom.pendingConsents'), code: !!document.getElementById('auth-code') }));
+    check('입력한 주소로 보냄', sent.to === 'new@dadamom.test', sent.to);
+    check('번호 넣는 칸이 나옴', sent.code);
+    check('필수 동의 3개를 기기에 잠시 둠 (마케팅은 건드리지 않음)', !!sent.pending && JSON.parse(sent.pending).length === 3 && !sent.pending.includes('marketing'), sent.pending);
+    await page.fill('#auth-code', '000000');
+    await page.waitForTimeout(500);
+    const bad = await page.evaluate(() => (document.getElementById('auth-hint') || {}).textContent || '');
+    check('틀린 번호는 한국어 안내', bad.includes('인증번호가 맞지 않거나'), bad);
+    await page.fill('#auth-code', '123456');
+    await page.waitForTimeout(1500);
+    const ok = await page.evaluate(() => ({ uid: window.__SBSTUB.curId, pending: localStorage.getItem('dadamom.pendingConsents') }));
+    check('맞는 번호면 로그인됨', ok.uid === 'u-otp', ok.uid);
+    check('로그인되면 동의를 올리고 기기에서 지움', ok.pending === null, ok.pending);
 
-    let r = await signup({ data: { user: { id: 'u-old', identities: [] }, session: null }, error: null });
-    check('이미 가입된 이메일 안내', r.hint === '이미 가입된 이메일이에요. 로그인하거나 카카오·구글로 들어와 주세요.', r.hint);
-    check('"인증 메일을 보냈어요" 를 띄우지 않음', !r.body.includes('인증 메일을 보냈어요'));
-    check('가입 동의를 기기에 남기지 않음', r.pending === null, r.pending);
-
-    r = await signup({ data: null, error: { code: 'user_already_exists', message: 'User already registered' } });
-    check('인증 끈 프로젝트의 오류도 같은 안내', r.hint.startsWith('이미 가입된 이메일이에요'), r.hint);
-
-    r = await signup(null);   // 스텁 기본값 = 새 가입
-    check('새 이메일은 그대로 "인증 메일을 보냈어요"', r.body.includes('인증 메일을 보냈어요'));
+    await page.close();
+    page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+    await prep(page);
+    page.on('pageerror', e => errs.push(e.message));
+    await page.goto(BASE + '#onboarding', { waitUntil: 'load' });
+    await page.evaluate(() => { window.__SBSTUB.otpSendResult = { data: {}, error: { message: 'For security purposes, you can only request this after 42 seconds.' } }; });
+    await page.waitForTimeout(500);
+    await page.fill('#auth-email', 'x@dadamom.test');
+    await page.check('#consent-quick');
+    await page.click('#otp-send');
+    await page.waitForTimeout(500);
+    const rl = await page.evaluate(() => (document.getElementById('auth-hint') || {}).textContent || '');
+    check('너무 자주 보내면 한국어 안내', rl.includes('1분에 한 번'), rl);
     check('JS 오류 없음', errs.length === 0, errs.join('; '));
     await page.close();
   }

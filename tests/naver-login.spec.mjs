@@ -44,7 +44,7 @@ const stub = fs.readFileSync(path.join(root, 'tests/supabase-stub.js'), 'utf8') 
 })();`;
 const server = http.createServer((req,res)=>{
   const pathname = new URL(req.url, 'http://localhost').pathname;
-  const file = {'/':'index.html','/index.html':'index.html','/community-flow.js':'community-flow.js'}[pathname];
+  const file = {'/':'index.html','/index.html':'index.html','/community-flow.js':'community-flow.js','/shared-content.js':'shared-content.js'}[pathname];
   if(!file){res.writeHead(404).end();return;}
   res.writeHead(200,{'Content-Type':file.endsWith('.html')?'text/html; charset=utf-8':'application/javascript'});
   res.end(fs.readFileSync(path.join(root,file)));

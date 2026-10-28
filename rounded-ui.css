@@ -609,3 +609,15 @@ button.app-mall-banner{text-align:left;font-family:var(--font-ui);cursor:pointer
   *,*::before,*::after{transition:none !important;animation:none !important;scroll-behavior:auto !important;}
   .btn:active,.btn.primary:active,.btn-primary:active,.btn-ghost:active,.chip:active,.chip-f:active,.cheer:active,.nav-row a:active,.board-tabs a:active,.navbar button:active,.brand-chip:active,.topic-card:active,.pcard:active,.prod:active,.pager a:active{transform:none !important;}
 }
+
+/* 선 아이콘 (Lucide). 이모지 대신 쓴다 — 2026-10-28 */
+.ic{width:1em;height:1em;flex:0 0 auto;display:inline-block;vertical-align:-0.14em;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;}
+.ic-thin{stroke-width:1.5;}
+.ic-fill{fill:currentColor;}
+.mag-cover .ic{width:40px;height:40px;}
+.mag-play .ic{width:18px;height:18px;fill:currentColor;}
+.mag-src .ic{width:12px;height:12px;vertical-align:-1px;}
+/* 큰 그림 칸 아이콘은 가늘고 따뜻한 색 */
+.hh-art .ic,.my-art .ic,.page-hero-art .ic,.mall-hero-art .ic{color:#B5643F;stroke-width:1.5;}
+.hb-emoji .ic{color:#B5643F;stroke-width:1.6;}
+.empty .em .ic{color:#C9A48E;stroke-width:1.5;}

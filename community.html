@@ -225,7 +225,7 @@
   .me-card .row{ display:flex; gap:8px; margin-top:14px; }
   .me-card .row .btn{ flex:1; }
   .app-card{ padding:20px; background:linear-gradient(150deg,#2B2118,#4A3426); color:#fff; border:none; position:relative; }
-  .app-card::after{ content:'📱'; position:absolute; right:16px; top:14px; font-size:34px; opacity:.9; }
+  .app-card::after{ content:none; position:absolute; right:16px; top:14px; font-size:34px; opacity:.9; }
   .app-card p{ margin:8px 0 14px; font-size:13px; line-height:1.65; color:#F3E6D8; }
   .app-card .links{ display:flex; flex-wrap:wrap; gap:6px; }
   .app-card .links a{ background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.18); color:#fff; font-weight:700; padding:6px 11px; border-radius:999px; font-size:12.5px; }
@@ -691,7 +691,7 @@
   .kfile:focus-within .kfile-btn{ outline:3px solid var(--accent, #E9A27F); outline-offset:2px; }
   .kfile-name{ font-size:12.5px; color:var(--text2); min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:100%; }
 </style>
-<link rel="stylesheet" href="./rounded-ui.css?v=20261028-1">
+<link rel="stylesheet" href="./rounded-ui.css?v=20261028-2">
 
 <a class="skip-link" href="#main">본문 바로가기</a>
 <header class="top">
@@ -716,15 +716,15 @@
   <main id="main" class="stack" tabindex="-1"></main>
   <aside class="side" id="side">
     <section class="panel" id="side-me"></section>
-    <section class="panel"><div class="panel-h"><h2 class="display"><span class="bubble" style="background:#FFE1D6;">🔥</span>주간 인기글</h2></div><ol id="side-hot"><li class="helper" style="padding:10px 20px;">불러오는 중…</li></ol></section>
-    <section class="panel"><div class="panel-h"><h2 class="display"><span class="bubble" style="background:#E3EDFF;">💬</span>최신 댓글</h2></div><ul id="side-cmt"></ul></section>
-    <section class="panel" id="side-recent-panel" hidden><div class="panel-h"><h2 class="display"><span class="bubble" style="background:#ECE4FF;">👀</span>최근 본 글</h2><button class="more" style="border:none; background:none; cursor:pointer;" data-clear-recent>지우기</button></div><ul id="side-recent"></ul></section>
-    <section class="panel"><div class="panel-h"><h2 class="display"><span class="bubble" style="background:#FFF0C2;">📢</span>공지</h2><a class="more" href="#/b/notice">더보기</a></div><ul id="side-notice"></ul></section>
+    <section class="panel"><div class="panel-h"><h2 class="display"><span class="bubble" style="background:#FFE1D6;"><svg class="ic" aria-hidden="true"><use href="#i-flame"></use></svg></span>주간 인기글</h2></div><ol id="side-hot"><li class="helper" style="padding:10px 20px;">불러오는 중…</li></ol></section>
+    <section class="panel"><div class="panel-h"><h2 class="display"><span class="bubble" style="background:#E3EDFF;"><svg class="ic" aria-hidden="true"><use href="#i-message-circle"></use></svg></span>최신 댓글</h2></div><ul id="side-cmt"></ul></section>
+    <section class="panel" id="side-recent-panel" hidden><div class="panel-h"><h2 class="display"><span class="bubble" style="background:#ECE4FF;"><svg class="ic" aria-hidden="true"><use href="#i-eye"></use></svg></span>최근 본 글</h2><button class="more" style="border:none; background:none; cursor:pointer;" data-clear-recent>지우기</button></div><ul id="side-recent"></ul></section>
+    <section class="panel"><div class="panel-h"><h2 class="display"><span class="bubble" style="background:#FFF0C2;"><svg class="ic" aria-hidden="true"><use href="#i-megaphone"></use></svg></span>공지</h2><a class="more" href="#/b/notice">더보기</a></div><ul id="side-notice"></ul></section>
     <section class="panel app-card">
       <strong class="display" style="font-size:19px;">다다맘 앱과 함께</strong>
       <p>같은 계정으로 앱과 사이트가 이어져요. 육아 기록·체험단 신청은 앱에서, 이야기는 여기서 크게 나눠요.</p>
       <div class="links">
-        <a href="./index.html#growth">📈 성장 기록</a><a href="./index.html#benefit">🎁 체험단</a><a href="./index.html#home">🏠 앱 홈</a>
+        <a href="./index.html#growth">성장 기록</a><a href="./index.html#benefit">체험단</a><a href="./index.html#home">앱 홈</a>
       </div>
     </section>
   </aside>
@@ -791,7 +791,7 @@
     ['이런 참가작은 받지 않아요', ['인터넷에서 받은 사진·영상, 우리 아이가 아닌 사진·영상', '높은 곳·물가처럼 위험한 연출', '이름표·주소·차 번호판처럼 집을 알 수 있는 정보가 나온 것']]
   ];
   function spBadge(p){ return p && p.sponsored ? '<span style="display:inline-block; padding:1px 8px; border-radius:999px; font-size:11.5px; font-weight:800; background:#FFF4D6; color:#7A5300; border:1px solid #F1DDAE;">제품 제공받음</span>' : ''; }
-  function audBadge(p){ return p && p.audience === 'members' ? '<span style="display:inline-block; padding:1px 8px; border-radius:999px; font-size:11.5px; font-weight:800; background:#EEF6FF; color:#1F4E8C; border:1px solid #D6E6FA;">🔒 회원만</span>' : ''; }
+  function audBadge(p){ return p && p.audience === 'members' ? '<span style="display:inline-block; padding:1px 8px; border-radius:999px; font-size:11.5px; font-weight:800; background:#EEF6FF; color:#1F4E8C; border:1px solid #D6E6FA;">' + emIc('🔒') + ' 회원만</span>' : ''; }
   // 민감할 수 있는 사진은 흐리게 두고 눌러야 보여 준다 (0040)
   function sensWrap(p, html){ return p && p.sensitive && html ? '<div class="sens">' + html + '<button type="button" class="sens-btn" data-sens-show>민감할 수 있는 사진이에요 · 눌러서 보기</button></div>' : html; }
   document.addEventListener('click', function(e){
@@ -808,13 +808,13 @@
     if(poster){ v += '?v=20261027b'; poster += '?v=20261027b'; }
     var li = function(arr, muted){ return arr.map(function(g){ return '<li style="margin:4px 0;' + (muted ? ' color:var(--text2);' : '') + '">' + esc(g) + '</li>'; }).join(''); };
     var photoEx = c.media_rule === 'photo' && poster;   // 사진만 챌린지는 예시도 사진으로
-    return '<section class="panel" aria-labelledby="ch-ex-title"><div class="panel-h"><h2 class="display" id="ch-ex-title">' + (c.media_rule === 'photo' ? '📷' : '📹') + ' 이렇게 찍어 주세요</h2>' + (v ? '<span class="helper">' + (photoEx ? '예시 사진' : '예시 영상') + ' · Pexels</span>' : '') + '</div>' +
+    return '<section class="panel" aria-labelledby="ch-ex-title"><div class="panel-h"><h2 class="display" id="ch-ex-title">' + (c.media_rule === 'photo' ? emIc('📷') : emIc('📹')) + ' 이렇게 찍어 주세요</h2>' + (v ? '<span class="helper">' + (photoEx ? '예시 사진' : '예시 영상') + ' · Pexels</span>' : '') + '</div>' +
       '<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:20px; padding:0 20px 20px; align-items:start;">' +
         (photoEx ? '<img src="' + esc(poster) + '" alt="예시 사진" loading="lazy" style="width:100%; max-height:480px; border-radius:18px; background:#000; object-fit:contain;">'
           : v ? '<video src="' + esc(v) + '"' + (poster ? ' poster="' + esc(poster) + '"' : '') + ' controls muted playsinline loop preload="none" style="width:100%; max-height:480px; border-radius:18px; background:#000; object-fit:contain;"></video>' : '') +
-        '<div>' + (c.media_rule === 'video' ? '<p style="margin:0 0 12px; padding:10px 12px; border-radius:12px; background:#FFF1E8; color:#9A3A12; font-weight:800;">🎬 이 챌린지는 1분 이내 영상으로만 참가할 수 있어요</p>' : c.media_rule === 'photo' ? '<p style="margin:0 0 12px; padding:10px 12px; border-radius:12px; background:#EEF6FF; color:#1F4E8C; font-weight:800;">📷 이 챌린지는 사진으로만 참가할 수 있어요</p>' : '<p style="margin:0 0 12px; color:var(--text2); font-weight:700;">📷 사진 1장이나 1분 이내 영상으로 참가해요</p>') + '<b>' + esc(c.title) + ' 안내</b><ul style="padding-left:18px; margin:8px 0 16px;">' + li(c.guide || []) + '</ul>' +
+        '<div>' + (c.media_rule === 'video' ? '<p style="margin:0 0 12px; padding:10px 12px; border-radius:12px; background:#FFF1E8; color:#9A3A12; font-weight:800;">이 챌린지는 1분 이내 영상으로만 참가할 수 있어요</p>' : c.media_rule === 'photo' ? '<p style="margin:0 0 12px; padding:10px 12px; border-radius:12px; background:#EEF6FF; color:#1F4E8C; font-weight:800;">이 챌린지는 사진으로만 참가할 수 있어요</p>' : '<p style="margin:0 0 12px; color:var(--text2); font-weight:700;">' + emIc('📷') + ' 사진 1장이나 1분 이내 영상으로 참가해요</p>') + '<b>' + esc(c.title) + ' 안내</b><ul style="padding-left:18px; margin:8px 0 16px;">' + li(c.guide || []) + '</ul>' +
           '<b>모든 챌린지 공통 규칙</b><ul style="padding-left:18px; margin:8px 0 0; font-size:13.5px;">' + li(CH_RULES, true) + '</ul>' +
-          '<details style="margin-top:12px;"><summary style="cursor:pointer; font-weight:800;">📜 챌린지 규칙 전체 보기 (심사·원본 확인·경품·홍보 활용)</summary>' +
+          '<details style="margin-top:12px;"><summary style="cursor:pointer; font-weight:800;">챌린지 규칙 전체 보기 (심사·원본 확인·경품·홍보 활용)</summary>' +
             CH_RULES_FULL.map(function(r){ return '<b style="display:block; margin-top:10px;">' + esc(r[0]) + '</b><ul style="padding-left:18px; margin:4px 0 0; font-size:13.5px;">' + li(r[1], true) + '</ul>'; }).join('') + '</details></div>' +
       '</div></section>';
   }
@@ -828,7 +828,7 @@
   function chMedia(url, path, style, controls){
     if(!url) return '';
     if(/\.(mp4|mov|webm|m4v)$/i.test(path || '')) return '<span style="position:relative; display:block; width:100%; height:100%;"><video src="' + esc(url) + '#t=0.1" ' + (controls ? 'controls ' : 'muted ') + 'playsinline preload="metadata" style="' + style + '"></video>' +
-      (controls ? '' : '<span aria-hidden="true" style="position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:34px; height:34px; border-radius:999px; background:rgba(0,0,0,.45); color:#fff; display:flex; align-items:center; justify-content:center; font-size:13px;">▶</span>') + '</span>';
+      (controls ? '' : '<span aria-hidden="true" style="position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:34px; height:34px; border-radius:999px; background:rgba(0,0,0,.45); color:#fff; display:flex; align-items:center; justify-content:center; font-size:13px;"><svg class="ic" aria-hidden="true"><use href="#i-play"></use></svg></span>') + '</span>';
     return '<img src="' + esc(url) + '" alt="" loading="lazy" style="' + style + '">';
   }
   function chLeft(c){ return c.ends_on ? Math.ceil((new Date(c.ends_on + 'T23:59:59') - Date.now()) / 86400000) : null; }
@@ -860,10 +860,10 @@
   var TOPICS = ['질문','자랑','고민','정보'];
   var STAGES = [
     { id:'',    name:'전체' },
-    { id:'preg', name:'🤰 임신 중' },
-    { id:'m12', name:'👶 0~12개월' },
-    { id:'m24', name:'🧒 13~24개월' },
-    { id:'m25', name:'🎒 25개월+' }
+    { id:'preg', name:'임신 중' },
+    { id:'m12', name:'0~12개월' },
+    { id:'m24', name:'13~24개월' },
+    { id:'m25', name:'25개월+' }
   ];
   var SORTS = [ { id:'new', name:'최신순' }, { id:'like', name:'추천순' }, { id:'cmt', name:'댓글순' } ];
   var COLS = 'id,author,text,likes,comments,created_at,stage,age_value,media_path,owner_id,status,sponsored,audience,sensitive';
@@ -927,7 +927,16 @@
     if(p.stage === 'parenting') return p.age_value != null ? p.age_value + '개월' : '육아 중';
     return '';
   }
-  function stageEmoji(stage){ return stage === 'pregnant' ? '🤰' : stage === 'parenting' ? '👶' : '🙂'; }
+  // 이모지 대신 선 아이콘 (shared-content.js). 2026-10-28 사장님 '이모지는 급조 같다'. 표에 없는 이모지는 그리지 않는다
+  var EM_IC = { '🗂️':'layout-grid','🔥':'flame','📷':'camera','🙋':'circle-help','🌟':'sparkles','💭':'message-circle-heart','📚':'book-open','📢':'megaphone',
+    '🌱':'sprout','📝':'pen-line','😢':'frown','🔎':'search','📭':'inbox','🙈':'eye-off','🔐':'lock','🔒':'lock','🙂':'user','🗒️':'notebook-pen','🏆':'trophy','👣':'footprints',
+    '🧺':'shopping-basket','⚠️':'triangle-alert','📰':'newspaper','🛍️':'shopping-bag','♡':'heart','⭐':'star','📱':'smartphone','💬':'message-circle','✅':'circle-check',
+    '🔕':'bell-off','🎪':'ticket','🛝':'ferris-wheel','📍':'map-pin','✏️':'pencil','🖼️':'image','🏷️':'tag','🧸':'package','🏆 ':'trophy','↗':'arrow-up-right','💛':'heart','🗳️':'vote',
+    '👍':'thumbs-up','📌':'pin','📤':'share-2','👤':'user','🚨':'triangle-alert','📹':'video','🎬':'video','⚖️':'scale','📏':'ruler','🍼':'milk','💉':'syringe','📈':'trending-up','🎁':'gift','⚙️':'settings' };
+  var CH_PHOTO = { firststep:1, crawl:1, halloween:1, bump:1, cheeks:1 };   // assets/challenge/<id>.jpg 가 있는 챌린지
+  function chArtW(c){ return c && CH_PHOTO[c.id] ? '<img src="./assets/challenge/' + c.id + '.jpg" alt="" style="width:100%; height:100%; object-fit:cover; border-radius:inherit;">' : DadamomShared.icon('trophy'); }
+  function emIc(e){ var n = EM_IC[e]; return n ? DadamomShared.icon(n) : ''; }
+  function stageEmoji(stage){ return DadamomShared.icon(stage === 'pregnant' || stage === 'parenting' ? 'baby' : 'user'); }
   function roleLabel(r){ return r === 'mom' ? '맘' : r === 'dad' ? '아빠' : r === 'guardian' ? '보호자' : '맘·아빠'; }
   function myName(){ return profile && profile.nickname ? profile.nickname + roleLabel(profile.parent_role) : ''; }
   function tagHtml(topic){ return topic ? '<span class="tag t-' + topic + '">' + topic + '</span>' : '<span class="tag">이야기</span>'; }
@@ -991,7 +1000,7 @@
     if(w.error || !w.data || !w.data.length){ alert('찜을 저장하지 못했어요. 잠시 후 다시 눌러주세요.'); return; }
     srvApp = data;
     document.querySelectorAll('[data-wish="' + id + '"]').forEach(function(b){
-      b.setAttribute('aria-pressed', i > -1 ? 'false' : 'true'); b.textContent = i > -1 ? '♡' : '♥';
+      b.setAttribute('aria-pressed', i > -1 ? 'false' : 'true'); b.innerHTML = i > -1 ? emIc('♡') : '<svg class="ic ic-fill" aria-hidden="true"><use href="#i-heart"></use></svg>';
       b.setAttribute('aria-label', (i > -1 ? '찜하기' : '찜 해제'));
     });
     var wc = $('wish-count'); if(wc) wc.textContent = list.length;
@@ -1049,7 +1058,7 @@
   function renderNav(active){
     $('nav').innerHTML = NAV.map(function(n){
       return '<a href="' + n.href + '"' + (n.id === active ? ' class="on" aria-current="page"' : '') + '>' + esc(n.name) + '</a>';
-    }).join('') + '<a class="app-link" href="./index.html#home">📱 앱으로 열기</a>';
+    }).join('') + '<a class="app-link" href="./index.html#home">앱으로 열기</a>';
   }
 
   function renderMe(){
@@ -1057,18 +1066,18 @@
     if(!user){
       el.innerHTML = '<button class="btn" data-login>로그인</button><a class="btn primary" href="./index.html#onboarding">회원가입</a>';
       side.className = 'panel me-card';
-      side.innerHTML = '<div class="who"><span class="avatar" aria-hidden="true">👋</span><div><b class="display">반가워요!</b><div class="helper">로그인하면 글쓰기·댓글·추천을 할 수 있어요</div></div></div>' +
+      side.innerHTML = '<div class="who"><span class="avatar" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-hand"></use></svg></span><div><b class="display">반가워요!</b><div class="helper">로그인하면 글쓰기·댓글·추천을 할 수 있어요</div></div></div>' +
         '<div class="row"><button class="btn primary" data-login>로그인</button><a class="btn" href="./index.html#onboarding">회원가입</a></div>';
       return;
     }
     var nick = myName() || user.email;
-    el.innerHTML = '<button class="bell" id="bell-btn" aria-label="알림"><span aria-hidden="true">🔔</span><span class="badge" id="bell-n" hidden></span></button>' +
+    el.innerHTML = '<button class="bell" id="bell-btn" aria-label="알림"><span aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-bell"></use></svg></span><span class="badge" id="bell-n" hidden></span></button>' +
       '<a href="#/my" class="avatar" aria-label="마이페이지">' + stageEmoji(profile && profile.kid_type) + '</a>' +
       '<a href="#/my" class="nick"><b>' + esc(nick) + '</b>님</a><button class="btn" data-logout>로그아웃</button>';
     side.className = 'panel me-card';
     side.innerHTML = '<div class="who"><span class="avatar" aria-hidden="true">' + stageEmoji(profile && profile.kid_type) + '</span><div><b class="display">' + esc(nick) + '</b>' +
         '<div class="helper">' + esc(profileStageText() || '프로필을 완성해 주세요') + (profile && profile.region ? ' · ' + esc(profile.region) : '') + '</div></div></div>' +
-      '<div class="row"><a class="btn primary" href="#/write">✏️ 글쓰기</a><a class="btn" href="#/my">마이페이지</a></div>';
+      '<div class="row"><a class="btn primary" href="#/write">' + emIc('✏️') + ' 글쓰기</a><a class="btn" href="#/my">마이페이지</a></div>';
   }
 
   // ---------- 홈 ----------
@@ -1095,7 +1104,7 @@
       '<section class="panel"><div class="panel-h"><h2 class="display">지금 뜨는 이야기</h2><a class="more" href="#/b/best">인기글 더보기 ›</a></div><div class="post-cards" id="home-hot"><div class="helper">불러오는 중…</div></div></section>' +
       '<section class="panel" id="home-mag" hidden><div class="panel-h"><h2 class="display">다다맘 매거진</h2><a class="more" href="#/magazine">매거진 더보기 ›</a></div><div class="mag-grid" id="home-mag-list" style="padding:0 20px 20px;"></div></section>' +
       '<div class="topic-grid">' + BOARDS.filter(function(b){ return b.topic; }).map(function(b){
-        return '<a class="topic-card ' + b.cls + '" href="#/b/' + b.id + '"><span class="em" aria-hidden="true">' + b.em + '</span><b>' + b.name + '</b><span>' + esc(b.desc) + '</span></a>';
+        return '<a class="topic-card ' + b.cls + '" href="#/b/' + b.id + '"><span class="em" aria-hidden="true">' + emIc(b.em) + '</span><b>' + b.name + '</b><span>' + esc(b.desc) + '</span></a>';
       }).join('') + '</div>' +
       '<section class="panel"><div class="panel-h line"><h2 class="display">새로 올라온 글</h2><a class="more" href="#/b/all">전체보기 ›</a></div><div id="home-new"></div></section>' +
       '<section class="panel home-mall" id="home-mall" hidden><div class="panel-h"><h2 class="display">브랜드관 추천</h2><a class="more" href="#/brand">브랜드관 가기 ›</a></div><div class="prod-grid" id="home-mall-list"></div></section>';
@@ -1117,7 +1126,7 @@
 
     await loadChallenges();
     var others = chList.filter(function(x){ return x.id !== 'firststep' && chOpenW(x); });
-    if($('fc-more') && others.length) $('fc-more').innerHTML = '<span class="helper" style="margin-right:4px;">다른 챌린지</span>' + others.map(function(x){ return '<a class="chip" href="#/challenge?c=' + encodeURIComponent(x.id) + '">' + esc((x.emoji || '') + ' ' + x.title) + '</a>'; }).join('');
+    if($('fc-more') && others.length) $('fc-more').innerHTML = '<span class="helper" style="margin-right:4px;">다른 챌린지</span>' + others.map(function(x){ return '<a class="chip" href="#/challenge?c=' + encodeURIComponent(x.id) + '">' + esc(x.title) + '</a>'; }).join('');
     var chq = sb.from('challenge_entries').select('id,name,media_path,votes').eq('status','approved');
     if(chFromDb) chq = chq.eq('challenge_key', 'firststep');
     var ch = await chq.order('votes', { ascending:false }).order('created_at', { ascending:false }).limit(4);
@@ -1125,7 +1134,7 @@
     var tiles = (ch.data || []).map(function(e){
       return '<a href="#/challenge?c=firststep" aria-label="' + esc(e.name || '참가작') + ' 응원 ' + (e.votes || 0) + '">' + (urls[e.media_path] ? chMedia(urls[e.media_path], e.media_path, 'width:100%; height:100%; object-fit:cover;') : '<b class="fc-entry-name">' + esc(e.name || '참가작') + '</b>') + '<span class="v">응원 ' + (e.votes || 0) + '</span></a>';
     });
-    if(!user && !tiles.length) tiles.push('<span class="fc-lock"><b>🔒 참가작은 회원만 볼 수 있어요</b><small>아이 사진을 지키려고 로그인한 회원에게만 보여 줘요</small><button type="button" class="btn primary" data-login>로그인하고 보기</button></span>');
+    if(!user && !tiles.length) tiles.push('<span class="fc-lock"><b>참가작은 회원만 볼 수 있어요</b><small>아이 사진을 지키려고 로그인한 회원에게만 보여 줘요</small><button type="button" class="btn primary" data-login>로그인하고 보기</button></span>');
     else if(tiles.length < 4 && open) tiles.push('<a class="fc-invite" href="./index.html#challenge"><b>다음 주인공은<br>우리 아이</b><small>사진·영상으로 참여하기 →</small></a>');
     if(!tiles.length) tiles.push('<span>공개된 참가작을 기다리고 있어요</span>');
     if($('home-ch')){ $('home-ch').innerHTML = tiles.join(''); $('home-ch').classList.toggle('is-empty', !(ch.data || []).length); }
@@ -1149,15 +1158,15 @@
   function postCardHtml(p){
     var pp = parsePost(p.text);
     return '<a class="pcard" href="#/p/' + p.id + '">' +
-      '<div style="display:flex; gap:6px; align-items:center;">' + tagHtml(pp.topic) + (p.media_path ? '<span class="ico">📷</span>' : '') + '</div>' +
+      '<div style="display:flex; gap:6px; align-items:center;">' + tagHtml(pp.topic) + (p.media_path ? '<span class="ico"><svg class="ic" aria-hidden="true"><use href="#i-camera"></use></svg></span>' : '') + '</div>' +
       '<span class="t">' + esc(pp.title) + '</span>' +
       '<span class="b">' + esc(pp.body || ' ') + '</span>' +
       '<span class="m"><span>' + esc(p.author || '익명') + '</span>' + spBadge(p) + audBadge(p) + (stageText(p) ? '<span>' + esc(stageText(p)) + '</span>' : '') +
-        '<span class="r"><span class="hot">👍 ' + (p.likes || 0) + '</span><span>💬 ' + (p.comments || 0) + '</span></span></span>' +
+        '<span class="r"><span class="hot">' + emIc('👍') + ' ' + (p.likes || 0) + '</span><span>' + emIc('💬') + ' ' + (p.comments || 0) + '</span></span></span>' +
     '</a>';
   }
   function emptyHtml(em, msg, action){
-    return '<div class="empty" style="grid-column:1/-1;"><span class="em" aria-hidden="true">' + em + '</span>' + esc(msg) + (action ? '<div style="margin-top:14px;">' + action + '</div>' : '') + '</div>';
+    return '<div class="empty" style="grid-column:1/-1;"><span class="em" aria-hidden="true">' + emIc(em) + '</span>' + esc(msg) + (action ? '<div style="margin-top:14px;">' + action + '</div>' : '') + '</div>';
   }
   function panelMsg(title, em, msg, action){
     return '<section class="panel"><div class="panel-h line"><h1 class="display">' + esc(title) + '</h1></div>' + emptyHtml(em, msg, action) + '</section>';
@@ -1184,7 +1193,7 @@
         (compact ? '' : '<th class="c-no">번호</th>') + '<th class="c-tag">말머리</th><th>제목</th><th class="c-author">글쓴이</th><th class="c-date">날짜</th><th class="c-like">추천</th>' +
       '</tr></thead><tbody>' +
       (opts.pinned || []).map(function(n){
-        return '<tr class="pin">' + (compact ? '' : '<td class="c-no">📌</td>') +
+        return '<tr class="pin">' + (compact ? '' : '<td class="c-no">' + DadamomShared.icon('pin') + '</td>') +
           '<td class="c-tag"><span class="tag t-공지">공지</span></td>' +
           '<td class="c-title"><div class="title"><a href="#/b/notice">' + esc(n.title) + '</a></div></td>' +
           '<td class="c-author"><div class="author">운영자</div></td>' +
@@ -1197,9 +1206,9 @@
           (compact ? '' : '<td class="c-no">' + (total - from - i) + '</td>') +
           '<td class="c-tag">' + tagHtml(pp.topic) + '</td>' +
           '<td class="c-title"><div class="title">' +
-            (p.likes >= HOT_MIN ? '<span class="ico" title="인기글">🔥</span>' : '') +
+            (p.likes >= HOT_MIN ? '<span class="ico" title="인기글"><svg class="ic" aria-hidden="true"><use href="#i-flame"></use></svg></span>' : '') +
             '<a href="#/p/' + p.id + '">' + hl(pp.title, qt) + '</a>' +
-            (p.media_path ? '<span class="ico" title="사진">📷</span>' : '') +
+            (p.media_path ? '<span class="ico" title="사진"><svg class="ic" aria-hidden="true"><use href="#i-camera"></use></svg></span>' : '') +
             (p.comments ? '<span class="cmt">[' + p.comments + ']</span>' : '') + st + (p.sponsored ? ' ' + spBadge(p) : '') + (p.audience === 'members' ? ' ' + audBadge(p) : '') +
           '</div></td>' +
           '<td class="c-author"><div class="author">' + hl(p.author || '익명', qa) + (stageText(p) ? ' <span class="stage">· ' + esc(stageText(p)) + '</span>' : '') + '</div></td>' +
@@ -1211,7 +1220,7 @@
 
   function boardTabsHtml(active){
     return '<div class="board-tabs" role="navigation" aria-label="게시판">' + BOARDS.map(function(b){
-      return '<a href="#/b/' + b.id + '"' + (b.id === active ? ' class="on" aria-current="page"' : '') + '><span aria-hidden="true">' + b.em + '</span>' + b.name + '</a>';
+      return '<a href="#/b/' + b.id + '"' + (b.id === active ? ' class="on" aria-current="page"' : '') + '><span aria-hidden="true">' + emIc(b.em) + '</span>' + b.name + '</a>';
     }).join('') + '</div>';
   }
 
@@ -1230,9 +1239,9 @@
     }
     main.innerHTML = '<section class="warm-page community-page">' +
       '<header class="page-hero community-hero"><div class="page-hero-copy"><span class="mall-eyebrow">다다맘 커뮤니티</span>' +
-        '<h1 class="display">' + (q ? '🔎 "' + esc(q) + '" 검색 결과' : esc(meta.name) + (board === 'all' ? ' 이야기' : board === 'mine' ? '' : ' 게시판')) + '</h1>' +
+        '<h1 class="display">' + (q ? '"' + esc(q) + '" 검색 결과' : esc(meta.name) + (board === 'all' ? ' 이야기' : board === 'mine' ? '' : ' 게시판')) + '</h1>' +
         '<p class="page-hero-desc">' + esc(q ? '함께 나눈 이야기에서 궁금한 내용을 찾아보세요.' : meta.desc || '궁금한 일도, 자랑하고 싶은 순간도 함께 나눠요.') + '</p>' +
-        '<a class="btn primary" href="#/write' + (meta.topic ? '?t=' + encodeURIComponent(meta.topic) : '') + '">✏️ 글쓰기</a></div>' +
+        '<a class="btn primary" href="#/write' + (meta.topic ? '?t=' + encodeURIComponent(meta.topic) : '') + '">' + emIc('✏️') + ' 글쓰기</a></div>' +
         '<div class="page-hero-art community-art" aria-hidden="true"><span class="chat-note chat-note-back">궁금한 하루</span><span class="chat-note chat-note-front">다정한 답장<span>♡ · ♡ · ♡</span></span></div></header>' +
       '<section class="panel board-panel" aria-label="이야기 목록">' +
       (board === 'mine' ? '' : boardTabsHtml(q ? '' : board) + '<div class="sub board-filters"><div class="board-filter-group" role="group" aria-label="아이 시기"><span class="filter-label">아이 시기</span>' +
@@ -1271,7 +1280,7 @@
     if(!rows.length){
       body.innerHTML = q ? emptyHtml('🔎', '검색 결과가 없어요. 다른 단어로 찾아보세요.')
         : board === 'best' ? emptyHtml('🔥', '추천을 ' + HOT_MIN + '개 이상 받은 글이 여기에 모여요.')
-        : board === 'photo' ? emptyHtml('📷', '아직 사진 글이 없어요. 아이 사진이나 육아템을 자랑해 보세요!', '<a class="btn primary" href="#/write?t=' + encodeURIComponent('자랑') + '">사진 올리기</a>')
+        : board === 'photo' ? emptyHtml(emIc('📷'), '아직 사진 글이 없어요. 아이 사진이나 육아템을 자랑해 보세요!', '<a class="btn primary" href="#/write?t=' + encodeURIComponent('자랑') + '">사진 올리기</a>')
         : board === 'mine' ? emptyHtml('📝', '아직 쓴 글이 없어요.', '<a class="btn primary" href="#/write">첫 글 쓰기</a>')
         : emptyHtml('🌱', '아직 글이 없어요. 첫 글을 남겨보세요!', '<a class="btn primary" href="#/write' + (meta.topic ? '?t=' + encodeURIComponent(meta.topic) : '') + '">글쓰기</a>');
       return;
@@ -1283,8 +1292,8 @@
       body.innerHTML = '<div class="web-photo-grid">' + rows.map(function(r){
           var pp = parsePost(r.text), u = purls[r.media_path];
           return '<a class="web-photo-tile" href="#/p/' + r.id + '" aria-label="' + esc(pp.title) + ', 추천 ' + (r.likes || 0) + '">' +
-            (u ? '<img src="' + esc(u) + '" alt="" loading="lazy">' : '<span class="ph-wait" aria-hidden="true">📷</span>') +
-            '<span class="cap"><b>' + esc(pp.title) + '</b><span>👍 ' + (r.likes || 0) + ' · 💬 ' + (r.comments || 0) + '</span></span></a>';
+            (u ? '<img src="' + esc(u) + '" alt="" loading="lazy">' : '<span class="ph-wait" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-camera"></use></svg></span>') +
+            '<span class="cap"><b>' + esc(pp.title) + '</b><span>' + emIc('👍') + ' ' + (r.likes || 0) + ' · ' + emIc('💬') + ' ' + (r.comments || 0) + '</span></span></a>';
         }).join('') + '</div>' +
         '<div class="foot"><div class="pager">' + pagerHtml(board, keep, page, Math.ceil(total / PAGE)) + '</div><span class="helper">사진 글 ' + total.toLocaleString() + '개</span></div>';
       return;
@@ -1314,7 +1323,7 @@
     if(res.error || !res.data || !res.data.length){ body.innerHTML = emptyHtml('📭', '등록된 공지가 없어요.'); return; }
     body.innerHTML = res.data.map(function(n){
       return '<details class="c-item"><summary style="cursor:pointer; display:flex; gap:10px; align-items:center;">' +
-        '<span class="tag t-공지">' + (n.pinned ? '📌 공지' : '공지') + '</span><b class="one">' + esc(n.title) + '</b><span class="helper">' + shortDate(n.created_at) + '</span></summary>' +
+        '<span class="tag t-공지">' + '공지' + '</span><b class="one">' + esc(n.title) + '</b><span class="helper">' + shortDate(n.created_at) + '</span></summary>' +
         '<p>' + esc(n.body) + '</p></details>';
     }).join('');
   }
@@ -1367,28 +1376,28 @@
 
     main.innerHTML = '<article class="panel">' +
       '<div class="post-h">' +
-        '<a class="crumb" href="#/b/' + b.id + '">' + b.em + ' ' + esc(b.name) + ' 게시판 ›</a>' +
+        '<a class="crumb" href="#/b/' + b.id + '">' + esc(b.name) + ' 게시판 ›</a>' +
         '<h1 class="display">' + esc(pp.title) + '</h1>' +
         '<div class="post-meta"><span class="who"><span class="avatar" aria-hidden="true">' + stageEmoji(p.stage) + '</span>' + esc(p.author || '익명') + '</span>' + spBadge(p) + audBadge(p) +
           tagHtml(pp.topic) +
           (stageText(p) ? '<span>' + esc(stageText(p)) + '</span>' : '') +
-          '<span>' + fullDate(p.created_at) + '</span><span>👍 <b data-post-likes>' + (p.likes || 0) + '</b></span><span>💬 <b data-post-comments>' + (p.comments || 0) + '</b></span>' +
+          '<span>' + fullDate(p.created_at) + '</span><span>' + emIc('👍') + ' <b data-post-likes>' + (p.likes || 0) + '</b></span><span>' + emIc('💬') + ' <b data-post-comments>' + (p.comments || 0) + '</b></span>' +
           (p.status !== 'approved' ? '<span class="st">' + (p.status === 'pending' ? '검수 중 — 나에게만 보여요' : '게시 안 됨') + '</span>' : '') +
         '</div></div>' +
       '<div class="post-body">' + (img ? sensWrap(p, '<img src="' + esc(img) + '" alt="첨부 사진 (누르면 크게 보기)" data-zoom>') : '') + esc(pp.body) + '</div>' +
-      '<div class="vote"><button id="like-btn" aria-pressed="' + liked + '" aria-label="추천"><span>👍 추천</span><b id="like-n">' + (p.likes || 0) + '</b></button></div>' +
+      '<div class="vote"><button id="like-btn" aria-pressed="' + liked + '" aria-label="추천"><span>' + emIc('👍') + ' 추천</span><b id="like-n">' + (p.likes || 0) + '</b></button></div>' +
       '<div class="post-act">' +
-        '<button class="link-btn" data-share>📤 공유</button>' +
-        '<button class="link-btn" id="save-btn" aria-pressed="' + saved + '">' + (saved ? '⭐ 스크랩됨' : '☆ 스크랩') + '</button>' +
-        (mine ? '<button class="link-btn" data-edit-post>✏️ 수정</button><button class="link-btn" data-del-post>🗑 삭제</button>'
-              : '<button class="link-btn" data-report="post" data-id="' + p.id + '" data-owner="' + (p.owner_id || '') + '">🚨 신고</button>') +
-        (isAdmin ? '<button class="link-btn" data-admin-author>👤 작성자</button>' : '') +
+        '<button class="link-btn" data-share>' + emIc('📤') + ' 공유</button>' +
+        '<button class="link-btn" id="save-btn" aria-pressed="' + saved + '">' + (saved ? '<svg class="ic ic-fill" aria-hidden="true"><use href="#i-star"></use></svg>' + ' 스크랩됨' : emIc('⭐') + ' 스크랩') + '</button>' +
+        (mine ? '<button class="link-btn" data-edit-post>' + emIc('✏️') + ' 수정</button><button class="link-btn" data-del-post>삭제</button>'
+              : '<button class="link-btn" data-report="post" data-id="' + p.id + '" data-owner="' + (p.owner_id || '') + '">' + emIc('🚨') + ' 신고</button>') +
+        (isAdmin ? '<button class="link-btn" data-admin-author>' + emIc('👤') + ' 작성자</button>' : '') +
         '<a class="link-btn" href="#/b/' + b.id + '">☰ 목록</a>' +
       '</div>' +
       '<nav class="nav-posts" id="nav-posts" aria-label="이전글 다음글"></nav>' +
       '<section class="comments"><h2 class="display">댓글 <span id="cmt-n">' + (p.comments || 0) + '</span></h2><div id="cmt-list"><div class="c-item helper">불러오는 중…</div></div>' +
         (user
-          ? '<form class="c-form" id="cmt-form"><label class="sr" for="cmt-text">댓글</label><textarea id="cmt-text" maxlength="1000" placeholder="따뜻한 한마디가 큰 힘이 돼요 💛" required></textarea>' +
+          ? '<form class="c-form" id="cmt-form"><label class="sr" for="cmt-text">댓글</label><textarea id="cmt-text" maxlength="1000" placeholder="따뜻한 한마디가 큰 힘이 돼요" required></textarea>' +
             '<div class="row"><span class="helper">욕설·비방·개인정보는 신고될 수 있어요</span><button class="btn primary" type="submit" id="cmt-submit">등록</button></div></form>'
           : '<div class="c-form"><div class="row"><span class="helper">댓글을 쓰려면 로그인하세요</span><button class="btn primary" data-login>로그인</button></div></div>') +
       '</section></article>' +
@@ -1433,7 +1442,7 @@
     if(!current) return;
     var pp = parsePost(current.text);
     var raw = String(current.text || '').replace(/^\[[^\]]{1,6}\]\s*/, pp.topic ? '' : '$&');
-    openModal('<h3 class="display">✏️ 글 수정</h3>' +
+    openModal('<h3 class="display">글 수정</h3>' +
       '<form id="edit-form" style="display:flex; flex-direction:column; gap:10px;">' +
         '<label class="sr" for="e-text">내용</label><textarea id="e-text" maxlength="1900" style="min-height:260px; line-height:1.7;" required>' + esc(raw) + '</textarea>' +
         '<span class="helper">첫 줄이 제목이 돼요. 수정하면 다시 검수를 받고, 검수 전까지는 나에게만 보여요.</span>' +
@@ -1508,15 +1517,15 @@
 
   function openNoti(){
     var seen = NOTI.seen || 0;
-    openModal('<h3 class="display">🔔 알림</h3>' +
+    openModal('<h3 class="display">알림</h3>' +
       (NOTI.items.length ? '<div class="noti-list">' + NOTI.items.map(function(i){
         var body = i.kind === 'ok'
           ? '<b>"' + esc(i.title) + '"</b> 글이 검수를 통과해 공개됐어요'
           : '<b>' + esc(i.who || '익명') + '</b>님이 "' + esc(i.title) + '"에 댓글을 남겼어요: ' + esc(i.text);
         return '<a class="noti-item' + (i.at > seen ? ' new' : '') + '" href="#/p/' + esc(i.id) + '" data-close>' +
-          '<span class="ic" aria-hidden="true">' + (i.kind === 'ok' ? '✅' : '💬') + '</span><span class="tx">' + body + '<span class="meta">' + timeAgo(new Date(i.at).toISOString()) + '</span></span></a>';
+          '<span class="ic" aria-hidden="true">' + (i.kind === 'ok' ? emIc('✅') : emIc('💬')) + '</span><span class="tx">' + body + '<span class="meta">' + timeAgo(new Date(i.at).toISOString()) + '</span></span></a>';
       }).join('') + '</div>'
-      : '<div class="empty" style="padding:28px 10px;"><span class="em" aria-hidden="true">🔕</span>아직 알림이 없어요. 내 글에 댓글이 달리면 여기에 알려드려요.</div>') +
+      : '<div class="empty" style="padding:28px 10px;"><span class="em" aria-hidden="true">' + emIc('🔕') + '</span>아직 알림이 없어요. 내 글에 댓글이 달리면 여기에 알려드려요.</div>') +
       '<span class="helper">내 글에 달린 댓글과 검수 결과를 알려드려요.</span>' +
       '<button class="btn" data-close>닫기</button>');
     // 열어 본 순간 모두 읽음
@@ -1537,7 +1546,7 @@
     btn.disabled = false;
     if(res.error && res.error.code !== '23505'){ toast('스크랩을 저장하지 못했어요'); return; }
     btn.setAttribute('aria-pressed', String(on));
-    btn.textContent = on ? '⭐ 스크랩됨' : '☆ 스크랩';
+    btn.innerHTML = on ? '<svg class="ic ic-fill" aria-hidden="true"><use href="#i-star"></use></svg>' + ' 스크랩됨' : emIc('⭐') + ' 스크랩';
     toast(on ? '스크랩했어요. 마이페이지에서 모아볼 수 있어요' : '스크랩을 취소했어요');
   }
 
@@ -1641,7 +1650,7 @@
     if(like && !like.disabled && results[1] && !results[1].error) like.setAttribute('aria-pressed', String(!!results[1].data));
     if(mark && !mark.disabled && results[2] && !results[2].error){
       var saved = !!results[2].data;
-      mark.setAttribute('aria-pressed', String(saved)); mark.textContent = saved ? '⭐ 스크랩됨' : '☆ 스크랩';
+      mark.setAttribute('aria-pressed', String(saved)); mark.innerHTML = saved ? '<svg class="ic ic-fill" aria-hidden="true"><use href="#i-star"></use></svg>' + ' 스크랩됨' : emIc('⭐') + ' 스크랩';
     }
     var below = $('below');
     if(below){
@@ -1659,24 +1668,24 @@
       return;
     }
     var pre = route().params.get('t') || '';
-    main.innerHTML = '<section class="warm-page">' + webHero('이야기 남기기', '오늘의 <em>이야기</em>', '질문도, 자랑도, 고민도 편하게 남겨요. 글은 운영자가 확인한 뒤 공개돼요.', '✏️') + '<section class="panel">' +
+    main.innerHTML = '<section class="warm-page">' + webHero('이야기 남기기', '오늘의 <em>이야기</em>', '질문도, 자랑도, 고민도 편하게 남겨요. 글은 운영자가 확인한 뒤 공개돼요.', emIc('✏️')) + '<section class="panel">' +
       '<form class="form" id="write-form">' +
         '<div><label>게시판</label><div class="topics" id="topics">' +
           [''].concat(TOPICS).map(function(t){
             var b = BOARDS.filter(function(x){ return x.topic === t; })[0];
-            return '<button type="button" class="chip' + (t === pre ? ' on' : '') + '" data-topic="' + t + '" aria-pressed="' + (t === pre) + '">' + (b ? b.em + ' ' : '💬 ') + (t || '이야기') + '</button>';
+            return '<button type="button" class="chip' + (t === pre ? ' on' : '') + '" data-topic="' + t + '" aria-pressed="' + (t === pre) + '">' + (t || '이야기') + '</button>';
           }).join('') +
         '</div></div>' +
         '<div><label for="w-title">제목</label><input type="text" id="w-title" maxlength="60" required placeholder="제목을 입력하세요"></div>' +
         // 1800자: 수정 함수(edit_my_post)가 2000자까지 받는다. 제목·말머리를 더해도 넘지 않게.
         '<div><label for="w-body">내용</label><textarea id="w-body" maxlength="1800" required placeholder="아이 개월 수나 상황을 함께 적으면 더 좋은 답을 받을 수 있어요."></textarea>' +
           '<span class="draft-note" id="draft-note" aria-live="polite"></span></div>' +
-        '<div><label for="w-photo">사진 (선택, 1장)</label><label class="kfile"><input type="file" class="kfile-input" id="w-photo" accept="image/jpeg,image/png,image/webp"><span class="kfile-btn">📷 사진 고르기</span><span class="kfile-name">선택한 파일 없음</span></label><div class="photo-preview" id="w-preview"></div></div>' +
+        '<div><label for="w-photo">사진 (선택, 1장)</label><label class="kfile"><input type="file" class="kfile-input" id="w-photo" accept="image/jpeg,image/png,image/webp"><span class="kfile-btn">' + emIc('📷') + ' 사진 고르기</span><span class="kfile-name">선택한 파일 없음</span></label><div class="photo-preview" id="w-preview"></div></div>' +
         '<label style="display:flex; gap:8px; align-items:flex-start; font-size:14px;"><input type="checkbox" id="w-sponsored" style="margin-top:3px;"> 업체에서 제품이나 돈을 받고 쓰는 글이에요 (체험단·협찬) — 글에 \'제품 제공받음\'이 표시돼요</label>' +
         '<label style="display:flex; gap:8px; align-items:flex-start; font-size:14px;"><input type="checkbox" id="w-anon" style="margin-top:3px;"> 이름 숨기고 올리기 (다른 회원에게는 \'익명\'으로 보여요. 운영자는 누가 썼는지 알 수 있어요)</label>' +
         '<label style="display:flex; gap:8px; align-items:flex-start; font-size:14px;"><input type="checkbox" id="w-sensitive" style="margin-top:3px;"> 사진이 민감할 수 있어요 (수유·목욕 등) — 흐리게 보이고 눌러야 보여요</label>' +
         '<label style="display:flex; gap:8px; align-items:center; font-size:14px;">누가 볼까요 <select id="w-audience"><option value="all">모두</option><option value="members">다다맘 회원만 (비회원·검색에는 안 보여요)</option></select></label>' +
-        '<div class="note">🛡️ 글은 바로 공개돼요. 사진이 있거나 연락처·링크가 들어간 글은 운영자 확인 후 공개돼요. 아이 얼굴·이름·주소 같은 개인정보가 드러나지 않게 주의해주세요. 다른 사람·선생님·업체의 실명이나 아이 신상을 올리면 바로 내려가고, 서로 다른 3명이 신고하면 자동으로 숨겨지고, 신고는 하루 안에 확인해요.<br>글쓴이에는 <b>' + esc(myName()) + '</b> 와 ' + esc(profileStageText() || '아이 단계') + ' 가 함께 표시돼요.</div>' +
+        '<div class="note">글은 바로 공개돼요. 사진이 있거나 연락처·링크가 들어간 글은 운영자 확인 후 공개돼요. 아이 얼굴·이름·주소 같은 개인정보가 드러나지 않게 주의해주세요. 다른 사람·선생님·업체의 실명이나 아이 신상을 올리면 바로 내려가고, 서로 다른 3명이 신고하면 자동으로 숨겨지고, 신고는 하루 안에 확인해요.<br>글쓴이에는 <b>' + esc(myName()) + '</b> 와 ' + esc(profileStageText() || '아이 단계') + ' 가 함께 표시돼요.</div>' +
         '<div style="display:flex; gap:8px; justify-content:flex-end;"><a class="btn" href="#/b/all">취소</a><button class="btn primary" type="submit" id="w-submit">등록</button></div>' +
       '</form></section></section>';
     restoreDraft(pre);
@@ -1707,7 +1716,7 @@
     if(!preTopic && d.topic){
       document.querySelectorAll('#topics [data-topic]').forEach(function(b){ var on = b.getAttribute('data-topic') === d.topic; b.setAttribute('aria-pressed', String(on)); b.classList.toggle('on', on); });
     }
-    $('draft-note').innerHTML = '📝 ' + timeAgo(new Date(d.at).toISOString()) + ' 임시저장한 글을 불러왔어요 · <button type="button" class="link-btn" data-clear-draft style="padding:0;">지우기</button>';
+    $('draft-note').innerHTML = '임시 저장 · ' + timeAgo(new Date(d.at).toISOString()) + ' 임시저장한 글을 불러왔어요 · <button type="button" class="link-btn" data-clear-draft style="padding:0;">지우기</button>';
   }
   function clearDraft(){ try{ localStorage.removeItem(draftKey()); }catch(e){} }
 
@@ -1801,11 +1810,11 @@
       var pics = mine.filter(function(e){ return urls[e.media_path]; }).slice(0, 4);
       var open = chOpenW(c);
       return '<a href="#/challenge?c=' + encodeURIComponent(c.id) + '" style="display:flex; align-items:center; gap:16px; padding:16px 18px; border:1px solid var(--w-line, #EBDFD1); border-radius:22px; background:#fff; text-decoration:none; color:var(--text);' + (open ? '' : ' opacity:.65;') + '">' +
-        '<span style="flex:0 0 auto; width:64px; height:64px; border-radius:20px; background:#FFF3DF; display:flex; align-items:center; justify-content:center; font-size:34px;" aria-hidden="true">' + esc(c.emoji || '🏆') + '</span>' +
+        '<span style="flex:0 0 auto; width:64px; height:64px; border-radius:20px; background:#FFF3DF; display:flex; align-items:center; justify-content:center; font-size:30px; overflow:hidden; color:#B5643F;" aria-hidden="true">' + chArtW(c) + '</span>' +
         '<span style="display:flex; flex-direction:column; gap:5px; min-width:0; flex:1;">' +
           '<span style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;"><b style="font-size:17px;">' + esc(c.title) + '</b><span class="dday' + (open ? '' : ' off') + '">' + (open ? chDd(c) : '마감') + '</span></span>' +
           '<span class="helper">' + esc(c.target_label || '전체') + ' · ' + esc(c.description || '').slice(0, 60) + '</span>' +
-          '<span class="helper" style="font-weight:700;">' + (user ? '참가작 ' + mine.length + '개' + (cheers ? ' · 💛 응원 ' + cheers : '') : '🔒 참가작은 회원 공개') + '</span>' +
+          '<span class="helper" style="font-weight:700;">' + (user ? '참가작 ' + mine.length + '개' + (cheers ? ' · ' + emIc('💛') + ' 응원 ' + cheers : '') : '' + emIc('🔒') + ' 참가작은 회원 공개') + '</span>' +
         '</span>' +
         (pics.length ? '<span style="display:flex; gap:6px; flex:0 0 auto;">' + pics.map(function(e){ return '<span style="width:56px; height:56px; border-radius:14px; overflow:hidden; display:block;">' + chMedia(urls[e.media_path], e.media_path, 'width:100%; height:100%; object-fit:cover;') + '</span>'; }).join('') + '</span>' : '') +
         '<span aria-hidden="true" style="flex:0 0 auto; color:var(--text2); font-size:18px;">›</span></a>';
@@ -1822,8 +1831,8 @@
     var tw = String(c.title || '').split(' ');
     var titleHtml = tw.length > 1 ? esc(tw.slice(0, -1).join(' ')) + ' <em>' + esc(tw[tw.length - 1]) + '</em>' : '<em>' + esc(c.title) + '</em>';
     var poster = c.id === 'firststep'
-      ? '<div class="first-step-poster"><span class="footprint">👣</span><b>작은 한 걸음,<br>커다란 기쁨.</b><span>첫 순간을 함께 응원해요</span></div>'
-      : '<div class="first-step-poster"><span class="footprint">' + esc(c.emoji || '🏆') + '</span><b>' + esc(c.title) + '</b><span>우리 아이 자랑을 함께 응원해요</span></div>';
+      ? '<div class="first-step-poster"><span class="footprint"><svg class="ic" aria-hidden="true"><use href="#i-footprints"></use></svg></span><b>작은 한 걸음,<br>커다란 기쁨.</b><span>첫 순간을 함께 응원해요</span></div>'
+      : '<div class="first-step-poster"><span class="footprint">' + DadamomShared.icon(c.id === 'firststep' ? 'footprints' : 'trophy', 'ic-thin') + '</span><b>' + esc(c.title) + '</b><span>우리 아이 자랑을 함께 응원해요</span></div>';
     var back = chList.length > 1 ? '<a href="#/challenge" style="align-self:flex-start; font-weight:800; font-size:14px; color:var(--text2); text-decoration:none;">← 전체 챌린지</a>' : '';
     main.innerHTML = '<section class="warm-page challenge-page">' + back +
       '<header class="page-hero ch-hero"><div class="page-hero-copy"><span class="mall-eyebrow">다다맘 챌린지 <span class="dday' + (open ? '' : ' off') + '">' + dd + '</span></span>' +
@@ -1844,7 +1853,7 @@
   // 이달의 주인공: 그 달에 받은 응원 수 순위 (서버 challenge_hall). 끝난 달 1위가 주인공.
   function curMonthKST(){ return new Date(Date.now() + 9 * 3600000).toISOString().slice(0, 7); }
   function ballotErrText(err){ var m = (err && (err.hint || err.message)) || ''; return /가입 7일|NEW_ACCOUNT/.test(m) ? '가입 7일이 지나면 투표할 수 있어요' : /내 참가작|OWN_ENTRY/.test(m) ? '내 참가작에는 투표할 수 없어요' : '투표를 저장하지 못했어요. 잠시 뒤 다시 눌러 주세요'; }
-  var chLockWeb = '<div style="padding:28px 20px; text-align:center; display:flex; flex-direction:column; gap:8px; align-items:center;"><span style="font-size:30px;" aria-hidden="true">🔒</span><b>참가작은 회원만 볼 수 있어요</b><span class="helper">아이 사진을 지키려고 로그인한 회원에게만 보여 줘요.</span><button type="button" class="btn primary" data-login>로그인하고 보기</button></div>';
+  var chLockWeb = '<div style="padding:28px 20px; text-align:center; display:flex; flex-direction:column; gap:8px; align-items:center;"><span style="font-size:30px;" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-lock"></use></svg></span><b>참가작은 회원만 볼 수 있어요</b><span class="helper">아이 사진을 지키려고 로그인한 회원에게만 보여 줘요.</span><button type="button" class="btn primary" data-login>로그인하고 보기</button></div>';
   async function loadHallWeb(){
     var box = $('ch-hall'); if(!box) return;
     if(!user){ box.hidden = false; box.innerHTML = chLockWeb; return; }
@@ -1856,19 +1865,19 @@
     var past = rows.filter(function(x){ return x.month < key && x.rnk === 1; }).sort(function(a, b){ return a.month < b.month ? 1 : -1; });
     var urls = await signUrls(cur.map(function(x){ return x.media_path; }));
     var chOf = function(k){ return chList.filter(function(c){ return c.id === k; })[0] || {}; };
-    var medal = ['🥇', '🥈', '🥉'];
+    var medal = ['1위', '2위', '3위'];
     var lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
     box.hidden = false;
-    box.innerHTML = '<div class="panel-h"><h2 class="display">🏆 이달의 주인공</h2><span class="helper">' + (now.getMonth() + 1) + '/' + lastDay + ' 마감 · 챌린지마다 이번 달 점수(응원 1점 + 투표 5점)가 가장 높은 아이 1명에게 육아용품을 드려요</span></div>' +
+    box.innerHTML = '<div class="panel-h"><h2 class="display">이달의 주인공</h2><span class="helper">' + (now.getMonth() + 1) + '/' + lastDay + ' 마감 · 챌린지마다 이번 달 점수(응원 1점 + 투표 5점)가 가장 높은 아이 1명에게 육아용품을 드려요</span></div>' +
       '<div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:12px; padding:0 20px 16px;">' +
       (cur.length ? cur.map(function(x){
         var c = chOf(x.challenge_key);
         return '<a class="chip" href="#/challenge?c=' + encodeURIComponent(x.challenge_key || '') + '" style="display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:18px; height:auto; text-decoration:none;">' +
           '<span style="font-size:22px;" aria-hidden="true">' + medal[x.rnk - 1] + '</span>' +
           '<span style="width:46px; height:46px; border-radius:12px; overflow:hidden; background:#FFF3DF; display:flex; align-items:center; justify-content:center; flex:0 0 auto;">' +
-            (urls[x.media_path] ? chMedia(urls[x.media_path], x.media_path, 'width:100%; height:100%; object-fit:cover;') : esc(c.emoji || '🏆')) + '</span>' +
-          '<span style="display:flex; flex-direction:column; min-width:0;"><b>' + esc(x.name || '우리 아이') + '</b><span class="helper">' + esc((c.emoji || '') + ' ' + (c.title || '')) + (x.score != null ? ' · ' + x.score + '점 (💛' + x.month_votes + ' · 🗳️' + (x.month_ballots || 0) + ')' : ' · 💛 ' + x.month_votes) + '</span></span></a>';
-      }).join('') : '<p class="helper">아직 이번 달 점수가 없어요. 마음에 드는 참가작에 💛 응원과 🗳️ 투표를 해 주세요.</p>') + '</div>' +
+            (urls[x.media_path] ? chMedia(urls[x.media_path], x.media_path, 'width:100%; height:100%; object-fit:cover;') : chArtW(c)) + '</span>' +
+          '<span style="display:flex; flex-direction:column; min-width:0;"><b>' + esc(x.name || '우리 아이') + '</b><span class="helper">' + esc(c.title || '') + (x.score != null ? ' · ' + x.score + '점 (응원 ' + x.month_votes + ' · 투표 ' + (x.month_ballots || 0) + ')' : ' · ' + emIc('💛') + ' ' + x.month_votes) + '</span></span></a>';
+      }).join('') : '<p class="helper">아직 이번 달 점수가 없어요. 마음에 드는 참가작에 응원과 투표를 해 주세요.</p>') + '</div>' +
       (past.length ? '<div class="sub" style="padding:0 20px 16px; flex-wrap:wrap;"><span class="helper" style="font-weight:800;">지난 주인공</span>' +
         past.slice(0, 10).map(function(x){ return '<span class="chip">' + (+x.month.slice(5)) + '월 ' + esc(x.name || '') + ' ' + esc(chOf(x.challenge_key).emoji || '') + '</span>'; }).join('') + '</div>' : '');
   }
@@ -1898,11 +1907,11 @@
     $('ch-sort-new').classList.toggle('on', sort !== 'pop'); $('ch-sort-pop').classList.toggle('on', sort === 'pop');
     g.innerHTML = rows.length ? rows.map(function(e){
       var on = mine.indexOf(e.id) > -1;
-      return '<div class="gcard"><div class="ph">' + (urls[e.media_path] ? chMedia(urls[e.media_path], e.media_path, 'width:100%; height:100%; object-fit:cover;', true) : esc((chList.filter(function(x){ return x.id === chCurKey; })[0] || {}).emoji || '🏆')) + '</div>' +
+      return '<div class="gcard"><div class="ph">' + (urls[e.media_path] ? chMedia(urls[e.media_path], e.media_path, 'width:100%; height:100%; object-fit:cover;', true) : chArtW(chList.filter(function(x){ return x.id === chCurKey; })[0] || {})) + '</div>' +
         '<div class="in"><span class="nm">' + esc(e.name || '우리 아이') + (e.age ? ' <span class="helper">· ' + esc(e.age) + '</span>' : '') + (e.status && e.status !== 'approved' ? ' <span class="badge" style="font-size:11px; background:#FFF3DF; color:#9C5B12; padding:2px 7px; border-radius:999px;">' + (e.status === 'rejected' ? '반려됨' : '검수 중 · 나만 보여요') + '</span>' : '') + '</span>' +
         '<span class="nt">' + esc(e.note || '') + '</span>' +
-        '<div style="display:flex; gap:6px; flex-wrap:wrap;"><button class="cheer" data-cheer="' + e.id + '" aria-pressed="' + on + '">💛 응원 <span>' + (e.votes || 0) + '</span></button>' +
-        (e.owner_id !== user.id && (!e.status || e.status === 'approved') ? '<button class="cheer" data-ballot="' + e.id + '" aria-pressed="' + (myB === e.id) + '" aria-label="이 참가작에 투표하기 (챌린지마다 한 달에 한 표)">' + (myB === e.id ? '🗳️ 투표함 ' : '🗳️ 투표 ') + (bcnt[e.id] || 0) + '</button>' : (user && e.owner_id === user.id && (!e.status || e.status === 'approved') ? '<span class="helper" style="align-self:center; font-weight:800;">🗳️ 투표 ' + (bcnt[e.id] || 0) + '</span>' : '')) + '</div></div></div>';
+        '<div style="display:flex; gap:6px; flex-wrap:wrap;"><button class="cheer" data-cheer="' + e.id + '" aria-pressed="' + on + '">' + emIc('💛') + ' 응원 <span>' + (e.votes || 0) + '</span></button>' +
+        (e.owner_id !== user.id && (!e.status || e.status === 'approved') ? '<button class="cheer" data-ballot="' + e.id + '" aria-pressed="' + (myB === e.id) + '" aria-label="이 참가작에 투표하기 (챌린지마다 한 달에 한 표)">' + (myB === e.id ? '' + emIc('🗳️') + ' 투표함 ' : '' + emIc('🗳️') + ' 투표 ') + (bcnt[e.id] || 0) + '</button>' : (user && e.owner_id === user.id && (!e.status || e.status === 'approved') ? '<span class="helper" style="align-self:center; font-weight:800;">' + emIc('🗳️') + ' 투표 ' + (bcnt[e.id] || 0) + '</span>' : '')) + '</div></div></div>';
     }).join('') : emptyHtml('👣', '아직 공개된 참가작이 없어요. 앱에서 첫 번째 주인공이 되어 보세요!', '<a class="btn primary" href="./index.html#challenge">앱에서 참여하기</a>');
   }
 
@@ -1935,7 +1944,7 @@
     var cat = params.get('c') || '', region = params.get('r') || '';
     var href = function(c, r){ var p = new URLSearchParams(); if(c) p.set('c', c); if(r) p.set('r', r); var s = p.toString(); return '#/outing' + (s ? '?' + s : ''); };
     main.innerHTML = '<section class="warm-page">' + webHero('아이와 나들이', '이번 주 <em>어디 갈까?</em>', '아이와 갈 수 있는 행사와 놀거리를 지역별로 모았어요.', '🧺') + '<section class="panel">' +
-      '<div class="sub">' + [['', '전체'], ['event', '🎪 행사'], ['spot', '🛝 놀거리']].map(function(x){ return '<a class="chip' + (x[0] === cat ? ' on' : '') + '" href="' + href(x[0], region) + '">' + x[1] + '</a>'; }).join('') +
+      '<div class="sub">' + [['', '전체'], ['event', '행사'], ['spot', '놀거리']].map(function(x){ return '<a class="chip' + (x[0] === cat ? ' on' : '') + '" href="' + href(x[0], region) + '">' + x[1] + '</a>'; }).join('') +
         '<span class="sep" aria-hidden="true"></span>' +
         [''].concat(REGIONS).map(function(r){ return '<a class="chip' + (r === region ? ' on' : '') + '" href="' + href(cat, r) + '">' + (r || '모든 지역') + '</a>'; }).join('') +
       '</div><div class="out-list" id="out-list"><div class="helper">불러오는 중…</div></div></section></section>';
@@ -1949,12 +1958,12 @@
     el.innerHTML = rows.length ? rows.map(function(o){
       var link = safeUrl(o.link_url);
       var when = o.starts_on ? (o.starts_on + (o.ends_on && o.ends_on !== o.starts_on ? ' ~ ' + o.ends_on : '')) : '상시';
-      return '<div class="ocard"><span class="em" aria-hidden="true">' + esc(o.emoji || (o.category === 'spot' ? '🛝' : '🎪')) + '</span><div class="in">' +
+      return '<div class="ocard"><span class="em" aria-hidden="true">' + DadamomShared.icon('map-pin') + '</span><div class="in">' +
         '<span style="display:flex; gap:6px; flex-wrap:wrap;"><span class="tag">' + esc(o.region || '전체') + '</span>' + (o.age_fit ? '<span class="tag t-정보">' + esc(o.age_fit) + '</span>' : '') + '</span>' +
         '<b>' + esc(o.title) + '</b>' +
-        '<span class="d">📍 ' + esc(o.place || o.address || '') + '<br>🗓 ' + esc(when) + (o.fee ? ' · 💳 ' + esc(o.fee) : '') + (o.hours ? '<br>⏰ ' + esc(o.hours) : '') + '</span>' +
+        '<span class="d">' + emIc('📍') + ' ' + esc(o.place || o.address || '') + '<br>' + esc(when) + (o.fee ? ' · ' + esc(o.fee) : '') + (o.hours ? '<br>⏰ ' + esc(o.hours) : '') + '</span>' +
         (o.description ? '<span class="d">' + esc(o.description) + '</span>' : '') +
-        (link ? '<a class="more" href="' + esc(link) + '" target="_blank" rel="noopener noreferrer">자세히 보기 ↗</a>' : '') +
+        (link ? '<a class="more" href="' + esc(link) + '" target="_blank" rel="noopener noreferrer">자세히 보기 ' + emIc('↗') + '</a>' : '') +
       '</div></div>';
     }).join('') : emptyHtml('🧺', '지금 소개할 나들이 정보가 없어요. 곧 새 장소를 모아 올게요!');
   }
@@ -1963,7 +1972,7 @@
   function webHero(eyebrow, titleHtml, desc, emoji, actionHtml){
     return '<header class="page-hero web-sub-hero"><div class="page-hero-copy"><span class="mall-eyebrow">' + esc(eyebrow) + '</span><h1 class="display">' + titleHtml + '</h1>' +
       (desc ? '<p class="page-hero-desc">' + esc(desc) + '</p>' : '') + (actionHtml || '') + '</div>' +
-      '<div class="page-hero-art" aria-hidden="true"><span style="font-size:68px;">' + emoji + '</span></div></header>';
+      '<div class="page-hero-art" aria-hidden="true"><span style="font-size:64px; color:#B5643F;">' + DadamomShared.icon(EM_IC[emoji] || 'sparkles', 'ic-thin') + '</span></div></header>';
   }
 
   // ---------- 매거진 ----------
@@ -1978,7 +1987,7 @@
     main.innerHTML = '<section class="warm-page">' +
       '<header class="page-hero"><div class="page-hero-copy"><span class="mall-eyebrow">다다맘 매거진</span><h1 class="display">요즘 육아, <em>한눈에.</em></h1>' +
         '<p class="page-hero-desc">다다맘이 고른 육아 뉴스·기사·영상을 출처와 함께 모았어요.</p>' + (isAdmin ? '<a class="btn" href="#/mall-admin">매거진 등록하기</a>' : '') + '</div>' +
-        '<div class="page-hero-art" aria-hidden="true"><span style="font-size:72px;">📰</span></div></header>' +
+        '<div class="page-hero-art" aria-hidden="true"><span style="font-size:72px;"><svg class="ic" aria-hidden="true"><use href="#i-newspaper"></use></svg></span></div></header>' +
       '<nav class="mall-filter" aria-label="매거진 종류">' + chip('', '전체') + Object.keys(K).map(function(k){ return chip(k, K[k].label); }).join('') + '</nav>' +
       '<div id="mag-list"><div class="helper">불러오는 중…</div></div>' +
       '<p class="mag-note">' + esc(DadamomShared.MAG_NOTE) + '</p></section>';
@@ -1997,7 +2006,7 @@
     main.innerHTML = '<section class="warm-page">' +
       '<header class="page-hero"><div class="page-hero-copy"><span class="mall-eyebrow">고객센터</span><h1 class="display">자주 묻는 <em>질문</em></h1>' +
         '<p class="page-hero-desc">궁금한 점이 더 있으면 ryundaen@gmail.com 으로 메일 주세요.</p></div>' +
-        '<div class="page-hero-art" aria-hidden="true"><span style="font-size:72px;">💬</span></div></header>' +
+        '<div class="page-hero-art" aria-hidden="true"><span style="font-size:72px;"><svg class="ic" aria-hidden="true"><use href="#i-message-circle"></use></svg></span></div></header>' +
       DadamomShared.faqHtml() + '</section>';
   }
 
@@ -2016,7 +2025,7 @@
     var dealOn = p.is_deal && (!p.deal_until || p.deal_until >= todayISO());
     var wished = wishList().indexOf(p.id) > -1;
     // 찜 버튼은 링크 밖 형제로 (링크 안 버튼은 누를 때 스토어가 같이 열린다)
-    return '<div class="prod-wrap"><button type="button" class="wish-btn" data-wish="' + esc(p.id) + '" aria-pressed="' + wished + '" aria-label="' + (wished ? '찜 해제' : '찜하기') + '">' + (wished ? '♥' : '♡') + '</button>' +
+    return '<div class="prod-wrap"><button type="button" class="wish-btn" data-wish="' + esc(p.id) + '" aria-pressed="' + wished + '" aria-label="' + (wished ? '찜 해제' : '찜하기') + '">' + (wished ? '<svg class="ic ic-fill" aria-hidden="true"><use href="#i-heart"></use></svg>' : emIc('♡')) + '</button>' +
       '<a class="prod" href="' + esc(buy || '#/brand') + '"' + (buy ? ' target="_blank" rel="noopener noreferrer sponsored"' : '') + '>' +
       '<span class="ph">' + (img ? '<img src="' + esc(img) + '" alt="" loading="lazy">' : '<span class="product-placeholder"><svg viewBox="0 0 64 64" fill="none" aria-hidden="true"><path d="M15 22h34l4 32H11l4-32Z" fill="rgba(255,255,255,.65)" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/><path d="M23 24V17a9 9 0 0 1 18 0v7M25 38c4 4 10 4 14 0" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg><span>상품 사진 준비 중</span></span>') + '</span>' +
       (dealOn ? '<span class="deal">특가' + (p.deal_until ? ' ~' + esc(p.deal_until.slice(5).replace('-', '/')) : '') + '</span>' : '') +
@@ -2024,7 +2033,7 @@
       '<span class="nm">' + esc(p.name) + '</span>' +
       '<span class="product-price">' + (sale ? '<span class="was">' + won(p.price) + '</span><span class="now"><span class="pct">' + pct + '%</span>' + won(p.sale_price) + '</span>'
             : (p.price != null ? '<span class="now">' + won(p.price) + '</span>' : '')) + '</span>' +
-      '<span class="buy">구매하러 가기 ↗</span></a></div>';
+      '<span class="buy">구매하러 가기 ' + emIc('↗') + '</span></a></div>';
   }
   var MALL_NOTE = '<p class="mall-note">구매·결제·배송은 각 브랜드 스토어에서 진행돼요. 다다맘은 상품을 소개하는 곳이라 판매 당사자가 아니에요.</p>';
 
@@ -2034,7 +2043,7 @@
   }
   async function renderBrandMall(main, brandId, params){
     var request = ++mallRequest;
-    main.innerHTML = '<section class="panel"><div class="panel-h"><h1 class="display">🛍️ 브랜드관</h1><span class="helper">엄마 아빠가 믿고 고르는 육아 브랜드</span></div><div class="mall-sec"><div class="helper">불러오는 중…</div></div></section>';
+    main.innerHTML = '<section class="panel"><div class="panel-h"><h1 class="display">브랜드관</h1><span class="helper">엄마 아빠가 믿고 고르는 육아 브랜드</span></div><div class="mall-sec"><div class="helper">불러오는 중…</div></div></section>';
     var res = await Promise.all([
       sb.from('mall_brands').select('*').order('sort_order', { ascending:true }).order('created_at', { ascending:true }),
       sb.from('mall_products').select('*').order('sort_order', { ascending:true }).order('created_at', { ascending:true }),
@@ -2055,7 +2064,7 @@
       main.innerHTML = '<section class="brand-mall"><div class="mall-brand-detail"><div class="brand-head">' + brandLogoHtml(b) +
           '<div style="flex:1; min-width:200px;"><h1 class="display" style="margin:0; font-size:22px;">' + esc(b.name) + hiddenTag(b) + '</h1>' +
           (b.intro ? '<p class="helper" style="margin:6px 0 0; font-size:13.5px;">' + esc(b.intro) + '</p>' : '') + '</div>' +
-          (store ? '<a class="btn primary" href="' + esc(store) + '" target="_blank" rel="noopener noreferrer sponsored">브랜드 스토어 가기 ↗</a>' : '') + '</div>' +
+          (store ? '<a class="btn primary" href="' + esc(store) + '" target="_blank" rel="noopener noreferrer sponsored">브랜드 스토어 가기 ' + emIc('↗') + '</a>' : '') + '</div>' +
         '<div class="mall-sec"><h2>상품 ' + mine.length + '개</h2>' +
           (mine.length ? mallProductGrid(mine, byId) : emptyHtml('🧺', '아직 등록된 상품이 없어요.')) +
         '</div>' + MALL_NOTE + '<div style="padding:0 24px 24px;"><a class="btn" href="#/brand">← 브랜드관</a></div></div></section>';
@@ -2086,17 +2095,17 @@
     main.innerHTML = '<section class="brand-mall" aria-label="다다맘 브랜드관">' +
       '<header class="mall-hero"><div class="mall-hero-copy"><span class="mall-eyebrow">다다맘 브랜드관</span>' +
         '<h1 class="display">우리 가족의<br><em>다정한 선택.</em></h1><p>아이와 나의 하루에 필요한 작은 발견.<br>육아 브랜드와 상품을 한곳에서 만나보세요.</p>' +
-        '<div class="mall-hero-actions"><a class="btn primary" href="#/brand?tab=catalog">상품 둘러보기 <span aria-hidden="true">↗</span></a>' +
+        '<div class="mall-hero-actions"><a class="btn primary" href="#/brand?tab=catalog">상품 둘러보기 <span aria-hidden="true">' + emIc('↗') + '</span></a>' +
           (isAdmin ? '<a class="btn" href="#/mall-admin">브랜드관 관리</a>' : '') + '</div></div>' +
         '<div class="mall-hero-art" aria-hidden="true"><div class="mall-hero-poster"><img src="./icons/icon-192.png" alt=""><b>소중한 하루를<br>함께 고르다</b><span>DADAMOM SELECT</span></div><span class="mall-hero-sticker">작은 선택, 큰 행복</span></div></header>' +
       (bannerHtml ? '<section aria-label="브랜드관 소식">' + bannerHtml + '</section>' : '') +
       '<section aria-labelledby="mall-brands-title"><div class="mall-section-head"><div><h2 id="mall-brands-title">함께하는 브랜드</h2><p>브랜드를 만나고, 우리 가족에게 맞는 상품을 찾아보세요.</p></div><span class="helper">' + brands.length + '개 브랜드</span></div>' +
         '<div class="brand-directory-grid">' + brands.map(function(b){ return '<a class="brand-card" href="#/brand/' + esc(encodeURIComponent(b.id)) + '">' + brandLogoHtml(b) +
-          '<span class="brand-card-copy"><span class="brand-card-labels">' + (b.is_new ? '<span class="tag">NEW</span>' : '') + (b.is_featured ? '<span class="tag">추천</span>' : '') + '</span><b>' + esc(b.name) + hiddenTag(b) + '</b><span>' + esc(b.intro || '브랜드 상품 만나보기') + '</span></span><span class="brand-card-arrow" aria-hidden="true">↗</span></a>'; }).join('') + '</div></section>' +
+          '<span class="brand-card-copy"><span class="brand-card-labels">' + (b.is_new ? '<span class="tag">NEW</span>' : '') + (b.is_featured ? '<span class="tag">추천</span>' : '') + '</span><b>' + esc(b.name) + hiddenTag(b) + '</b><span>' + esc(b.intro || '브랜드 상품 만나보기') + '</span></span><span class="brand-card-arrow" aria-hidden="true">' + emIc('↗') + '</span></a>'; }).join('') + '</div></section>' +
       '<section class="mall-catalog" id="mall-catalog" aria-labelledby="mall-products-title"><div class="mall-section-head"><div><h2 id="mall-products-title">우리 가족을 위한 발견</h2><p>상품을 살펴보고 구매는 각 브랜드 스토어에서 진행해요.</p></div></div>' +
         '<nav class="mall-filter" aria-label="상품 필터">' + filter('전체 상품',filterHref('',false),!pick && !dealOnly && !wishOnly) +
           brands.map(function(b){return filter(b.name,filterHref(b.id,false),!!pick && b.id===pick.id && !dealOnly);}).join('') +
-          filter('특가 모아보기',filterHref('',true),dealOnly) + '<a class="chip' + (wishOnly ? ' on' : '') + '" href="#/brand?tab=wish"' + (wishOnly ? ' aria-current="true"' : '') + '>♥ 찜한 상품 <span id="wish-count">' + wishIds.length + '</span></a></nav>' +
+          filter('특가 모아보기',filterHref('',true),dealOnly) + '<a class="chip' + (wishOnly ? ' on' : '') + '" href="#/brand?tab=wish"' + (wishOnly ? ' aria-current="true"' : '') + '>' + '<svg class="ic ic-fill" aria-hidden="true"><use href="#i-heart"></use></svg>' + ' 찜한 상품 <span id="wish-count">' + wishIds.length + '</span></a></nav>' +
         '<div class="mall-catalog-summary"><span>' + esc(wishOnly ? '찜한 상품' : dealOnly ? '진행 중인 특가' : pick ? pick.name : '전체 상품') + '</span><span>상품 <b>' + catalog.length + '</b>개</span></div>' +
         (catalog.length ? mallProductGrid(catalog,byId) : emptyHtml(wishOnly ? '♡' : '🧺', wishOnly ? (user ? '찜한 상품이 없어요. 상품의 ♡ 를 눌러 모아 보세요.' : '로그인하면 찜한 상품을 모아 볼 수 있어요. 앱과 같은 목록이에요.') : '조건에 맞는 상품이 아직 없어요.')) + '</section>' + MALL_NOTE + '</section>';
     if(params.get('tab') === 'deal' || params.get('tab') === 'catalog' || wishOnly || pick) $('mall-catalog').scrollIntoView({block:'start'});
@@ -2134,7 +2143,7 @@
 
   async function renderMallAdmin(main){
     if(!isAdmin){ main.innerHTML = panelMsg('브랜드관 관리', '🔐', '관리자만 볼 수 있어요.'); return; }
-    main.innerHTML = '<section class="panel"><div class="panel-h line"><h1 class="display">⚙️ 브랜드관 관리</h1><a class="btn" href="#/brand">브랜드관 보기 ›</a></div><div class="mall-sec"><div class="helper">불러오는 중…</div></div></section>';
+    main.innerHTML = '<section class="panel"><div class="panel-h line"><h1 class="display">브랜드관 관리</h1><a class="btn" href="#/brand">브랜드관 보기 ›</a></div><div class="mall-sec"><div class="helper">불러오는 중…</div></div></section>';
     var res = await Promise.all([
       sb.from('mall_brands').select('*').order('sort_order', { ascending:true }),
       sb.from('mall_products').select('*').order('sort_order', { ascending:true }),
@@ -2149,17 +2158,17 @@
         '<button class="btn" data-ma-edit="' + kind + ':' + x.id + '">수정</button><button class="btn" data-ma-del="' + kind + ':' + x.id + '">삭제</button></li>';
     };
     var sec = function(kind, em, list, label){
-      return '<div class="mall-sec"><h2>' + em + ' ' + MALL_FORMS[kind].title + ' ' + list.length + '개 <button class="btn primary" data-ma-new="' + kind + '" style="margin-left:auto;">+ ' + MALL_FORMS[kind].title + ' 추가</button></h2>' +
+      return '<div class="mall-sec"><h2>' + MALL_FORMS[kind].title + ' ' + list.length + '개 <button class="btn primary" data-ma-new="' + kind + '" style="margin-left:auto;">+ ' + MALL_FORMS[kind].title + ' 추가</button></h2>' +
         (list.length ? '<ul class="ma-list">' + list.map(function(x){ return row(kind, x, label(x)); }).join('') + '</ul>' : '<p class="helper">아직 없어요.</p>') + '</div>';
     };
-    main.innerHTML = '<section class="panel"><div class="panel-h line"><h1 class="display">⚙️ 브랜드관 관리</h1><a class="btn" href="#/brand">브랜드관 보기 ›</a></div>' +
+    main.innerHTML = '<section class="panel"><div class="panel-h line"><h1 class="display">브랜드관 관리</h1><a class="btn" href="#/brand">브랜드관 보기 ›</a></div>' +
       '<p class="mall-note" style="padding-top:14px;">상품을 올리기 전에 브랜드를 먼저 추가하세요. 숨김으로 저장하면 관리자에게만 보여요. 그림은 JPG·PNG·WEBP 5MB 까지.</p>' +
-      sec('banner', '🖼️', mallCache.banner, function(n){ return '<span class="helper">' + ({ brand:'브랜드관', home:'앱 홈', both:'둘 다' }[n.placement] || '브랜드관') + '</span> ' + esc(n.title) + (n.ends_on ? ' <span class="helper">~' + esc(n.ends_on) + '</span>' : ''); }) +
+      sec('banner', emIc('🖼️'), mallCache.banner, function(n){ return '<span class="helper">' + ({ brand:'브랜드관', home:'앱 홈', both:'둘 다' }[n.placement] || '브랜드관') + '</span> ' + esc(n.title) + (n.ends_on ? ' <span class="helper">~' + esc(n.ends_on) + '</span>' : ''); }) +
       sec('brand', '🏷️', mallCache.brand, function(b){ return esc(b.name) + (b.is_new ? ' 🆕' : '') + (b.is_featured ? ' ⭐' : ''); }) +
       sec('product', '🧸', mallCache.product, function(p){ return '<span class="helper">' + esc(bname[p.brand_id] || '?') + '</span> ' + esc(p.name) + ' · ' + won(p.sale_price != null ? p.sale_price : p.price) + (p.is_deal ? ' 🔥' : ''); }) +
       sec('magazine', '📰', mallCache.magazine, function(m){ return '<span class="helper">' + esc((DadamomShared.magKinds[m.kind] || {}).label || '') + ' · ' + esc(m.source_name) + '</span> ' + esc(m.title); }) +
       '<p class="mall-note">매거진은 원문을 복사하지 말고 제목·짧은 소개·출처·원문 주소만 올려 주세요. 사진은 우리가 가진 그림만 쓰고, 유튜브는 썸네일이 자동으로 붙어요.</p>' +
-      (res[4].error ? '' : sec('challenge', '🏆', mallCache.challenge, function(c){ return esc((c.emoji || '') + ' ' + c.title) + ' <span class="helper">' + esc(c.target_label || '') + ' · ' + (c.ends_on ? '~' + esc(c.ends_on) : '상시') + '</span>'; }) +
+      (res[4].error ? '' : sec('challenge', '🏆', mallCache.challenge, function(c){ return esc(c.title) + ' <span class="helper">' + esc(c.target_label || '') + ' · ' + (c.ends_on ? '~' + esc(c.ends_on) : '상시') + '</span>'; }) +
         '<p class="mall-note">참가작이 있는 챌린지는 지우지 말고 \'공개\'를 끄세요. 마감일이 지나면 앱에서 참여가 자동으로 닫혀요.</p>') +
       '</section>';
   }
@@ -2178,7 +2187,7 @@
       if(type === 'brand') return '<label>' + esc(label) + '<select name="' + k + '">' + mallCache.brand.map(function(b){ return '<option value="' + b.id + '"' + (b.id === x[k] ? ' selected' : '') + '>' + esc(b.name) + '</option>'; }).join('') + '</select></label>';
       if(type === 'image') return '<label>' + esc(label) + '<input type="hidden" name="' + k + '" value="' + esc(v(k)) + '">' +
         '<span class="ma-img" style="display:flex; gap:8px; align-items:center;">' + (v(k) ? '<img src="' + esc(v(k)) + '" alt="" style="width:56px; height:56px; object-fit:cover; border-radius:10px;">' : '') +
-        '<span class="kfile" style="display:inline-flex;"><input type="file" class="kfile-input" accept="image/jpeg,image/png,image/webp" data-ma-file="' + k + '"><span class="kfile-btn">🖼️ 그림 고르기</span><span class="kfile-name">선택한 파일 없음</span></span></span></label>';
+        '<span class="kfile" style="display:inline-flex;"><input type="file" class="kfile-input" accept="image/jpeg,image/png,image/webp" data-ma-file="' + k + '"><span class="kfile-btn">' + emIc('🖼️') + ' 그림 고르기</span><span class="kfile-name">선택한 파일 없음</span></span></span></label>';
       var t = type === 'number' ? 'number' : type === 'date' ? 'date' : type === 'url' ? 'url' : 'text';
       return '<label>' + esc(label) + '<input type="' + t + '" name="' + k + '"' + (max ? ' maxlength="' + max + '"' : '') + (t === 'number' ? ' min="0" step="1"' : '') + ' value="' + esc(v(k)) + '"></label>';
     }).join('');
@@ -2250,13 +2259,13 @@
     main.innerHTML = '<section class="panel"><div class="my-head"><span class="avatar" aria-hidden="true">' + stageEmoji(profile && profile.kid_type) + '</span>' +
         '<div style="min-width:0;"><h1 class="display">' + esc(nick) + '</h1><div class="pills">' +
           (profileStageText() ? '<span class="pill">' + esc(profileStageText()) + '</span>' : '') +
-          (profile && profile.region ? '<span class="pill">📍 ' + esc(profile.region) + '</span>' : '') +
+          (profile && profile.region ? '<span class="pill">' + emIc('📍') + ' ' + esc(profile.region) + '</span>' : '') +
           ((profile && profile.interests) || []).slice(0, 4).map(function(t){ return '<span class="pill">#' + esc(t) + '</span>'; }).join('') +
-        '</div></div><a class="btn" href="./index.html#my">⚙️ 프로필 수정 (앱)</a></div></section>' +
-      '<section class="panel"><div class="panel-h"><h2 class="display"><span class="bubble" style="background:#DDF1E6;">🌱</span>우리 아이 기록</h2><a class="more" href="./index.html#growth">앱에서 기록하기 ›</a></div>' + kidRecordHtml(st) + '</section>' +
-      '<section class="panel"><div class="panel-h line"><h2 class="display"><span class="bubble" style="background:#FFF0C2;">⭐</span>스크랩한 글</h2></div><div id="my-saved"><div class="empty">불러오는 중…</div></div></section>' +
-      '<section class="panel"><div class="panel-h line"><h2 class="display"><span class="bubble" style="background:#FFE1D6;">📝</span>내가 쓴 글</h2></div><div id="my-posts"><div class="empty">불러오는 중…</div></div></section>' +
-      '<section class="panel"><div class="panel-h"><h2 class="display"><span class="bubble" style="background:#E3EDFF;">💬</span>내가 쓴 댓글</h2></div><ul class="act-list" id="my-cmts" style="margin:0; padding:0;"></ul></section>';
+        '</div></div><a class="btn" href="./index.html#my">프로필 수정 (앱)</a></div></section>' +
+      '<section class="panel"><div class="panel-h"><h2 class="display"><span class="bubble" style="background:#DDF1E6;"><svg class="ic" aria-hidden="true"><use href="#i-sprout"></use></svg></span>우리 아이 기록</h2><a class="more" href="./index.html#growth">앱에서 기록하기 ›</a></div>' + kidRecordHtml(st) + '</section>' +
+      '<section class="panel"><div class="panel-h line"><h2 class="display"><span class="bubble" style="background:#FFF0C2;"><svg class="ic" aria-hidden="true"><use href="#i-star"></use></svg></span>스크랩한 글</h2></div><div id="my-saved"><div class="empty">불러오는 중…</div></div></section>' +
+      '<section class="panel"><div class="panel-h line"><h2 class="display"><span class="bubble" style="background:#FFE1D6;"><svg class="ic" aria-hidden="true"><use href="#i-pen-line"></use></svg></span>내가 쓴 글</h2></div><div id="my-posts"><div class="empty">불러오는 중…</div></div></section>' +
+      '<section class="panel"><div class="panel-h"><h2 class="display"><span class="bubble" style="background:#E3EDFF;"><svg class="ic" aria-hidden="true"><use href="#i-message-circle"></use></svg></span>내가 쓴 댓글</h2></div><ul class="act-list" id="my-cmts" style="margin:0; padding:0;"></ul></section>';
 
     // 스크랩: 스크랩한 순서대로. 지워졌거나 차단한 사람의 글은 글 쪽 RLS 가 걸러 빠진다.
     var bm = await sb.from('post_bookmarks').select('post_id,created_at').order('created_at', { ascending:false }).limit(30);
@@ -2291,9 +2300,9 @@
     var start = new Date(); start.setHours(0,0,0,0);
     var feeds = care.filter(function(c){ return c.type === 'feed' && c.ts >= start.getTime(); }).length;
     return '<div class="kid-grid">' +
-      '<div class="kid k1"><span class="k">⚖️ 몸무게</span><span class="v">' + (lw ? lw.weight + 'kg' : '–') + '</span><span class="s">' + (lw ? shortDate(new Date(lw.ts).toISOString()) + ' 기록' : '기록 없음') + '</span>' + spark(w.map(function(x){ return x.weight; }), '#E8572F') + '</div>' +
-      '<div class="kid k2"><span class="k">📏 키</span><span class="v">' + (lh ? lh.height + 'cm' : '–') + '</span><span class="s">' + (lh ? shortDate(new Date(lh.ts).toISOString()) + ' 기록' : '기록 없음') + '</span>' + spark(h.map(function(x){ return x.height; }), '#2F6B47') + '</div>' +
-      '<div class="kid k3"><span class="k">🍼 오늘 수유 · 💉 접종</span><span class="v">' + feeds + '회</span><span class="s">예방접종 ' + vac + '개 완료</span></div>' +
+      '<div class="kid k1"><span class="k">' + emIc('⚖️') + ' 몸무게</span><span class="v">' + (lw ? lw.weight + 'kg' : '–') + '</span><span class="s">' + (lw ? shortDate(new Date(lw.ts).toISOString()) + ' 기록' : '기록 없음') + '</span>' + spark(w.map(function(x){ return x.weight; }), '#E8572F') + '</div>' +
+      '<div class="kid k2"><span class="k">' + emIc('📏') + ' 키</span><span class="v">' + (lh ? lh.height + 'cm' : '–') + '</span><span class="s">' + (lh ? shortDate(new Date(lh.ts).toISOString()) + ' 기록' : '기록 없음') + '</span>' + spark(h.map(function(x){ return x.height; }), '#2F6B47') + '</div>' +
+      '<div class="kid k3"><span class="k">' + emIc('🍼') + ' 오늘 수유 · ' + emIc('💉') + ' 접종</span><span class="v">' + feeds + '회</span><span class="s">예방접종 ' + vac + '개 완료</span></div>' +
     '</div><p class="helper" style="padding:0 20px 16px; margin:0;">이 기기의 앱에 저장된 기록이에요. 다른 기기의 기록은 그 기기에서 보여요.</p>';
   }
   function spark(vals, color){
@@ -2350,7 +2359,7 @@
       return true;
     })[0];
     if(!p) return;
-    openModal('<div class="popup-hero"><span class="emoji" aria-hidden="true">' + p.emoji + '</span>' +
+    openModal('<div class="popup-hero"><span class="emoji" aria-hidden="true" style="color:#B5643F;">' + DadamomShared.icon(EM_IC[p.emoji] || 'sparkles', 'ic-thin') + '</span>' +
         '<h3 class="display" id="popup-title">' + esc(p.title) + '</h3><p>' + p.body + '</p></div>' +
       '<a class="btn primary" href="' + esc(p.href) + '" data-close style="padding:12px;">' + esc(p.cta) + '</a>' +
       '<div class="popup-foot"><button type="button" data-popup-today="' + esc(p.id) + '">오늘 하루 보지 않기</button><button type="button" data-close>닫기</button></div>');
@@ -2400,8 +2409,8 @@
 
   function openLogin(){
     // 이메일은 앱 화면(index.html)의 인증번호 방식으로 보낸다 — 가입·로그인을 한 곳에서. 끝나면 지금 보던 곳으로 돌아온다.
-    openModal('<h3 class="display">👋 다시 만나서 반가워요</h3>' + socialLoginHtml() +
-      '<a class="btn primary" href="' + esc(window.DadamomCommunityFlow.authEntry(location.href)) + '" style="padding:12px; text-align:center;">📧 이메일 인증번호로 시작하기</a>' +
+    openModal('<h3 class="display">다시 만나서 반가워요</h3>' + socialLoginHtml() +
+      '<a class="btn primary" href="' + esc(window.DadamomCommunityFlow.authEntry(location.href)) + '" style="padding:12px; text-align:center;">이메일 인증번호로 시작하기</a>' +
       '<span class="helper" id="l-hint" role="alert"></span>' +
       '<details><summary class="helper" style="cursor:pointer;">비밀번호로 로그인</summary>' +
       '<form id="login-form" style="display:flex; flex-direction:column; gap:10px; margin-top:8px;">' +
@@ -2424,7 +2433,7 @@
   function openReport(type, id, owner){
     if(!user) return openLogin();
     reportTarget = { type:type, id:id, owner: owner || null };
-    openModal('<h3 class="display">🚨 신고하기</h3><div class="reasons" id="reasons">' +
+    openModal('<h3 class="display">신고하기</h3><div class="reasons" id="reasons">' +
       REPORT_REASONS.map(function(r){ return '<button type="button" class="chip" data-reason="' + r + '" aria-pressed="false">' + r + '</button>'; }).join('') +
       '</div><label class="sr" for="r-detail">자세한 내용</label><textarea id="r-detail" maxlength="500" placeholder="자세한 내용 (선택)"></textarea>' +
       '<span class="helper" id="r-hint" role="alert"></span>' +

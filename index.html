@@ -340,7 +340,9 @@
   .share-chip svg{ flex:0 0 auto; display:block; }
   .badge-match{ white-space:nowrap; }
   :root:not([data-theme="dark"]) .my-avatar{ background:#fff !important; box-shadow:0 4px 14px rgba(201,67,24,.16); display:flex; align-items:center; justify-content:center; }
-  :root:not([data-theme="dark"]) .my-avatar::before{ content:'🙂'; font-size:28px; }
+  :root:not([data-theme="dark"]) .my-avatar::before{ content:''; width:42%; height:42%; background:#C98A6B;
+    -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='8' r='5'/%3E%3Cpath d='M20 21a8 8 0 0 0-16 0'/%3E%3C/svg%3E") center/contain no-repeat;
+            mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='8' r='5'/%3E%3Cpath d='M20 21a8 8 0 0 0-16 0'/%3E%3C/svg%3E") center/contain no-repeat; }
   .modal-card{ background:#FFFDF9; border:1px solid #EDDDCF; box-shadow:0 -10px 40px rgba(111,76,47,.10); overscroll-behavior:contain; }
   .field input:focus, .field select:focus, .field textarea:focus{ outline:none; border-color:var(--accent); box-shadow:0 0 0 4px rgba(255,122,89,.14); }
   .field input, .field select, .field textarea{ background:#FFFEFC; font-size:16px; line-height:1.6; }
@@ -389,7 +391,7 @@
     .toast{ bottom:40px; }
   }
 </style>
-<link rel="stylesheet" href="./rounded-ui.css?v=20261028-1">
+<link rel="stylesheet" href="./rounded-ui.css?v=20261028-2">
 
 <div class="app" id="app">
   <div class="test-banner" id="test-banner" role="status" hidden>
@@ -498,7 +500,7 @@
 
       <!-- 성장(육아기록)은 아래 탭에서 빠져서 홈 위쪽 큰 카드로 연다 -->
       <button type="button" data-goto="growth" class="growth-cta">
-        <span class="growth-cta-ico" aria-hidden="true">🍼</span>
+        <span class="growth-cta-ico" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-notebook-pen"></use></svg></span>
         <span class="col" style="gap:3px; min-width:0; flex:1; text-align:left;">
           <b>오늘의 육아기록</b>
           <span class="helper">수유·수면, 키·몸무게, 예방접종</span>
@@ -508,11 +510,11 @@
 
       <nav class="quick-grid" aria-label="바로가기">
         <!-- 아래 탭에서 뺀 나들이·혜택을 여기서 연다. 챌린지·브랜드관은 탭에 있다 -->
-        <button type="button" data-goto="outing" class="quick-tile"><span class="quick-ico" aria-hidden="true">🧺</span><span>나들이</span></button>
-        <button type="button" data-goto="benefit" class="quick-tile"><span class="quick-ico" aria-hidden="true">🎁</span><span>혜택</span></button>
+        <button type="button" data-goto="outing" class="quick-tile"><span class="quick-ico" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-map-pin"></use></svg></span><span>나들이</span></button>
+        <button type="button" data-goto="benefit" class="quick-tile"><span class="quick-ico" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-gift"></use></svg></span><span>혜택</span></button>
         <!-- 글쓰기는 오른쪽 아래 + 버튼으로 -->
-        <button type="button" data-goto="prep" data-prep-tab="check" class="quick-tile"><span class="quick-ico" aria-hidden="true">📝</span><span>준비물</span></button>
-        <button type="button" data-goto="prep" data-prep-tab="gift" class="quick-tile"><span class="quick-ico" aria-hidden="true">💝</span><span>선물 장부</span></button>
+        <button type="button" data-goto="prep" data-prep-tab="check" class="quick-tile"><span class="quick-ico" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-pen-line"></use></svg></span><span>준비물</span></button>
+        <button type="button" data-goto="prep" data-prep-tab="gift" class="quick-tile"><span class="quick-ico" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-heart-handshake"></use></svg></span><span>선물 장부</span></button>
       </nav>
 
       <div class="home-sec">
@@ -525,7 +527,7 @@
 
       <div class="home-sec" id="home-hot-sec" hidden>
         <div class="home-sec-head">
-          <h2 class="home-sec-title display">🔥 이번 주 인기글</h2>
+          <h2 class="home-sec-title display">이번 주 인기글</h2>
           <a href="#community" class="link-quiet">커뮤니티 가기</a>
         </div>
         <ol class="home-hot" id="home-hot"></ol>
@@ -533,7 +535,7 @@
 
       <div class="home-sec" id="home-mag-sec" hidden>
         <div class="home-sec-head">
-          <h2 class="home-sec-title display">📰 다다맘 매거진</h2>
+          <h2 class="home-sec-title display">다다맘 매거진</h2>
           <a href="#magazine" class="link-quiet">더보기</a>
         </div>
         <div class="mag-row" id="home-mag"></div>
@@ -564,7 +566,7 @@
               <span class="mall-eyebrow">다다맘 챌린지</span>
               <div class="hh-top">
                 <h1 class="display">우리 아이 <em>자랑 대회</em></h1>
-                <div class="hh-art" aria-hidden="true"><span>🏆</span></div>
+                <div class="hh-art" aria-hidden="true"><span><svg class="ic" aria-hidden="true"><use href="#i-trophy"></use></svg></span></div>
               </div>
               <p class="page-hero-desc">챌린지에 맞게 사진이나 1분 영상으로 참여하고, 응원과 투표를 가장 많이 받으면 이달의 주인공이 돼요.</p>
             </div>
@@ -583,10 +585,10 @@
             <span class="mall-eyebrow" id="challenge-eyebrow">D-6 · 10~24개월 추천</span>
             <div class="hh-top">
               <h1 class="display" id="challenge-title">첫걸음 <em>챌린지</em></h1>
-              <div class="hh-art" aria-hidden="true"><span id="challenge-art">👣</span></div>
+              <div class="hh-art" aria-hidden="true"><span id="challenge-art"><svg class="ic" aria-hidden="true"><use href="#i-footprints"></use></svg></span></div>
             </div>
             <p class="page-hero-desc" id="challenge-desc">아이가 혼자 걷는 모습을 1분 이내 영상과 짧은 메모로 참여해요. 10~24개월 아이가 대상이에요.</p>
-            <p id="challenge-prize"><span class="ch-prize-ico" aria-hidden="true">🎁</span><span><b>챌린지마다 매달 점수(응원+투표)가 가장 높은 1명에게 육아용품을 드려요.</b><br><span style="color:var(--text2);">상시 진행 · 매달 첫 주 발표 · 당첨되면 가입한 이메일로 연락드려요</span></span></p>
+            <p id="challenge-prize"><span class="ch-prize-ico" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-gift"></use></svg></span><span><b>챌린지마다 매달 점수(응원+투표)가 가장 높은 1명에게 육아용품을 드려요.</b><br><span style="color:var(--text2);">상시 진행 · 매달 첫 주 발표 · 당첨되면 가입한 이메일로 연락드려요</span></span></p>
           </div>
         </header>
       </div>
@@ -617,7 +619,7 @@
             <span class="mall-eyebrow">다다맘 혜택</span>
             <div class="hh-top">
               <h1 class="display">체험단과 <em>이벤트</em></h1>
-              <div class="hh-art" aria-hidden="true"><span>🎁</span></div>
+              <div class="hh-art" aria-hidden="true"><span><svg class="ic" aria-hidden="true"><use href="#i-gift"></use></svg></span></div>
             </div>
             <p class="page-hero-desc">먼저 써 보고 솔직하게 나누는 육아템 체험단과 이벤트를 모았어요. 육아기록을 7일 이어 쓴 분을 먼저 뽑아요.</p>
           </div>
@@ -642,7 +644,7 @@
             <span class="mall-eyebrow">아이와 나들이</span>
             <div class="hh-top">
               <h1 class="display">이번 주 <em>어디 갈까?</em></h1>
-              <div class="hh-art" aria-hidden="true"><span>🧺</span></div>
+              <div class="hh-art" aria-hidden="true"><span><svg class="ic" aria-hidden="true"><use href="#i-map-pin"></use></svg></span></div>
             </div>
             <p class="page-hero-desc">아이와 갈 수 있는 행사와 놀거리를 지역별로 모았어요.</p>
           </div>
@@ -681,7 +683,7 @@
         <button data-community-tab="qna" role="tab">Q&amp;A</button>
         <button data-community-tab="photo" role="tab">사진</button>
       </div>
-      <input type="search" id="community-search" enterkeyhint="search" autocomplete="off" placeholder="🔍 글 검색 (예: 이유식, 낮잠, 어린이집)" aria-label="커뮤니티 글 검색"
+      <input type="search" id="community-search" enterkeyhint="search" autocomplete="off" placeholder="글 검색 (예: 이유식, 낮잠, 어린이집)" aria-label="커뮤니티 글 검색"
         style="height:46px; border-radius:999px; border:1px solid var(--w-line, #EBDFD1); background:#fff; padding:0 18px; font:inherit; font-size:14px; color:var(--text);">
     </div>
       <div class="col" id="community-body" style="gap:20px;"></div>
@@ -723,7 +725,7 @@
             </div>
             <span style="font-size:13px; color:var(--text2);" id="my-sub"></span>
           </div>
-          <div class="my-art" aria-hidden="true"><span>🌱</span></div>
+          <div class="my-art" aria-hidden="true"><span><svg class="ic" aria-hidden="true"><use href="#i-sprout"></use></svg></span></div>
         </div>
         <a href="#onboarding" class="btn-ghost">아이 정보 수정</a>
       </div>
@@ -735,15 +737,15 @@
       </div>
 
       <div class="my-menu">
-        <a href="#growth" class="my-row"><span class="my-ico" style="background:var(--w-leaf);" aria-hidden="true">🍼</span><span class="my-row-label">육아기록 · 성장</span><svg class="my-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></a>
-        <a href="#prep" class="my-row"><span class="my-ico" style="background:var(--w-sun);" aria-hidden="true">📝</span><span class="my-row-label">출산 준비물 · 선물 장부</span><svg class="my-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></a>
-        <a href="#brand" data-mall-go="wish" class="my-row"><span class="my-ico" style="background:var(--w-peach);" aria-hidden="true">💗</span><span class="my-row-label">찜한 상품</span><svg class="my-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></a>
-        <a href="#faq" class="my-row"><span class="my-ico" style="background:var(--w-leaf);" aria-hidden="true">💬</span><span class="my-row-label">자주 묻는 질문</span><svg class="my-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></a>
-        <a href="#community" data-my-link="posts" class="my-row"><span class="my-ico" style="background:var(--w-sun);" aria-hidden="true">📝</span><span class="my-row-label">내 게시물</span><svg class="my-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></a>
-        <a href="#challenge" data-my-link="challenge" class="my-row"><span class="my-ico" style="background:var(--w-peach);" aria-hidden="true">👣</span><span class="my-row-label">참여이력</span><svg class="my-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></a>
-        <a href="#benefit" data-my-link="benefit" class="my-row"><span class="my-ico" style="background:var(--w-sun);" aria-hidden="true">🎁</span><span class="my-row-label">혜택함</span><span id="my-benefit-badge" class="my-count">0</span></a>
-        <button type="button" data-open-saved class="my-row"><span class="my-ico" style="background:var(--w-peach);" aria-hidden="true">⭐</span><span class="my-row-label">스크랩한 글</span><svg class="my-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></button>
-        <button type="button" data-share-app class="my-row"><span class="my-ico" style="background:var(--w-leaf);" aria-hidden="true">💌</span><span class="my-row-label">다다맘 앱 공유하기</span><svg class="my-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></button>
+        <a href="#growth" class="my-row"><span class="my-ico" style="background:var(--w-leaf);" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-notebook-pen"></use></svg></span><span class="my-row-label">육아기록 · 성장</span><svg class="my-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></a>
+        <a href="#prep" class="my-row"><span class="my-ico" style="background:var(--w-sun);" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-pen-line"></use></svg></span><span class="my-row-label">출산 준비물 · 선물 장부</span><svg class="my-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></a>
+        <a href="#brand" data-mall-go="wish" class="my-row"><span class="my-ico" style="background:var(--w-peach);" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-heart"></use></svg></span><span class="my-row-label">찜한 상품</span><svg class="my-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></a>
+        <a href="#faq" class="my-row"><span class="my-ico" style="background:var(--w-leaf);" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-message-circle"></use></svg></span><span class="my-row-label">자주 묻는 질문</span><svg class="my-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></a>
+        <a href="#community" data-my-link="posts" class="my-row"><span class="my-ico" style="background:var(--w-sun);" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-pen-line"></use></svg></span><span class="my-row-label">내 게시물</span><svg class="my-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></a>
+        <a href="#challenge" data-my-link="challenge" class="my-row"><span class="my-ico" style="background:var(--w-peach);" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-footprints"></use></svg></span><span class="my-row-label">참여이력</span><svg class="my-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></a>
+        <a href="#benefit" data-my-link="benefit" class="my-row"><span class="my-ico" style="background:var(--w-sun);" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-gift"></use></svg></span><span class="my-row-label">혜택함</span><span id="my-benefit-badge" class="my-count">0</span></a>
+        <button type="button" data-open-saved class="my-row"><span class="my-ico" style="background:var(--w-peach);" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-star"></use></svg></span><span class="my-row-label">스크랩한 글</span><svg class="my-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></button>
+        <button type="button" data-share-app class="my-row"><span class="my-ico" style="background:var(--w-leaf);" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-mail"></use></svg></span><span class="my-row-label">다다맘 앱 공유하기</span><svg class="my-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></button>
       </div>
 
       <div class="card col" id="my-interest-card" style="gap:10px; padding:18px;">
@@ -787,7 +789,7 @@
             <span class="mall-eyebrow">우리 아이 기록</span>
             <div class="hh-top">
               <h1 class="display">육아<em>기록</em></h1>
-              <div class="hh-art" aria-hidden="true"><span>🍼</span></div>
+              <div class="hh-art" aria-hidden="true"><span><svg class="ic" aria-hidden="true"><use href="#i-notebook-pen"></use></svg></span></div>
             </div>
             <p class="page-hero-desc">돌봄기록·성장곡선·예방접종은 내 계정에 저장돼 휴대폰을 바꿔도 이어져요. 나만 볼 수 있어요. 가족 공유를 켜면 가족과 함께 봐요.</p>
           </div>
@@ -866,7 +868,7 @@
             <span class="mall-eyebrow">다다맘 매거진</span>
             <div class="hh-top">
               <h1 class="display">요즘 육아, <em>한눈에.</em></h1>
-              <div class="hh-art" aria-hidden="true"><span>📰</span></div>
+              <div class="hh-art" aria-hidden="true"><span><svg class="ic" aria-hidden="true"><use href="#i-newspaper"></use></svg></span></div>
             </div>
             <p class="page-hero-desc">다다맘이 고른 육아 뉴스·기사·영상을 출처와 함께 모았어요.</p>
           </div>
@@ -887,7 +889,7 @@
             <span class="mall-eyebrow">고객센터</span>
             <div class="hh-top">
               <h1 class="display">자주 묻는 <em>질문</em></h1>
-              <div class="hh-art" aria-hidden="true"><span>💬</span></div>
+              <div class="hh-art" aria-hidden="true"><span><svg class="ic" aria-hidden="true"><use href="#i-message-circle"></use></svg></span></div>
             </div>
             <p class="page-hero-desc">궁금한 점이 더 있으면 ryundaen@gmail.com 으로 메일 주세요.</p>
           </div>
@@ -907,7 +909,7 @@
             <span class="mall-eyebrow">출산 준비</span>
             <div class="hh-top">
               <h1 class="display">준비물과 <em>선물 장부</em></h1>
-              <div class="hh-art" aria-hidden="true"><span>📝</span></div>
+              <div class="hh-art" aria-hidden="true"><span><svg class="ic" aria-hidden="true"><use href="#i-pen-line"></use></svg></span></div>
             </div>
             <p class="page-hero-desc">꼭 필요한 것만 체크하고, 받은 선물과 답례를 한곳에 적어 두세요.</p>
           </div>
@@ -931,7 +933,7 @@
             <span class="mall-eyebrow">운영자 전용</span>
             <div class="hh-top">
               <h1 class="display">콘텐츠 <em>검수</em></h1>
-              <div class="hh-art" aria-hidden="true"><span>🛡️</span></div>
+              <div class="hh-art" aria-hidden="true"><span><svg class="ic" aria-hidden="true"><use href="#i-shield-check"></use></svg></span></div>
             </div>
             <p class="page-hero-desc">신고 처리와 나들이 등록 같은 운영 일을 한곳에서 해요. 관리자 계정으로만 열려요.</p>
           </div>
@@ -996,6 +998,10 @@
   var ENV = (window.DADAMOM_ENV || {});
   // 아이폰·안드로이드 앱은 앱 안 웹뷰라 구글이 로그인을 막는다(disallowed_useragent). 그 앱에서만 구글 버튼을 숨긴다.
   var IOS_SHELL = /Dadamom(iOS|Android)/.test(navigator.userAgent);
+  // 아이콘: 이모지 대신 선 아이콘(shared-content.js). 2026-10-28 사장님 '이모지는 급조 같다'
+  function ic(n){ return window.DadamomShared ? window.DadamomShared.icon(n) : ''; }   // 공용 파일이 안 와도 앱은 돌아가게
+  var CH_PHOTO = { firststep:1, crawl:1, halloween:1, bump:1, cheeks:1 };   // assets/challenge/<id>.jpg 가 있는 챌린지
+  function chArt(c, photo){ return photo && c && CH_PHOTO[c.id] ? '<img src="./assets/challenge/' + c.id + '.jpg" alt="" style="width:100%; height:100%; object-fit:cover;">' : ic('trophy'); }
   var SUPABASE_URL = ENV.SUPABASE_URL || '';
   var SUPABASE_KEY = ENV.SUPABASE_ANON_KEY || '';
   if(!SUPABASE_URL || !SUPABASE_KEY){
@@ -1963,7 +1969,7 @@
     hallAt = 0; await loadHall();
     var lastMonth = new Date(); lastMonth.setDate(1); lastMonth.setMonth(lastMonth.getMonth() - 1);
     var lastWinner = (hallRows || []).filter(function(x){ return x.month === hallMonthKey(lastMonth) && x.rnk === 1; })[0];
-    var hallAdmin = '<div class="card col" style="gap:8px; padding:14px;"><h2 class="display" style="font-size:15px;">🏆 지난달(' + (lastMonth.getMonth() + 1) + '월) 주인공</h2>' +
+    var hallAdmin = '<div class="card col" style="gap:8px; padding:14px;"><h2 class="display" style="font-size:15px;">지난달(' + (lastMonth.getMonth() + 1) + '월) 주인공</h2>' +
       (lastWinner ? '<span>' + escapeHtml(lastWinner.name || '') + ' · 응원 ' + lastWinner.month_votes + ' · ' + escapeHtml(((challengeList.filter(function(c){ return c.id === lastWinner.challenge_key; })[0]) || {}).title || '') + '</span>' +
           '<button type="button" class="btn-ghost" data-hall-email="' + escapeHtml(lastWinner.entry_id) + '" style="height:40px;">연락할 이메일 보기</button><span class="helper" id="hall-email"></span>' +
           '<span class="helper">이메일로 경품 받을 이름·연락처·주소를 받아 주세요. 다다맘 공지에도 이름을 알려 주세요.</span>'
@@ -2115,7 +2121,7 @@
             '<input type="date" id="ot-checked" value="' + today + '"></div>' +
         '</div>' +
         '<div class="field"><label for="ot-emoji">아이콘</label>' +
-          '<input type="text" id="ot-emoji" maxlength="4" placeholder="📍" style="width:80px;"></div>' +
+          '<input type="text" id="ot-emoji" maxlength="4" placeholder="(안 씀)" style="width:80px;"></div>' +
         '<button type="button" class="btn-primary" id="ot-submit" style="height:44px;">나들이 등록</button>' +
       '</div>';
 
@@ -2218,7 +2224,7 @@
   function mediaThumb(url, styleStr){
     if(!url) return '';
     if(isVideoUrl(url.split('#')[0])) return '<span style="position:relative; display:block; width:100%; height:100%;"><video src="' + escapeHtml(url) + '#t=0.1" muted playsinline preload="metadata" style="' + styleStr + '"></video>' +
-      '<span aria-hidden="true" style="position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:38px; height:38px; border-radius:999px; background:rgba(0,0,0,.45); color:#fff; display:flex; align-items:center; justify-content:center; font-size:15px;">▶</span></span>';
+      '<span aria-hidden="true" style="position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:38px; height:38px; border-radius:999px; background:rgba(0,0,0,.45); color:#fff; display:flex; align-items:center; justify-content:center; font-size:15px;"><svg class="ic" aria-hidden="true"><use href="#i-play"></use></svg></span></span>';
     return '<img src="' + escapeHtml(url) + '" alt="" style="' + styleStr + '">';
   }
   function mediaTag(url, styleStr){
@@ -2285,7 +2291,7 @@
   }
   // 협찬·체험단 글 표시 (표시광고법, 0038)
   function sponsoredBadge(p){ return p && p.sponsored ? '<span class="pill" style="padding:2px 8px; font-size:11px; font-weight:800; background:#FFF4D6; color:#7A5300; border:1px solid #F1DDAE;">제품 제공받음</span>' : ''; }
-  function audienceBadge(p){ return p && p.audience === 'members' ? '<span class="pill" style="padding:2px 8px; font-size:11px; font-weight:800; background:#EEF6FF; color:#1F4E8C; border:1px solid #D6E6FA;">🔒 회원만</span>' : ''; }
+  function audienceBadge(p){ return p && p.audience === 'members' ? '<span class="pill" style="padding:2px 8px; font-size:11px; font-weight:800; background:#EEF6FF; color:#1F4E8C; border:1px solid #D6E6FA;">' + ic('lock') + ' 회원만</span>' : ''; }
   function chExampleHtml(c){
     var v = c.example_video && /^(https:\/\/|\.\/assets\/)[^\s"<>]+$/.test(c.example_video) ? c.example_video : '';
     var poster = /^\.\/assets\/.+\.mp4$/.test(v) ? v.replace(/\.mp4$/, '.jpg') : '';
@@ -2293,12 +2299,12 @@
     if(poster){ v += '?v=20261027b'; poster += '?v=20261027b'; }
     var photoEx = c.media_rule === 'photo' && poster;   // 사진만 챌린지는 예시도 사진으로
     return '<section class="card col" aria-label="이렇게 찍어 주세요" style="gap:12px; padding:16px;">' +
-      '<div class="row" style="align-items:baseline; justify-content:space-between; gap:8px;"><b class="display" style="font-size:16px;">' + (c.media_rule === 'photo' ? '📷' : '📹') + ' 이렇게 찍어 주세요</b>' + (v ? '<span class="helper">' + (photoEx ? '예시 사진' : '예시 영상') + ' · Pexels</span>' : '') + '</div>' +
+      '<div class="row" style="align-items:baseline; justify-content:space-between; gap:8px;"><b class="display" style="font-size:16px;">' + ic(c.media_rule === 'photo' ? 'camera' : 'video') + ' 이렇게 찍어 주세요</b>' + (v ? '<span class="helper">' + (photoEx ? '예시 사진' : '예시 영상') + ' · Pexels</span>' : '') + '</div>' +
       (photoEx ? '<img src="' + escapeHtml(poster) + '" alt="예시 사진" loading="lazy" style="width:100%; max-height:420px; border-radius:16px; background:#000; object-fit:contain;">'
         : v ? '<video src="' + escapeHtml(v) + '"' + (poster ? ' poster="' + escapeHtml(poster) + '"' : '') + ' controls muted playsinline loop preload="none" style="width:100%; max-height:420px; border-radius:16px; background:#000; object-fit:contain;"></video>' : '') +
-      (c.media_rule === 'video' ? '<p style="margin:0; padding:10px 12px; border-radius:12px; background:#FFF1E8; color:#9A3A12; font-weight:800; font-size:14px;">🎬 이 챌린지는 1분 이내 영상으로만 참가할 수 있어요</p>' : c.media_rule === 'photo' ? '<p style="margin:0; padding:10px 12px; border-radius:12px; background:#EEF6FF; color:#1F4E8C; font-weight:800; font-size:14px;">📷 이 챌린지는 사진으로만 참가할 수 있어요</p>' : '<p style="margin:0; font-size:13.5px; color:var(--text2); font-weight:700;">📷 사진 1장이나 1분 이내 영상으로 참가해요</p>') +
+      (c.media_rule === 'video' ? '<p style="margin:0; padding:10px 12px; border-radius:12px; background:#FFF1E8; color:#9A3A12; font-weight:800; font-size:14px;">이 챌린지는 1분 이내 영상으로만 참가할 수 있어요</p>' : c.media_rule === 'photo' ? '<p style="margin:0; padding:10px 12px; border-radius:12px; background:#EEF6FF; color:#1F4E8C; font-weight:800; font-size:14px;">이 챌린지는 사진으로만 참가할 수 있어요</p>' : '<p style="margin:0; font-size:13.5px; color:var(--text2); font-weight:700;">사진 1장이나 1분 이내 영상으로 참가해요</p>') +
       '<ul class="guide-list" style="margin:0;">' + (c.guide || []).map(function(g){ return '<li>' + escapeHtml(g) + '</li>'; }).join('') + '</ul>' +
-      '<details><summary style="cursor:pointer; font-size:13px; font-weight:800; color:var(--text2);">📜 챌린지 규칙 전체 보기 (심사·원본 확인·경품·홍보 활용)</summary>' + chRulesFullHtml() + '</details>' +
+      '<details><summary style="cursor:pointer; font-size:13px; font-weight:800; color:var(--text2);">챌린지 규칙 전체 보기 (심사·원본 확인·경품·홍보 활용)</summary>' + chRulesFullHtml() + '</details>' +
     '</section>';
   }
   var challengeList = CHALLENGE_FALLBACK, challengesFromDb = false;
@@ -2353,7 +2359,7 @@
     if((location.hash || '') === '#challenge') renderChallengeHall();
   }
   function hallMonthKey(d){ return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'); }
-  function chLockedHtml(){ return '<div class="card col" style="grid-column:1/-1; padding:22px 18px; align-items:center; gap:8px; text-align:center;"><span style="font-size:28px;" aria-hidden="true">🔒</span><span style="font-size:14px; font-weight:800;">참가작은 회원만 볼 수 있어요</span><span class="helper">아이 사진을 지키려고 로그인한 회원에게만 보여 줘요.</span><button type="button" class="btn-primary" data-ch-login style="height:42px; padding:0 20px; font-size:14px;">로그인하고 보기</button></div>'; }
+  function chLockedHtml(){ return '<div class="card col" style="grid-column:1/-1; padding:22px 18px; align-items:center; gap:8px; text-align:center;"><span style="font-size:28px;" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-lock"></use></svg></span><span style="font-size:14px; font-weight:800;">참가작은 회원만 볼 수 있어요</span><span class="helper">아이 사진을 지키려고 로그인한 회원에게만 보여 줘요.</span><button type="button" class="btn-primary" data-ch-login style="height:42px; padding:0 20px; font-size:14px;">로그인하고 보기</button></div>'; }
   function chLocked(){ return !!sb && !authUser; }
   function renderChallengeHall(){
     var box = document.getElementById('challenge-hall');
@@ -2366,25 +2372,25 @@
     var cur = hallRows.filter(function(x){ return x.month === thisKey && x.rnk === 1; });   // 챌린지마다 1위 (0037)
     var past = hallRows.filter(function(x){ return x.month < thisKey && x.rnk === 1; }).sort(function(a, b){ return a.month < b.month ? 1 : -1; });
     var chOf = function(k){ return challengeList.filter(function(c){ return c.id === k; })[0] || {}; };
-    var medal = ['🥇', '🥈', '🥉'];
+    var medal = ['1', '2', '3'];
     var rowHtml = function(x){
       var c = chOf(x.challenge_key);
       return '<button type="button" class="row" data-challenge-pick="' + escapeHtml(x.challenge_key || '') + '" style="align-items:center; gap:10px; width:100%; border:none; background:none; padding:6px 0; text-align:left; color:var(--text);">' +
-        '<span style="font-size:20px; flex:0 0 auto;" aria-hidden="true">' + medal[x.rnk - 1] + '</span>' +
+        '<span style="flex:0 0 auto; width:24px; height:24px; border-radius:50%; background:' + (x.rnk === 1 ? 'var(--accent2)' : 'var(--chip-b)') + '; color:' + (x.rnk === 1 ? '#fff' : 'var(--text2)') + '; font-size:12px; font-weight:800; display:flex; align-items:center; justify-content:center;" aria-label="' + x.rnk + '등">' + medal[x.rnk - 1] + '</span>' +
         '<span style="flex:0 0 auto; width:44px; height:44px; border-radius:12px; overflow:hidden; background:var(--w-sun); display:flex; align-items:center; justify-content:center;">' +
-          (x.media_url ? mediaThumb(x.media_url, 'width:100%; height:100%; object-fit:cover;') : '<span aria-hidden="true">' + escapeHtml(c.emoji || '🏆') + '</span>') + '</span>' +
+          (x.media_url ? mediaThumb(x.media_url, 'width:100%; height:100%; object-fit:cover;') : chArt(c, true)) + '</span>' +
         '<span class="col" style="gap:2px; min-width:0; flex:1;"><b style="font-size:14px;">' + escapeHtml(x.name || '우리 아이') + '</b>' +
-          '<span class="helper" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">' + escapeHtml((c.emoji || '') + ' ' + (c.title || '챌린지')) + '</span></span>' +
-        '<span style="flex:0 0 auto; text-align:right; font-size:12.5px; font-weight:800; color:var(--accent2);">' + (x.score != null ? x.score + '점' : '💛 ' + x.month_votes) + (x.score != null ? '<br><span class="helper" style="font-weight:600;">💛' + x.month_votes + ' · 🗳️' + (x.month_ballots || 0) + '</span>' : '') + '</span></button>';
+          '<span class="helper" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">' + escapeHtml(c.title || '챌린지') + '</span></span>' +
+        '<span style="flex:0 0 auto; text-align:right; font-size:12.5px; font-weight:800; color:var(--accent2);">' + (x.score != null ? x.score + '점' : ic('heart') + ' ' + x.month_votes) + (x.score != null ? '<br><span class="helper" style="font-weight:600;">응원 ' + x.month_votes + ' · 투표 ' + (x.month_ballots || 0) + '</span>' : '') + '</span></button>';
     };
     box.innerHTML = '<div class="card col" style="gap:6px; padding:16px 16px 10px; background:linear-gradient(180deg,#FFF6E0,#FFFDF6); border-color:#F1DDAE;">' +
-      '<div class="row" style="align-items:baseline; justify-content:space-between; gap:8px;"><b class="display" style="font-size:16px;">🏆 이달의 주인공</b>' +
+      '<div class="row" style="align-items:baseline; justify-content:space-between; gap:8px;"><b class="display" style="font-size:16px;">이달의 주인공</b>' +
         '<span class="helper">' + (now.getMonth() + 1) + '/' + lastDay + ' 마감</span></div>' +
       '<span class="helper">챌린지마다 이번 달 점수(응원 1점 + 투표 5점)가 가장 높은 아이 1명에게 육아용품을 드려요.</span>' +
       (cur.length ? '<div class="col" style="gap:2px; margin-top:4px;">' + cur.map(rowHtml).join('') + '</div>'
-                  : '<span class="helper" style="padding:10px 0;">아직 이번 달 점수가 없어요. 마음에 드는 참가작에 💛 응원과 🗳️ 투표를 해 주세요.</span>') +
+                  : '<span class="helper" style="padding:10px 0;">아직 이번 달 점수가 없어요. 마음에 드는 참가작에 응원과 투표를 해 주세요.</span>') +
       (past.length ? '<div class="row" style="gap:6px; flex-wrap:wrap; padding-top:8px; border-top:1px dashed #EAD8B6; margin-top:6px;"><span class="helper" style="font-weight:800;">지난 주인공</span>' +
-        past.slice(0, 10).map(function(x){ return '<span class="pill" style="padding:4px 10px; font-size:12px; background:#fff; border:1px solid #EAD8B6;">' + (+x.month.slice(5)) + '월 ' + escapeHtml(x.name || '') + ' ' + escapeHtml(chOf(x.challenge_key).emoji || '') + '</span>'; }).join('') + '</div>' : '') +
+        past.slice(0, 10).map(function(x){ return '<span class="pill" style="padding:4px 10px; font-size:12px; background:#fff; border:1px solid #EAD8B6;">' + (+x.month.slice(5)) + '월 ' + escapeHtml(x.name || '') + ' · ' + escapeHtml(chOf(x.challenge_key).title || '') + '</span>'; }).join('') + '</div>' : '') +
     '</div>';
   }
   function chMD(iso){ return iso ? (+iso.slice(5, 7)) + '/' + (+iso.slice(8, 10)) : ''; }
@@ -3323,7 +3329,7 @@
         '<span>' + n.label + '</span></button>';
     }).join('') +
       // PC 왼쪽 메뉴에만 보인다 (모바일은 CSS 로 숨김)
-      '<a class="nav-site" href="./community.html">💬 커뮤니티 사이트</a>';
+      '<a class="nav-site" href="./community.html">커뮤니티 사이트</a>';
   }
 
   // ---------- ONBOARDING ----------
@@ -3349,9 +3355,9 @@
       needLogin ? '로그인' : (editing ? '아이 정보 수정' : '지금 어느 단계인가요?');
     // 처음 온 사람에게 무엇을 할 수 있는지 먼저 보여준다 (고정 문구라 innerHTML 안전)
     document.getElementById('onboarding-sub').innerHTML =
-      needLogin ? '<span style="display:block;">🍼 수유·수면·키·몸무게 기록</span>' +
-                  '<span style="display:block;">💬 또래 엄마 아빠와 나누는 이야기</span>' +
-                  '<span style="display:block;">🎁 체험단·챌린지 경품</span>' +
+      needLogin ? '<span class="intro-li">' + ic('notebook-pen') + ' 수유·수면·키·몸무게 기록</span>' +
+                  '<span class="intro-li">' + ic('message-circle') + ' 또래 엄마 아빠와 나누는 이야기</span>' +
+                  '<span class="intro-li">' + ic('gift') + ' 체험단·챌린지 경품</span>' +
                   '<span style="display:block; margin-top:6px;">가입은 1분이면 끝나요.</span>'
                 : (editing ? '바꾼 내용에 맞춰 홈 정보와 또래 글이 달라져요.' : '단계에 맞는 정보와 캠페인을 보여줍니다.');
     if(needLogin){
@@ -3587,9 +3593,9 @@
       var due = new Date(state.dueDate + 'T00:00:00');
       var today = new Date(); today.setHours(0,0,0,0);
       var diff = Math.round((due - today) / DAY);
-      if(diff > 0) return { label:'출산예정일까지', value:'D-' + diff, emoji:'🤰' };
-      if(diff === 0) return { label:'출산예정일', value:'D-DAY', emoji:'👶' };
-      return { label:'예정일이 지났어요', value:'D+' + Math.abs(diff), emoji:'👶' };
+      if(diff > 0) return { label:'출산예정일까지', value:'D-' + diff, icon:'baby' };
+      if(diff === 0) return { label:'출산예정일', value:'D-DAY', icon:'baby' };
+      return { label:'예정일이 지났어요', value:'D+' + Math.abs(diff), icon:'baby' };
     }
     if(state.kidType === 'parenting' && state.birthMonth){
       var parts = state.birthMonth.split('-');
@@ -3597,7 +3603,7 @@
       if(!by || !bm) return null;
       var approxBirth = new Date(by, bm - 1, 15);
       var days = Math.max(0, Math.round((Date.now() - approxBirth.getTime()) / DAY));
-      return { label:'태어난 지 (약)', value:days + '일째', emoji:'🍼' };
+      return { label:'태어난 지 (약)', value:days + '일째', icon:'baby' };
     }
     return null;
   }
@@ -3632,7 +3638,7 @@
 
     var tip = info
       ? '<div class="hs-tip">' +
-          '<span class="hs-tip-label">💡 ' + escapeHtml(info.label) + '</span>' +
+          '<span class="hs-tip-label">' + ic('lightbulb') + ' ' + escapeHtml(info.label) + '</span>' +
           '<span style="font-size:14.5px; font-weight:800; line-height:1.45;">' + escapeHtml(info.headline) + '</span>' +
           '<p style="font-size:13px; line-height:1.65; color:var(--text2); margin:0;">' + escapeHtml(info.tip) + '</p>' +
           '<span class="helper" style="font-size:11.5px;">일반적인 정보이며 개인차가 있어요. 정확한 평가는 전문의와 상담해주세요.</span>' +
@@ -3642,7 +3648,7 @@
     // 웹(community.html) 페이지 머리와 같은 구성: 크림 바탕 글 + 초록 그림판. 스타일은 공용 rounded-ui.css
     return '<div class="home-hero">' +
       '<div class="hh-top">' + left +
-      '<div class="hh-art" aria-hidden="true"><span>' + (dd ? dd.emoji : '🌿') + '</span></div></div>' +
+      '<div class="hh-art" aria-hidden="true"><span>' + ic(dd ? dd.icon : 'sprout') + '</span></div></div>' +
       tip + '</div>';
   }
 
@@ -3665,7 +3671,7 @@
       var streak = careStreak();
       rows.push(
       '<a href="#growth" class="mission-row">' +
-        '<div class="mission-ico" style="background:var(--w-leaf);" aria-hidden="true">' + (streak ? '🔥' : '🍼') + '</div>' +
+        '<div class="mission-ico" style="background:var(--w-leaf);" aria-hidden="true">' + ic(streak ? 'flame' : 'notebook-pen') + '</div>' +
         '<div class="mission-main">' +
           '<span class="mission-title">' + (streak ? '육아기록 ' + streak + '일째 이어 쓰는 중' : '오늘 육아기록 남기기') + '</span>' +
           '<span class="helper">' + (streak >= 7 ? '체험단을 뽑을 때 먼저 뽑아 드려요' : '7일 이어 쓰면 체험단을 뽑을 때 먼저 뽑아 드려요') + '</span>' +
@@ -3679,10 +3685,10 @@
     chRecommended().filter(chOpen).slice(0, 2).forEach(function(c){
       var cIneligible = !chEligible(c);
       var n = state.entries.filter(function(e){ return (e.challenge_key || 'firststep') === c.id; }).length;
-      var cSub = cIneligible ? '지금 ' + n + '명 참여 중 · 💛 응원으로 함께해요' : (c.target_label || '전체') + ' · 지금 ' + n + '명 참여 중';
+      var cSub = cIneligible ? '지금 ' + n + '명 참여 중 · 응원으로 함께해요' : (c.target_label || '전체') + ' · 지금 ' + n + '명 참여 중';
       rows.push(
       '<a href="#challenge" class="mission-row" data-challenge-go="' + escapeHtml(c.id) + '">' +
-        '<div class="mission-ico" style="background:var(--chip-b);" aria-hidden="true">' + escapeHtml(c.emoji || '🏆') + '</div>' +
+        '<div class="mission-ico" style="background:var(--chip-b); overflow:hidden;" aria-hidden="true">' + chArt(c, true) + '</div>' +
         '<div class="mission-main">' +
           '<div class="row" style="align-items:center; gap:6px;">' +
             '<span class="mission-title">' + escapeHtml(c.title) + '</span>' +
@@ -3708,7 +3714,7 @@
       var dday = (dl == null) ? '' : (closed ? '마감' : (dl === 0 ? 'D-DAY' : 'D-' + dl));
       rows.push(
         '<a href="#benefit" class="mission-row">' +
-          '<div class="mission-ico" style="background:' + t.bg + ';" aria-hidden="true">🎁</div>' +
+          '<div class="mission-ico" style="background:' + t.bg + ';" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-gift"></use></svg></div>' +
           '<div class="mission-main">' +
             '<div class="row" style="align-items:center; gap:6px;">' +
               '<span class="mission-title">' + escapeHtml(t.title) + '</span>' +
@@ -3810,7 +3816,7 @@
     // 나들이가 0건이면 카드를 빼야 한다. 그대로 두면 o.emoji 에서 홈 피드 렌더링이 통째로 멈춘다.
     if(!o) return '';
     return '<a href="#outing" class="card row" style="align-items:center; gap:13px; padding:15px 16px; text-decoration:none; color:var(--text);">' +
-      '<div style="width:44px; height:44px; border-radius:14px; background:var(--chip-c); display:flex; align-items:center; justify-content:center; font-size:21px; flex:0 0 auto;" aria-hidden="true">' + o.emoji + '</div>' +
+      '<div style="width:44px; height:44px; border-radius:14px; background:var(--chip-c); display:flex; align-items:center; justify-content:center; font-size:21px; flex:0 0 auto; color:var(--accent2);" aria-hidden="true">' + ic('map-pin') + '</div>' +
       '<div class="col" style="gap:3px; min-width:0; flex:1;">' +
         '<span style="font-size:11px; font-weight:800; color:var(--chip-c-ink);">이번 주 나들이</span>' +
         '<span style="font-size:13.5px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">' + escapeHtml(o.title) + '</span>' +
@@ -3878,9 +3884,9 @@
   // 운영자가 바꿀 홍보 칸. 링크는 앱 안 화면(#...)만 쓴다.
   // shortcut: 배너를 코드에 적었다. 자주 바뀌면 mall_banners 처럼 DB 표로 옮긴다.
   var HOME_BANNERS = [
-    { key:'challenge', emoji:'🏆', title:'우리 아이 자랑 챌린지', sub:'사진이나 영상으로 참여하고 응원 받아요', href:'#challenge', bg:'var(--w-sun)' },
-    { key:'prep', emoji:'📝', title:'출산 준비물 체크리스트', sub:'꼭 필요한 것만 골라 하나씩 체크해요', href:'#prep', bg:'var(--w-leaf)' },
-    { key:'brand', emoji:'🛍️', title:'다다맘 브랜드관', sub:'엄마 아빠가 믿고 고르는 육아 브랜드', href:'#brand', bg:'var(--w-peach)' }
+    { key:'challenge', icon:'trophy', title:'우리 아이 자랑 챌린지', sub:'사진이나 영상으로 참여하고 응원 받아요', href:'#challenge', bg:'var(--w-sun)' },
+    { key:'prep', icon:'list-checks', title:'출산 준비물 체크리스트', sub:'꼭 필요한 것만 골라 하나씩 체크해요', href:'#prep', bg:'var(--w-leaf)' },
+    { key:'brand', icon:'shopping-bag', title:'다다맘 브랜드관', sub:'엄마 아빠가 믿고 고르는 육아 브랜드', href:'#brand', bg:'var(--w-peach)' }
   ];
   var homeDbBanners = null;   // null: 아직 안 불러옴
   // 관리 화면의 링크(#/challenge, #/brand/<id> 같은 웹 주소)를 앱 화면 주소로 바꾼다. 모르는 곳이면 https 만 그대로.
@@ -3928,7 +3934,7 @@
         return '<a class="hb-card' + (b.img ? ' img' : '') + '" href="' + escapeHtml(b.href) + '"' + (b.pick ? ' data-mall-go="' + escapeHtml(b.pick) + '"' : '') + (b.ext ? ' target="_blank" rel="noopener noreferrer"' : '') +
           ' style="background:' + b.bg + ';" aria-label="' + (i + 1) + '/' + list.length + ' ' + escapeHtml(b.title) + '">' +
           '<span class="col" style="gap:4px; min-width:0; flex:1;"><b>' + escapeHtml(b.title) + '</b>' + (b.sub ? '<span>' + escapeHtml(b.sub) + '</span>' : '') + '</span>' +
-          (b.emoji ? '<span class="hb-emoji" aria-hidden="true">' + b.emoji + '</span>' : '') + '</a>';
+          (b.icon ? '<span class="hb-emoji" aria-hidden="true">' + ic(b.icon) + '</span>' : '') + '</a>';
       }).join('') + '</div>' +
       (list.length > 1 ? '<div class="hb-dots" aria-hidden="true">' + list.map(function(b, i){ return '<span' + (i ? '' : ' class="on"') + '></span>'; }).join('') + '</div>' : '') +
       '</div>';
@@ -3968,19 +3974,19 @@
     ol.innerHTML = list.map(function(p, i){
       return '<li><button type="button" data-open-comments="' + escapeHtml(String(p.id)) + '">' +
         '<span class="hot-rank">' + (i + 1) + '</span><span class="hot-title">' + escapeHtml(postTitle(p.text)) + '</span>' +
-        '<span class="hot-meta" aria-label="좋아요 ' + (p.likes || 0) + '개, 댓글 ' + (p.comments || 0) + '개">♡ ' + (p.likes || 0) + ' · 💬 ' + (p.comments || 0) + '</span></button></li>';
+        '<span class="hot-meta" aria-label="좋아요 ' + (p.likes || 0) + '개, 댓글 ' + (p.comments || 0) + '개">' + ic('heart') + ' ' + (p.likes || 0) + ' · ' + ic('message-circle') + ' ' + (p.comments || 0) + '</span></button></li>';
     }).join('');
   }
 
   // ---------- 출산 준비물 체크리스트 · 선물 장부 (#prep) ----------
   // 둘 다 state → localStorage, 로그인하면 user_app_data(본인만 읽기)로 동기화한다.
   var PREP_LIST = [
-    { cat:'수유', emoji:'🍼', items:['젖병 2~3개', '젖병 세정제·솔', '분유 (분유·혼합 수유라면)', '수유 쿠션', '유축기', '수유 패드'] },
-    { cat:'목욕·위생', emoji:'🛁', items:['아기 욕조', '목욕 타월·가제 손수건', '아기 바디워시·로션', '신생아 기저귀', '물티슈', '아기 손톱가위', '체온계'] },
-    { cat:'옷', emoji:'👶', items:['배냇저고리 3~4벌', '바디수트', '속싸개·겉싸개', '손싸개·발싸개', '아기 모자'] },
-    { cat:'잠자리', emoji:'🛏️', items:['아기 침대 또는 범퍼 침대', '방수 요·침구', '수면 조끼'] },
-    { cat:'외출', emoji:'🚗', items:['카시트 (퇴원할 때 필요해요)', '유모차', '아기띠', '기저귀 가방'] },
-    { cat:'엄마 용품', emoji:'🤱', items:['산모 패드', '수유 브라', '회음부 방석', '산모 내복', '복대'] }
+    { cat:'수유', icon:'milk', items:['젖병 2~3개', '젖병 세정제·솔', '분유 (분유·혼합 수유라면)', '수유 쿠션', '유축기', '수유 패드'] },
+    { cat:'목욕·위생', icon:'bath', items:['아기 욕조', '목욕 타월·가제 손수건', '아기 바디워시·로션', '신생아 기저귀', '물티슈', '아기 손톱가위', '체온계'] },
+    { cat:'옷', icon:'shirt', items:['배냇저고리 3~4벌', '바디수트', '속싸개·겉싸개', '손싸개·발싸개', '아기 모자'] },
+    { cat:'잠자리', icon:'bed-double', items:['아기 침대 또는 범퍼 침대', '방수 요·침구', '수면 조끼'] },
+    { cat:'외출', icon:'car', items:['카시트 (퇴원할 때 필요해요)', '유모차', '아기띠', '기저귀 가방'] },
+    { cat:'엄마 용품', icon:'heart-handshake', items:['산모 패드', '수유 브라', '회음부 방석', '산모 내복', '복대'] }
   ];
   var GIFT_KINDS = ['출산 선물', '백일', '돌잔치', '기타'];
   var prepTab = 'check';
@@ -4010,10 +4016,10 @@
         '<div class="prep-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + pct + '" aria-label="준비물 진행"><span style="width:' + pct + '%;"></span></div></div>' +
       PREP_LIST.map(function(g){
         var n = g.items.filter(function(it){ return state.prepChecked[prepItemKey(g.cat, it)]; }).length;
-        return '<section class="prep-group"><h2 class="prep-head"><span aria-hidden="true">' + g.emoji + '</span>' + escapeHtml(g.cat) + '<span class="helper">' + n + '/' + g.items.length + '</span></h2>' +
+        return '<section class="prep-group"><h2 class="prep-head"><span aria-hidden="true">' + ic(g.icon) + '</span>' + escapeHtml(g.cat) + '<span class="helper">' + n + '/' + g.items.length + '</span></h2>' +
           g.items.map(function(it){ return prepRow(prepItemKey(g.cat, it), it); }).join('') + '</section>';
       }).join('') +
-      '<section class="prep-group"><h2 class="prep-head"><span aria-hidden="true">✍️</span>직접 추가한 것</h2>' +
+      '<section class="prep-group"><h2 class="prep-head"><span aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-pen-line"></use></svg></span>직접 추가한 것</h2>' +
         state.prepCustom.map(function(c){ return prepRow('custom::' + c.id, c.name, '<button type="button" class="prep-del" data-prep-del="' + escapeHtml(c.id) + '" aria-label="' + escapeHtml(c.name) + ' 지우기">✕</button>'); }).join('') +
         '<form class="prep-add" data-prep-add><div class="field" style="flex:1;"><label for="prep-new" class="sr-only">추가할 준비물</label><input type="text" id="prep-new" maxlength="40" placeholder="예: 손소독제" autocomplete="off"></div>' +
         '<button type="submit" class="btn-ghost" style="height:48px; padding:0 16px; flex:0 0 auto;">추가</button></form></section>' +
@@ -4107,13 +4113,13 @@
       var pics = mine.filter(function(e){ return e.media_url; }).slice(0, 4);
       var open = chOpen(c), ok = chEligible(c);
       var tag = !open ? '<span class="dday off">마감</span>' : '<span class="dday">' + chDdayLabel(c) + '</span>';
-      var badge = !open ? '' : (!ok ? '<span class="pill" style="padding:2px 8px; font-size:11px; background:#FFF0F3; color:#B2456A;">💛 응원만</span>'
+      var badge = !open ? '' : (!ok ? '<span class="pill" style="padding:2px 8px; font-size:11px; background:#FFF0F3; color:#B2456A;">응원만</span>'
         : (chFits(c) && (c.age_min_m != null || c.age_max_m != null || c.stage === 'pregnant') ? '<span class="badge-match">우리 아이 추천</span>' : ''));
       return '<button type="button" class="card" data-challenge-open="' + escapeHtml(c.id) + '" style="display:flex; align-items:center; gap:13px; width:100%; padding:14px; text-align:left; color:var(--text);' + (open ? '' : ' opacity:.65;') + '">' +
-        '<span style="flex:0 0 auto; width:58px; height:58px; border-radius:18px; background:var(--w-sun); display:flex; align-items:center; justify-content:center; font-size:30px;" aria-hidden="true">' + escapeHtml(c.emoji || '🏆') + '</span>' +
+        '<span style="flex:0 0 auto; width:58px; height:58px; border-radius:18px; background:var(--w-sun); display:flex; align-items:center; justify-content:center; font-size:26px; color:var(--accent2); overflow:hidden;" aria-hidden="true">' + chArt(c, true) + '</span>' +
         '<span style="display:flex; flex-direction:column; gap:4px; min-width:0; flex:1;">' +
           '<span style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;"><b style="font-size:15px;">' + escapeHtml(c.title) + '</b>' + tag + badge + '</span>' +
-          '<span class="helper">' + escapeHtml(c.target_label || '전체') + (chLocked() ? ' · 🔒 회원 공개' : ' · 참가작 ' + mine.length + '개' + (cheers ? ' · 💛 ' + cheers : '')) + '</span>' +
+          '<span class="helper">' + escapeHtml(c.target_label || '전체') + (chLocked() ? ' · ' + ic('lock') + ' 회원 공개' : ' · 참가작 ' + mine.length + '개' + (cheers ? ' · 응원 ' + cheers : '')) + '</span>' +
           (pics.length ? '<span style="display:flex; gap:5px; margin-top:2px;">' + pics.map(function(e){ return '<span style="width:38px; height:38px; border-radius:10px; overflow:hidden; flex:0 0 auto;">' + mediaThumb(e.media_url, 'width:100%; height:100%; object-fit:cover;') + '</span>'; }).join('') + '</span>' : '') +
         '</span>' +
         '<svg style="flex:0 0 auto;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></button>';
@@ -4144,28 +4150,28 @@
       var tw = String(cur.title || '').split(' ');
       titleEl.innerHTML = tw.length > 1 ? escapeHtml(tw.slice(0, -1).join(' ')) + ' <em>' + escapeHtml(tw[tw.length - 1]) + '</em>' : '<em>' + escapeHtml(cur.title || '') + '</em>';
     }
-    var artEl = document.getElementById('challenge-art'); if(artEl) artEl.textContent = cur.emoji || '🏆';
+    var artEl = document.getElementById('challenge-art'); if(artEl) artEl.innerHTML = ic(({ firststep:'footprints', crawl:'baby', bump:'heart', cheeks:'heart', halloween:'sparkles' })[cur.id] || 'trophy');
     var exEl = document.getElementById('challenge-example');
     if(exEl && exEl.getAttribute('data-for') !== cur.id){ exEl.innerHTML = chExampleHtml(cur); exEl.setAttribute('data-for', cur.id); }
     var descEl = document.getElementById('challenge-desc'); if(descEl) descEl.textContent = cur.description || '';
     var prizeEl = document.getElementById('challenge-prize');
     if(prizeEl){
       prizeEl.hidden = !cur.prize;
-      prizeEl.innerHTML = '<span class="ch-prize-ico" aria-hidden="true">🎁</span><span><b>' + escapeHtml(cur.prize || '') + '</b><br><span style="color:var(--text2);">' +
+      prizeEl.innerHTML = '<span class="ch-prize-ico" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-gift"></use></svg></span><span><b>' + escapeHtml(cur.prize || '') + '</b><br><span style="color:var(--text2);">' +
         (cur.ends_on ? chMD(cur.ends_on) + ' 마감' : '상시 진행') + ' · ' + (cur.announce_on ? chMD(cur.announce_on) + ' 발표' : '매달 첫 주 발표') + ' · 당첨되면 가입한 이메일로 연락드려요</span></span>';
     }
     var picker = document.getElementById('challenge-picker');
     if(picker){
       picker.hidden = challengeList.length < 2;
       picker.innerHTML = chRecommended().map(function(c){
-        return '<button type="button" class="chip-f" data-challenge-pick="' + escapeHtml(c.id) + '" aria-pressed="' + (c.id === cur.id) + '">' + escapeHtml((c.emoji || '') + ' ' + c.title) + (chOpen(c) ? '' : ' · 마감') + '</button>';
+        return '<button type="button" class="chip-f" data-challenge-pick="' + escapeHtml(c.id) + '" aria-pressed="' + (c.id === cur.id) + '">' + escapeHtml(c.title) + (chOpen(c) ? '' : ' · 마감') + '</button>';
       }).join('');
     }
     var partBtn = document.querySelector('[data-open-challenge-modal]');
     if(partBtn){
       var ineligible = !chEligible(cur);
       partBtn.disabled = ineligible || challengeClosed;
-      partBtn.textContent = challengeClosed ? '모집이 마감됐어요' : (ineligible ? (cur.stage === 'pregnant' ? '임신 중인 분이 참여하는 챌린지예요 · 💛 응원해 주세요' : '임신 중엔 💛 응원으로 함께해요 · 출산 후 참여할 수 있어요') : (cur.stage === 'pregnant' ? '참여하기 ' + (cur.emoji || '') : '우리 아이도 참여하기'));
+      partBtn.textContent = challengeClosed ? '모집이 마감됐어요' : (ineligible ? (cur.stage === 'pregnant' ? '임신 중인 분이 참여하는 챌린지예요 · 응원해 주세요' : '임신 중엔 응원으로 함께해요 · 출산 후 참여할 수 있어요') : (cur.stage === 'pregnant' ? '참여하기 ' + '' : '우리 아이도 참여하기'));
     }
 
     if(chLocked()){ document.getElementById('entry-count').textContent = '–'; document.getElementById('entries').innerHTML = chLockedHtml(); return; }
@@ -4176,14 +4182,14 @@
       ? '<div class="row" style="grid-column:1/-1; align-items:center; justify-content:space-between; background:var(--accent-soft); border-radius:12px; padding:10px 14px;"><span style="font-size:12.5px; font-weight:700; color:var(--accent2);">내 참여 기록만 보는 중</span><button type="button" data-clear-my-filter class="link-quiet" style="background:none; border:none;">전체보기</button></div>'
       : '';
     if(list.length === 0){
-      document.getElementById('entries').innerHTML = challengeMineBanner + '<div class="card col" style="grid-column:1/-1; padding:22px 18px; align-items:center; gap:6px; text-align:center;"><span style="font-size:28px;" aria-hidden="true">' + escapeHtml(cur.emoji || '🏆') + '</span><span style="font-size:14px; font-weight:800;">첫 주인공이 되어 보세요</span><span class="helper">' + (cur.media_rule === 'video' ? '1분 이내 영상 하나면' : '사진 한 장이면') + ' 참여할 수 있어요. 응원과 투표를 가장 많이 받으면 이달의 주인공!</span></div>';
+      document.getElementById('entries').innerHTML = challengeMineBanner + '<div class="card col" style="grid-column:1/-1; padding:22px 18px; align-items:center; gap:6px; text-align:center;"><span style="font-size:28px; color:var(--accent2);">' + ic('trophy') + '</span><span style="font-size:14px; font-weight:800;">첫 주인공이 되어 보세요</span><span class="helper">' + (cur.media_rule === 'video' ? '1분 이내 영상 하나면' : '사진 한 장이면') + ' 참여할 수 있어요. 응원과 투표를 가장 많이 받으면 이달의 주인공!</span></div>';
       return;
     }
     document.getElementById('entries').innerHTML = challengeMineBanner + list.map(function(e){
       // 자랑이 주인공이라 사진을 크게 (두 칸). 사진을 누르면 크게 본다.
       var thumb = e.media_url
         ? mediaThumb(e.media_url, 'width:100%; height:100%; object-fit:cover;')
-        : '<span style="font-size:34px;" aria-hidden="true">' + escapeHtml(cur.emoji || '🏆') + '</span>';
+        : '<span style="font-size:30px; color:var(--text2);">' + ic('image') + '</span>';
       return '<div class="card col" style="gap:0; padding:0; overflow:hidden; min-width:0;">' +
         '<button type="button" data-entry-photo="' + escapeHtml(String(e.id)) + '" aria-label="' + escapeHtml(e.name) + ' 참가작 사진 크게 보기" style="display:flex; align-items:center; justify-content:center; width:100%; aspect-ratio:1/1; border:none; padding:0; background:var(--w-sun); overflow:hidden;">' +
         thumb + '</button>' +
@@ -4196,8 +4202,8 @@
         '<button data-vote="' + e.id + '" aria-pressed="' + e.liked + '" aria-label="응원하기, 현재 ' + e.votes + '표" style="flex:0 0 auto; background:none; border:none; display:flex; align-items:center; gap:5px; min-width:44px; min-height:44px; padding:0 8px; justify-content:center;">' +
         '<svg width="20" height="20" viewBox="0 0 24 24" fill="' + (e.liked ? 'var(--accent)' : 'none') + '" stroke="var(--accent)" stroke-width="1.6" aria-hidden="true"><path d="M12 21s-7.5-4.6-10-9.3C0.4 8.4 2.4 5 6 5c2 0 3.4 1 4 2.3C10.6 6 12 5 14 5c3.6 0 5.6 3.4 4 6.7-2.5 4.7-10 9.3-10 9.3z"/></svg>' +
         '<span style="font-size:12.5px; color:var(--text2);">' + e.votes + '</span></button>' +
-        (!e.mine && e.status === 'approved' ? (function(){ var on = myBallots[cur.id] === e.id; return '<button type="button" data-ballot="' + escapeHtml(String(e.id)) + '" aria-pressed="' + on + '" aria-label="이 참가작에 투표하기 (챌린지마다 한 달에 한 표)" style="flex:0 0 auto; margin-left:auto; border:1px solid ' + (on ? 'var(--accent)' : 'var(--line)') + '; background:' + (on ? 'var(--accent-soft)' : '#fff') + '; color:' + (on ? 'var(--accent2)' : 'var(--text2)') + '; border-radius:999px; min-height:34px; padding:0 12px; font-size:12px; font-weight:800; margin-right:6px;">' + (on ? '🗳️ 투표함 ' : '🗳️ 투표 ') + (ballotCounts[e.id] || 0) + '</button>'; })()
-          : (e.mine && e.status === 'approved' ? '<span style="flex:0 0 auto; margin-left:auto; margin-right:6px; font-size:12px; font-weight:800; color:var(--text2);" aria-label="이번 달 투표 ' + (ballotCounts[e.id] || 0) + '표">🗳️ ' + (ballotCounts[e.id] || 0) + '</span>' : '')) +
+        (!e.mine && e.status === 'approved' ? (function(){ var on = myBallots[cur.id] === e.id; return '<button type="button" data-ballot="' + escapeHtml(String(e.id)) + '" aria-pressed="' + on + '" aria-label="이 참가작에 투표하기 (챌린지마다 한 달에 한 표)" style="flex:0 0 auto; margin-left:auto; border:1px solid ' + (on ? 'var(--accent)' : 'var(--line)') + '; background:' + (on ? 'var(--accent-soft)' : '#fff') + '; color:' + (on ? 'var(--accent2)' : 'var(--text2)') + '; border-radius:999px; min-height:34px; padding:0 12px; font-size:12px; font-weight:800; margin-right:6px;">' + ic('vote') + (on ? ' 투표함 ' : ' 투표 ') + (ballotCounts[e.id] || 0) + '</button>'; })()
+          : (e.mine && e.status === 'approved' ? '<span style="flex:0 0 auto; margin-left:auto; margin-right:6px; font-size:12px; font-weight:800; color:var(--text2);" aria-label="이번 달 투표 ' + (ballotCounts[e.id] || 0) + '표">' + ic('vote') + ' ' + (ballotCounts[e.id] || 0) + '</span>' : '')) +
         (e.mine
           ? '<button data-edit-entry="' + e.id + '" aria-label="내 참가작 수정" style="flex:0 0 auto; margin-left:auto; background:none; border:none; color:var(--text2); min-width:44px; min-height:44px; font-size:12px;">수정</button>' +
             '<button data-delete-entry="' + e.id + '" aria-label="내 참가작 삭제" style="flex:0 0 auto; background:none; border:none; color:var(--text2); min-width:44px; min-height:44px; font-size:12px;">삭제</button>'
@@ -4301,7 +4307,7 @@
       return '<button type="button" class="card col" data-open-outing="' + escapeHtml(String(o.id)) + '"' +
         ' style="gap:8px; padding:16px; width:100%; text-align:left; border:1px solid var(--border); cursor:pointer;">' +
         '<div class="row" style="align-items:center; gap:8px; flex-wrap:wrap;">' +
-        '<span style="font-size:20px;" aria-hidden="true">' + (o.emoji || '📍') + '</span>' +
+        '<span style="font-size:20px; color:var(--accent2);">' + ic('map-pin') + '</span>' +
         '<span class="eyebrow">' + (o.category === 'event' ? '행사' : '놀거리') + '</span>' +
         '<span style="font-size:11.5px; color:var(--text2);">' + escapeHtml(o.region) + '</span>' +
         (dday ? '<span class="eyebrow" style="color:var(--accent-strong);">' + dday + '</span>' : '') +
@@ -4349,7 +4355,7 @@
     return '<div class="modal-head"><h3 class="display">' + escapeHtml(o.title) + '</h3>' +
         '<button class="modal-close" data-close-modal aria-label="닫기">\u2715</button></div>' +
       '<div class="row" style="align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:10px;">' +
-        '<span style="font-size:18px;" aria-hidden="true">' + (o.emoji || '📍') + '</span>' +
+        '<span style="font-size:18px; color:var(--accent2);">' + ic('map-pin') + '</span>' +
         '<span class="eyebrow">' + (o.category === 'event' ? '행사' : '놀거리') + '</span>' +
         '<span style="font-size:11.5px; color:var(--text2);">' + escapeHtml(o.region) + '</span>' +
         (dday ? '<span class="eyebrow" style="color:var(--accent-strong);">' + dday + '</span>' : '') +
@@ -4429,7 +4435,7 @@
   var commQuery = '';   // 커뮤니티 검색어 (저장하지 않는다)
   function benefitEmptyHtml(title){
     return '<div class="card col" style="padding:22px 18px; align-items:center; gap:8px; text-align:center;">' +
-      '<span style="font-size:26px;" aria-hidden="true">🎁</span>' +
+      '<span style="font-size:26px;" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-gift"></use></svg></span>' +
       '<span style="font-size:14px; font-weight:800;">' + escapeHtml(title) + '</span>' +
       '<span class="helper">새 체험단·이벤트가 열리면 공지로 알려드려요.<br>그동안 챌린지에 참여해 보세요. 챌린지마다 매달 1명에게 육아용품을 드려요.</span>' +
       '<a href="#challenge" class="pill" style="margin-top:4px; padding:10px 18px; background:var(--accent-soft); color:var(--accent2); font-size:13px; font-weight:800; text-decoration:none;">챌린지 보러 가기</a></div>';
@@ -5763,7 +5769,7 @@
     }
     var list = magItems.filter(function(m){ return !magKind || m.kind === magKind; });
     body.innerHTML = (list.length ? '<div class="mag-grid">' + list.map(DadamomShared.magCardHtml).join('') + '</div>'
-        : '<div class="card col" style="padding:22px; align-items:center; gap:6px;"><span style="font-size:30px;" aria-hidden="true">📰</span><span class="helper" style="text-align:center;">곧 엄마 아빠에게 도움이 될 소식을 모아 올게요!</span></div>') +
+        : '<div class="card col" style="padding:22px; align-items:center; gap:6px;"><span style="font-size:30px;" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-newspaper"></use></svg></span><span class="helper" style="text-align:center;">곧 엄마 아빠에게 도움이 될 소식을 모아 올게요!</span></div>') +
       '<p class="mag-note">' + escapeHtml(DadamomShared.MAG_NOTE) + '</p>';
   }
   document.addEventListener('click', function(e){
@@ -5797,19 +5803,19 @@
     var img = mallUrl(p.image_url), buy = mallUrl(p.buy_url);
     var sale = p.sale_price != null && p.price != null && p.sale_price < p.price;
     var pct = sale ? Math.round((1 - p.sale_price / p.price) * 100) : 0;
-    var inner = '<span class="ph">' + (img ? '<img src="' + escapeHtml(img) + '" alt="" loading="lazy">' : '<span aria-hidden="true">🛍️</span>') + '</span>' +
+    var inner = '<span class="ph">' + (img ? '<img src="' + escapeHtml(img) + '" alt="" loading="lazy">' : '<span aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-shopping-bag"></use></svg></span>') + '</span>' +
       (mallDealOn(p) ? '<span class="deal">특가' + (p.deal_until ? ' ~' + escapeHtml(p.deal_until.slice(5).replace('-', '/')) : '') + '</span>' : '') +
       '<span class="bn">' + escapeHtml(b ? b.name : '') + '</span>' +
       '<span class="nm">' + escapeHtml(p.name) + '</span>' +
       '<span class="pr">' + (sale ? '<span class="was">' + mallWon(p.price) + '</span><span class="now"><span class="pct">' + pct + '%</span>' + mallWon(p.sale_price) + '</span>'
         : (p.price != null ? '<span class="now">' + mallWon(p.price) + '</span>' : '')) + '</span>' +
-      (buy ? '<span class="buy">구매하러 가기 ↗</span>' : '');
+      (buy ? '<span class="buy">구매하러 가기 ' + ic('arrow-up-right') + '</span>' : '');
     var wished = state.wishProducts.indexOf(p.id) > -1;
     // 찜 버튼은 링크(a) 밖 형제로 둔다 — 링크 안에 버튼을 넣으면 누를 때 스토어가 같이 열린다
     return '<div class="app-prod-wrap">' + (buy
       ? '<a class="app-prod" href="' + escapeHtml(buy) + '" target="_blank" rel="noopener noreferrer sponsored">' + inner + '</a>'
       : '<div class="app-prod">' + inner + '</div>') +
-      '<button type="button" class="wish-btn" data-wish="' + escapeHtml(p.id) + '" aria-pressed="' + wished + '" aria-label="' + escapeHtml(p.name) + (wished ? ' 찜 해제' : ' 찜하기') + '">' + (wished ? '♥' : '♡') + '</button></div>';
+      '<button type="button" class="wish-btn" data-wish="' + escapeHtml(p.id) + '" aria-pressed="' + wished + '" aria-label="' + escapeHtml(p.name) + (wished ? ' 찜 해제' : ' 찜하기') + '">' + (wished ? '<svg class="ic ic-fill" aria-hidden="true"><use href="#i-heart"></use></svg>' : ic('heart')) + '</button></div>';
   }
   function renderBrand(){
     var body = document.getElementById('brand-body');
@@ -5835,7 +5841,7 @@
     var byId = {}; mall.brands.forEach(function(b){ byId[b.id] = b; });
     var prods = mall.prods.filter(function(p){ return byId[p.brand_id]; });
     if(!mall.brands.length){
-      body.innerHTML = '<div class="card col" style="padding:22px; align-items:center; gap:6px;"><span style="font-size:30px;" aria-hidden="true">🛍️</span>' +
+      body.innerHTML = '<div class="card col" style="padding:22px; align-items:center; gap:6px;"><span style="font-size:30px;" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-shopping-bag"></use></svg></span>' +
         '<span class="helper" style="text-align:center;">곧 엄마 아빠가 믿고 고를 수 있는 브랜드를 모아 열게요!</span></div>';
       return;
     }
@@ -5855,7 +5861,7 @@
     var store = pick && mallUrl(pick.store_url);
     var brandInfo = pick ? '<div class="app-brand-info">' + mallLogo(pick) + '<div class="col" style="gap:4px; min-width:0; flex:1;"><b>' + escapeHtml(pick.name) + '</b>' +
         (pick.intro ? '<span class="helper">' + escapeHtml(pick.intro) + '</span>' : '') + '</div>' +
-        (store ? '<a class="btn-ghost" href="' + escapeHtml(store) + '" target="_blank" rel="noopener noreferrer sponsored" style="height:40px; padding:0 14px; flex:0 0 auto;">스토어 ↗</a>' : '') + '</div>' : '';
+        (store ? '<a class="btn-ghost" href="' + escapeHtml(store) + '" target="_blank" rel="noopener noreferrer sponsored" style="height:40px; padding:0 14px; flex:0 0 auto;">스토어 ' + ic('arrow-up-right') + '</a>' : '') + '</div>' : '';
     body.innerHTML = (banners ? '<div class="home-sec"><div class="home-sec-head"><h2 class="home-sec-title display">진행 중인 기획전</h2></div>' + banners + '</div>' : '') +
       '<div class="home-sec"><div class="home-sec-head"><h2 class="home-sec-title display">함께하는 브랜드</h2><span class="helper">' + mall.brands.length + '개</span></div>' +
       '<div class="app-brand-list">' + mall.brands.map(function(b){
@@ -6285,7 +6291,7 @@
   function linkListHtml(rows){
     return '<div class="col" style="gap:2px; max-height:60vh; overflow:auto;">' + rows.map(function(r){
       return '<a href="' + (r.href || './community.html#/p/' + encodeURIComponent(r.id)) + '"' + (r.attr || '') + ' style="display:flex; gap:10px; padding:11px 8px; border-radius:12px; text-decoration:none; color:var(--text); font-size:13.5px; line-height:1.55;' + (r.isNew ? ' background:var(--accent-soft);' : '') + '">' +
-        (r.icon ? '<span aria-hidden="true">' + r.icon + '</span>' : '') +
+        (r.icon ? '<span aria-hidden="true">' + ic(r.icon) + '</span>' : '') +
         '<span style="flex:1; min-width:0;">' + r.html + '<span class="helper" style="display:block;">' + escapeHtml(r.meta) + '</span></span></a>';
     }).join('') + '</div>';
   }
@@ -6383,10 +6389,10 @@
     var head = '<div class="modal-head"><h3 class="display">알림</h3><button class="modal-close" data-close-modal aria-label="닫기">✕</button></div>';
     openModal(head + (noti.items.length
       ? linkListHtml(noti.items.map(function(i){
-          if(i.kind === 'review') return { href:'#admin', attr:' data-close-modal', isNew:true, icon:'📝', meta:'관리자 화면에서 승인·반려해 주세요',
+          if(i.kind === 'review') return { href:'#admin', attr:' data-close-modal', isNew:true, icon:'pen-line', meta:'관리자 화면에서 승인·반려해 주세요',
             html:'<b>검수 대기 ' + i.n + '건</b>이 있어요' };
           return {
-            id:i.id, isNew: i.at > seen, icon: i.kind === 'ok' ? '✅' : '💬', meta: timeAgo(new Date(i.at).toISOString()),
+            id:i.id, isNew: i.at > seen, icon: i.kind === 'ok' ? 'circle-check' : 'message-circle', meta: timeAgo(new Date(i.at).toISOString()),
             html: i.kind === 'ok'
               ? '<b>"' + escapeHtml(i.title) + '"</b> 글이 검수를 통과해 공개됐어요'
               : '<b>' + escapeHtml(i.who || '익명') + '</b>님이 "' + escapeHtml(i.title) + '"에 댓글을 남겼어요: ' + escapeHtml(i.text)
@@ -6435,7 +6441,7 @@
     }
     return '<div class="card col" role="note" aria-label="홈 화면에 추가 안내" style="gap:8px; padding:14px 16px; word-break:keep-all;">' +
       '<div class="row" style="align-items:center; gap:8px;">' +
-        '<span style="flex:1; font-size:14px; font-weight:800;">📲 앱처럼 설치해 두세요</span>' +
+        '<span style="flex:1; font-size:14px; font-weight:800;">앱처럼 설치해 두세요</span>' +
         '<button type="button" data-install-dismiss aria-label="안내 닫기" style="border:none; background:none; color:var(--text2); min-width:44px; min-height:44px; font-size:16px;">✕</button>' +
       '</div>' +
       '<div class="row" style="align-items:center; gap:10px;"><p class="helper" style="flex:1; font-size:12.5px; line-height:1.6;">' + how + '</p>' + btn + '</div>' +
@@ -6489,7 +6495,7 @@
       shareBtn('kakao', '카카오톡') + shareBtn('fb', '페이스북') + shareBtn('tw', 'X (트위터)') + shareBtn('ig', '인스타그램') +
       '</div>' +
       '<button type="button" class="btn-primary" data-share-native style="width:100%; margin-top:14px;">다른 앱으로 공유</button>' +
-      '<button type="button" class="btn-ghost" data-share-copy style="width:100%; margin-top:10px;">🔗 링크 복사</button>' +
+      '<button type="button" class="btn-ghost" data-share-copy style="width:100%; margin-top:10px;">' + ic('link') + ' 링크 복사</button>' +
       '<span class="helper" id="share-hint"></span>';
   }
 
@@ -6549,7 +6555,7 @@
       '<div class="mission-banner">' +
         '<div class="row" style="align-items:center; gap:7px;">' +
           '<span class="mission-banner-dday">' + dday + '</span>' +
-          '<span style="font-size:13.5px; font-weight:800;">' + escapeHtml((cur.emoji || '') + ' ' + cur.title) + '</span>' +
+          '<span style="font-size:13.5px; font-weight:800;">' + escapeHtml(cur.title) + '</span>' +
         '</div>' +
         '<span class="helper">지금까지 ' + curCount + '명이 인증했어요 · ' + escapeHtml(cur.target_label || '전체') + '</span>' +
       '</div>' +
@@ -6561,10 +6567,10 @@
         '</ul>' +
       '</div>' +
       (cur.media_rule === 'video'
-        ? '<div class="field"><label for="entry-file">인증 영상 *</label><label class="kfile"><input type="file" class="kfile-input" id="entry-file" accept="video/mp4,video/quicktime"><span class="kfile-btn">🎬 영상 고르기</span><span class="kfile-name">선택한 파일 없음</span></label><span class="helper" id="entry-file-hint">' + entryHintEmpty('video') + '</span></div>'
+        ? '<div class="field"><label for="entry-file">인증 영상 *</label><label class="kfile"><input type="file" class="kfile-input" id="entry-file" accept="video/mp4,video/quicktime"><span class="kfile-btn">' + ic('video') + ' 영상 고르기</span><span class="kfile-name">선택한 파일 없음</span></label><span class="helper" id="entry-file-hint">' + entryHintEmpty('video') + '</span></div>'
         : cur.media_rule === 'photo'
-        ? '<div class="field"><label for="entry-file">인증 사진 *</label><label class="kfile"><input type="file" class="kfile-input" id="entry-file" accept="image/jpeg,image/png,image/webp"><span class="kfile-btn">📷 사진 고르기</span><span class="kfile-name">선택한 파일 없음</span></label><span class="helper" id="entry-file-hint">' + entryHintEmpty('photo') + '</span></div>'
-        : '<div class="field"><label for="entry-file">인증 사진·영상 *</label><label class="kfile"><input type="file" class="kfile-input" id="entry-file" accept="image/jpeg,image/png,image/webp,video/mp4,video/quicktime"><span class="kfile-btn">📷 사진·영상 고르기</span><span class="kfile-name">선택한 파일 없음</span></label><span class="helper" id="entry-file-hint">' + entryHintEmpty('') + '</span></div>') +
+        ? '<div class="field"><label for="entry-file">인증 사진 *</label><label class="kfile"><input type="file" class="kfile-input" id="entry-file" accept="image/jpeg,image/png,image/webp"><span class="kfile-btn">' + ic('camera') + ' 사진 고르기</span><span class="kfile-name">선택한 파일 없음</span></label><span class="helper" id="entry-file-hint">' + entryHintEmpty('photo') + '</span></div>'
+        : '<div class="field"><label for="entry-file">인증 사진·영상 *</label><label class="kfile"><input type="file" class="kfile-input" id="entry-file" accept="image/jpeg,image/png,image/webp,video/mp4,video/quicktime"><span class="kfile-btn">' + ic('camera') + ' 사진·영상 고르기</span><span class="kfile-name">선택한 파일 없음</span></label><span class="helper" id="entry-file-hint">' + entryHintEmpty('') + '</span></div>') +
       '<div class="field"><label for="entry-note">한 줄 기록 *</label><textarea id="entry-note" rows="3" placeholder="' + escapeHtml(cur.placeholder || '한 줄로 남겨 주세요') + '"></textarea></div>' +
       '<label class="check-row"><input type="checkbox" id="entry-consent"> 보호자이며, 아이 사진을 챌린지에 게시하는 것에 동의해요 *</label>' +
       '<label class="check-row"><input type="checkbox" id="entry-consent2"> 올린 사진·영상을 다다맘과 경품을 주는 브랜드가 SNS·광고 등 홍보에 쓰는 것에 동의해요 *</label>' +
@@ -6582,7 +6588,7 @@
             return '<button type="button" class="chip-f" data-post-topic="' + t + '" aria-pressed="false">' + t + '</button>';
           }).join('') +
         '</div></div>' +
-      '<div class="field"><label for="post-photo">사진·영상 (선택)</label><label class="kfile"><input type="file" class="kfile-input" id="post-photo" accept="image/jpeg,image/png,image/webp,video/mp4,video/quicktime"><span class="kfile-btn">📷 사진·영상 고르기</span><span class="kfile-name">선택한 파일 없음</span></label><span class="helper" id="post-photo-hint">사진 25MB · 영상 1분까지 (큰 영상은 자동으로 줄여요)</span></div>' +
+      '<div class="field"><label for="post-photo">사진·영상 (선택)</label><label class="kfile"><input type="file" class="kfile-input" id="post-photo" accept="image/jpeg,image/png,image/webp,video/mp4,video/quicktime"><span class="kfile-btn">' + ic('camera') + ' 사진·영상 고르기</span><span class="kfile-name">선택한 파일 없음</span></label><span class="helper" id="post-photo-hint">사진 25MB · 영상 1분까지 (큰 영상은 자동으로 줄여요)</span></div>' +
       '<div class="field"><label for="post-text">내용 *</label><textarea id="post-text" rows="4" placeholder="질문이나 이야기를 적어주세요"></textarea></div>' +
       '<div class="field"><label>공개범위 *</label>' +
       '<div class="segmented round" role="tablist" aria-label="공개범위 선택" id="post-visibility-group" style="width:100%;">' +
@@ -6802,7 +6808,7 @@
         openModal('<div class="modal-head"><h3 class="display">' + escapeHtml(ep.name) + '</h3><button class="modal-close" data-close-modal aria-label="닫기">✕</button></div>' +
           mediaTag(ep.media_url, 'width:100%; max-height:70vh; object-fit:contain; border-radius:16px; background:#000;') +
           '<span class="helper">' + escapeHtml(ep.age) + '</span>' + (ep.note ? '<p style="font-size:14px; line-height:1.6;">' + escapeHtml(ep.note) + '</p>' : '') +
-          '<span class="helper">💛 응원 ' + ep.votes + ' · 마음에 들면 목록에서 💛를 눌러 응원해 주세요</span>');
+          '<span class="helper">응원 ' + ep.votes + ' · 마음에 들면 목록에서 응원을 눌러 주세요</span>');
       }
       return;
     }
@@ -7645,7 +7651,8 @@
     }catch(e){ return []; }
   }
 
-  var COMMENT_REACTIONS = ['\ud83d\udc4d','\u2764\ufe0f','\ud83d\ude02','\ud83d\ude22'];
+  var COMMENT_REACTIONS = ['\ud83d\udc4d','\u2764\ufe0f'];   // 저장 키는 이모지 그대로, 화면엔 선 아이콘
+  var REACTION_ICON = { '\ud83d\udc4d':'thumbs-up', '\u2764\ufe0f':'heart' };
 
   function renderCommentsList(list){
     var el = document.getElementById('comments-list');
@@ -7658,7 +7665,7 @@
       var reactions = c.reactions || {};
       var reactHtml = COMMENT_REACTIONS.map(function(em){
         var count = reactions[em] || 0;
-        return '<button type="button" data-react-comment="' + c.id + '" data-react-emoji="' + em + '" style="border:none; background:var(--pill-bg); border-radius:999px; padding:3px 8px; font-size:11.5px; display:inline-flex; align-items:center; gap:3px; color:var(--text2);">' + em + (count ? (' ' + count) : '') + '</button>';
+        return '<button type="button" data-react-comment="' + c.id + '" data-react-emoji="' + em + '" style="border:none; background:var(--pill-bg); border-radius:999px; padding:3px 8px; font-size:11.5px; display:inline-flex; align-items:center; gap:3px; color:var(--text2);" aria-label="' + (em === '\ud83d\udc4d' ? '좋아요' : '하트') + (count ? ' ' + count : '') + '">' + ic(REACTION_ICON[em]) + (count ? (' ' + count) : '') + '</button>';
       }).join('');
       return '<div class="col" style="gap:4px;"><div class="row" style="align-items:center; gap:6px;">' +
         '<span style="font-size:12.5px; font-weight:700;">' + escapeHtml(c.author) + '</span>' +

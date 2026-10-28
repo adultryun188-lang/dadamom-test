@@ -621,3 +621,6 @@ button.app-mall-banner{text-align:left;font-family:var(--font-ui);cursor:pointer
 .hh-art .ic,.my-art .ic,.page-hero-art .ic,.mall-hero-art .ic{color:#B5643F;stroke-width:1.5;}
 .hb-emoji .ic{color:#B5643F;stroke-width:1.6;}
 .empty .em .ic{color:#C9A48E;stroke-width:1.5;}
+
+/* 한국어는 단어 중간에서 줄을 바꾸지 않는다 ('좋/아요' 방지). 긴 주소·영문만 칸 끝에서 끊는다 */
+body{word-break:keep-all;overflow-wrap:anywhere;}

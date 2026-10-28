@@ -285,7 +285,7 @@
   .post-meta{ display:flex; gap:14px; flex-wrap:wrap; font-size:12.5px; color:var(--text2); align-items:center; }
   .post-meta .who{ display:flex; gap:8px; align-items:center; color:var(--text); font-weight:800; font-size:13.5px; }
   .post-meta .who .avatar{ width:30px; height:30px; font-size:15px; }
-  .post-body{ padding:26px; font-size:15.5px; line-height:1.9; white-space:pre-wrap; word-break:break-word; }
+  .post-body{ padding:26px; font-size:15.5px; line-height:1.9; white-space:pre-wrap; word-break:keep-all; overflow-wrap:anywhere; }
   .post-body:empty{ padding:6px; }
   .post-body img{ display:block; max-width:100%; max-height:680px; border-radius:16px; margin:0 0 18px; box-shadow:var(--shadow); }
   .vote{ display:flex; justify-content:center; padding:4px 0 28px; }
@@ -304,7 +304,7 @@
   .c-item .who b{ font-size:13.5px; }
   .c-item .who .op{ font-size:10.5px; font-weight:800; color:#fff; background:var(--coral); border-radius:999px; padding:1px 7px; }
   .c-item .who .r{ margin-left:auto; }
-  .c-item p{ margin:6px 0 0; font-size:14.5px; line-height:1.7; white-space:pre-wrap; word-break:break-word; }
+  .c-item p{ margin:6px 0 0; font-size:14.5px; line-height:1.7; white-space:pre-wrap; word-break:keep-all; overflow-wrap:anywhere; }
   .c-form{ padding:16px 26px 20px; display:flex; flex-direction:column; gap:10px; border-top:1px solid var(--line); }
   .c-form textarea{ width:100%; min-height:88px; border:1px solid var(--border); border-radius:14px; padding:12px 14px; resize:vertical; background:#fff; }
   .c-form textarea:focus{ outline:none; border-color:var(--coral); box-shadow:0 0 0 4px rgba(255,122,89,.12); }
@@ -687,7 +687,7 @@
   /* 파일 고르기: 기본 칸(영어로 나오는 브라우저가 있다)을 숨기고 한국어 버튼 + 파일 이름 */
   .kfile{ position:relative; display:flex; align-items:center; gap:10px; flex-wrap:wrap; cursor:pointer; }
   .kfile-input{ position:absolute; width:1px; height:1px; opacity:0; overflow:hidden; }
-  .kfile-btn{ display:inline-flex; align-items:center; height:42px; padding:0 18px; border-radius:999px; border:1px solid var(--border, #EBDFD1); background:#fff; color:var(--text); font-size:13.5px; font-weight:700; }
+  .kfile-btn{ display:inline-flex; align-items:center; gap:6px; margin-right:10px; height:42px; padding:0 18px; border-radius:999px; border:1px solid var(--border, #EBDFD1); background:#fff; color:var(--text); font-size:13.5px; font-weight:700; }
   .kfile:focus-within .kfile-btn{ outline:3px solid var(--accent, #E9A27F); outline-offset:2px; }
   .kfile-name{ font-size:12.5px; color:var(--text2); min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:100%; }
 </style>
@@ -1684,7 +1684,7 @@
         '<label style="display:flex; gap:8px; align-items:flex-start; font-size:14px;"><input type="checkbox" id="w-sponsored" style="margin-top:3px;"> 업체에서 제품이나 돈을 받고 쓰는 글이에요 (체험단·협찬) — 글에 \'제품 제공받음\'이 표시돼요</label>' +
         '<label style="display:flex; gap:8px; align-items:flex-start; font-size:14px;"><input type="checkbox" id="w-anon" style="margin-top:3px;"> 이름 숨기고 올리기 (다른 회원에게는 \'익명\'으로 보여요. 운영자는 누가 썼는지 알 수 있어요)</label>' +
         '<label style="display:flex; gap:8px; align-items:flex-start; font-size:14px;"><input type="checkbox" id="w-sensitive" style="margin-top:3px;"> 사진이 민감할 수 있어요 (수유·목욕 등) — 흐리게 보이고 눌러야 보여요</label>' +
-        '<label style="display:flex; gap:8px; align-items:center; font-size:14px;">누가 볼까요 <select id="w-audience"><option value="all">모두</option><option value="members">다다맘 회원만 (비회원·검색에는 안 보여요)</option></select></label>' +
+        '<div><label for="w-audience">누가 볼까요</label><select id="w-audience" style="width:100%; height:46px; padding:0 14px; border:1px solid var(--border); border-radius:14px; background:#fff; color:var(--text); font-size:14px;"><option value="all">모두</option><option value="members">다다맘 회원만 (비회원·검색에는 안 보여요)</option></select></div>' +
         '<div class="note">글은 바로 공개돼요. 사진이 있거나 연락처·링크가 들어간 글은 운영자 확인 후 공개돼요. 아이 얼굴·이름·주소 같은 개인정보가 드러나지 않게 주의해주세요. 다른 사람·선생님·업체의 실명이나 아이 신상을 올리면 바로 내려가고, 서로 다른 3명이 신고하면 자동으로 숨겨지고, 신고는 하루 안에 확인해요.<br>글쓴이에는 <b>' + esc(myName()) + '</b> 와 ' + esc(profileStageText() || '아이 단계') + ' 가 함께 표시돼요.</div>' +
         '<div style="display:flex; gap:8px; justify-content:flex-end;"><a class="btn" href="#/b/all">취소</a><button class="btn primary" type="submit" id="w-submit">등록</button></div>' +
       '</form></section></section>';

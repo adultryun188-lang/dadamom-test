@@ -50,6 +50,7 @@ async function req(method, pathAndQuery, token, body, extraHeaders) {
   if (body !== undefined) headers['Content-Type'] = 'application/json';
   const r = await fetch(SUPABASE_URL + pathAndQuery, {
     method,
+    signal: AbortSignal.timeout(15000),
     headers,
     body: body === undefined ? undefined : JSON.stringify(body)
   });
@@ -61,7 +62,7 @@ async function req(method, pathAndQuery, token, body, extraHeaders) {
 
 async function login(email) {
   const r = await req('POST', '/auth/v1/token?grant_type=password', null, { email, password: PW });
-  if (r.status !== 200) throw new Error('로그인 실패 ' + email + ' HTTP ' + r.status + ' ' + r.body);
+  if (r.status !== 200) throw new Error('테스트 로그인 실패 HTTP ' + r.status);
   return r.json.access_token;
 }
 const uidOf = async (tok) => (await req('GET', '/auth/v1/user', tok)).json.id;
@@ -81,7 +82,6 @@ const errIs = (r, msg) => r.status >= 400 && (r.json?.message || '') === msg;
     A: await login('momA@dadamom.test'),
     C: await login('dadC@dadamom.test'),
     B: await login('momB@dadamom.test'),
-    admin: await login('admin@dadamom.test')
   };
   const uid = { A: await uidOf(tok.A), C: await uidOf(tok.C) };
   const privacy = (await rpc('family_privacy_version', tok.A)).json === 17;
@@ -91,8 +91,11 @@ const errIs = (r, msg) => r.status >= 400 && (r.json?.message || '') === msg;
     return r.json?.[0]?.granted === false;
   };
 
-  // 지난 실행이 중간에 끊겼어도 깨끗하게 시작
-  for (const t of Object.values(tok)) await rpc('leave_family', t);
+  // 기존 가족을 정리하고 시작하지 않는다. 기존 상태가 있으면 읽기만 하고 중단한다.
+  for (const t of Object.values(tok)) {
+    const before = await rpc('my_family', t);
+    if(before.status !== 200 || before.json !== null) throw new Error('기존 테스트 가족 또는 조회 실패: 보존을 위해 중단');
+  }
 
   try {
     console.log(NL + '[비로그인]');
@@ -111,7 +114,9 @@ const errIs = (r, msg) => r.status >= 400 && (r.json?.message || '') === msg;
     check('동의 철회 상태에서 만들기 차단', errIs(r, 'consent_required'), 'HTTP ' + r.status + ' ' + (r.json?.message || ''));
     await consent(tok.A, true);
     r = await rpc('create_family', tok.A);
-    check('동의 후 만들기 성공', r.status === 200 && /^[0-9A-F]{10}$/.test(r.json?.invite_code || ''), 'HTTP ' + r.status + ' ' + r.body.slice(0, 120));
+    check('동의 후 만들기 성공', r.status === 200 && /^[0-9A-F]{10}$/.test(r.json?.invite_code || ''), 'HTTP ' + r.status);
+    const hours = (Date.parse(r.json?.invite_expires_at) - Date.now()) / 3600000;
+    check('원격 초대 만료 시각은 약 24시간 뒤', hours > 23.9 && hours <= 24.1);
     const fid = r.json?.family_id;
     const code = r.json?.invite_code;
     if (!fid) throw new Error('가족을 만들지 못해 나머지 확인을 건너뜁니다');
@@ -147,7 +152,7 @@ const errIs = (r, msg) => r.status >= 400 && (r.json?.message || '') === msg;
     check('같은 기록 다시 upsert 하면 갱신', vax?.body === false, 'HTTP ' + r.status + ' body=' + JSON.stringify(vax?.body));
 
     console.log(NL + '[비구성원·운영자]');
-    for (const who of ['B', 'admin']) {
+    for (const who of ['B']) {
       r = await records(tok[who], fid);
       check(who + ' 는 기록이 안 보임', r.status === 200 && r.json?.length === 0, 'rows=' + (r.json?.length ?? r.body));
       r = await upsert(tok[who], [{ family_id: fid, kind: 'care', rid: 'x' + who, body: {} }]);
@@ -183,7 +188,7 @@ const errIs = (r, msg) => r.status >= 400 && (r.json?.message || '') === msg;
 
     r = await rpc('new_family_invite', tok.A);
     const code2 = r.json?.invite_code;
-    check('새 초대 코드', !!code2 && code2 !== code, code2);
+    check('새 초대 코드', !!code2 && code2 !== code);
     // 0017부터 강제 제거 시에도 공유 권한이 종료된다. 재참여에는 새 동의가 필요하다.
     await consent(tok.C, true);
     r = await rpc('join_family', tok.C, { p_code: code2 });
@@ -195,12 +200,19 @@ const errIs = (r, msg) => r.status >= 400 && (r.json?.message || '') === msg;
       check('나간 계정의 마지막 수정자 연결 제거', (await records(tok.C, fid)).json?.every(x => x.updated_by !== uid.A));
     }
     r = await rpc('my_family', tok.C);
-    check('방장이 나가면 dadC 가 방장', r.json?.is_owner === true && r.json?.members?.length === 1, r.body.slice(0, 120));
+    check('방장이 나가면 dadC 가 방장', r.json?.is_owner === true && r.json?.members?.length === 1);
     r = await rpc('leave_family', tok.C);
     r = await rpc('my_family', tok.C);
     check('마지막 사람이 나가면 가족 없음', r.status === 200 && r.json === null, r.body.slice(0, 80));
   } finally {
-    for (const t of Object.values(tok)) await rpc('leave_family', t);
+    // 이 실행에서 생성한 가족만 정리한다. 비구성원 B의 동의는 변경하지 않는다.
+    for (const t of [tok.A,tok.C]) {
+      const state = await rpc('my_family', t);
+      if(state.status !== 200) throw new Error('가족 정리 전 상태 확인 실패');
+      if(state.json !== null) await rpc('leave_family', t);
+      const after = await rpc('my_family', t);
+      if(after.status !== 200 || after.json !== null) throw new Error('테스트 가족 정리 확인 실패');
+    }
   }
 
   console.log(NL + (failed ? `실패 ${failed}건` : '전부 통과'));

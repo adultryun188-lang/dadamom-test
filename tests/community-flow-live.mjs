@@ -38,7 +38,7 @@ if(!process.env.BASE_URL){
     if(file===root)file=path.join(root,'index.html');
     if(!file.startsWith(root+path.sep)||file.includes(path.sep+'.git')||file.includes(path.sep+'node_modules')){res.writeHead(403).end();return;}
     if(path.basename(file)==='env.js'){res.writeHead(200,{'Content-Type':'application/javascript'}).end(env.replaceAll('__BUILD__','flow-live'));return;}
-    const mime={'.html':'text/html; charset=utf-8','.js':'application/javascript','.png':'image/png','.webmanifest':'application/manifest+json'};
+    const mime={'.html':'text/html; charset=utf-8','.js':'application/javascript','.css':'text/css','.woff2':'font/woff2','.png':'image/png','.webmanifest':'application/manifest+json'};
     fs.readFile(file,(err,data)=>res.writeHead(err?404:200,{'Content-Type':mime[path.extname(file)]||'application/octet-stream'}).end(err?'':data));
   });
   await new Promise(r=>server.listen(0,'127.0.0.1',r));
@@ -61,6 +61,7 @@ const page=await ctx.newPage();page.on('pageerror',e=>errors.push(e.message));pa
 try{
   await page.goto(WEB+'#/p/'+post.id);
   await page.locator('#main [data-login]').click(); await page.locator('#modal a').click();
+  await page.locator('[data-auth-view="password"]').click();
   await page.fill('#auth-email',email); await page.fill('#auth-password',pw); await page.click('#auth-password-submit');
   await page.waitForURL(u=>u.pathname.endsWith('community.html')&&u.hash==='#/p/'+post.id);
   await page.locator('#cmt-form').waitFor();check('실제 이메일 로그인 후 원글 복귀',true);
@@ -84,7 +85,9 @@ try{
   check('실제 공개 글 공유 호출의 정확한 목적지',(await page.evaluate(()=>window.__copied)).endsWith(WEB+'#/p/'+post.id));
   await page.click('[data-close-modal]');
   // 검수 상태 확인용 텍스트 fixture. 승인 상태를 조작하거나 관리자 계정을 쓰지 않는다.
-  await own('/rest/v1/community_posts','POST',{id:pendingId,author:'검증용 가상부모',text:tag+' 가상 글, 검증 후 삭제',stage:'parenting',age_value:16});pendingCreated=true;
+  // 0034 자동 검수에서는 신뢰 회원의 일반 텍스트가 즉시 공개된다. 링크 포함 fixture로 대기를 유도한다.
+  await own('/rest/v1/community_posts','POST',{id:pendingId,author:'검증용 가상부모',text:tag+' 가상 글, 검증 후 삭제 https://example.invalid/p0-test',stage:'parenting',age_value:16});pendingCreated=true;
+  check('서버 자동 검수에 따른 대기 fixture 확인',(await own('/rest/v1/community_posts?select=status&id=eq.'+pendingId))[0]?.status==='pending');
   await page.goto(APP+'#home');await page.locator('#screen-home [data-goto="community"]').click();
   await page.locator('#screen-community [data-peer-toggle="all"]').click();
   await page.locator('#screen-community [data-share-post="'+pendingId+'"]').click();

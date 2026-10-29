@@ -1595,12 +1595,18 @@
 
   async function submitComment(e){
     e.preventDefault();
+    if(!user) return openLogin();
+    var submit = $('cmt-submit');
+    if(!submit || submit.disabled) return;
     var ta = $('cmt-text'), val = ta.value.trim();
     if(!val || !current) return;
     if(!myName()){ toast('앱에서 프로필(닉네임)을 먼저 만들어주세요'); return; }
     var p = current, uid = user && user.id;
-    $('cmt-submit').disabled = true;
-    var res = await sb.from('post_comments').insert({ post_id: p.id, author: myName(), content: val });
+    submit.disabled = true;
+    var res;
+    try{ res = await sb.from('post_comments').insert({ post_id: p.id, author: myName(), content: val }); }
+    catch(err){ res = { error: true }; }
+    finally{ submit.disabled = false; }
     if(current !== p || (user && user.id) !== uid) return;
     $('cmt-submit').disabled = false;
     if(res.error){ toast('댓글을 등록하지 못했어요'); return; }
@@ -2424,9 +2430,20 @@
 
   async function submitLogin(e){
     e.preventDefault();
-    var r = await sb.auth.signInWithPassword({ email: $('l-email').value.trim(), password: $('l-pw').value });
-    if(r.error){ $('l-hint').textContent = '이메일 또는 비밀번호를 확인해주세요'; return; }
-    closeModal();
+    var form = e.target, btn = form.querySelector('[type="submit"]'), hint = $('l-hint');
+    if(!btn || btn.disabled) return;
+    var email = $('l-email').value.trim(), password = $('l-pw').value;
+    btn.disabled = true;
+    if(hint) hint.textContent = '';
+    try{
+      var r = await sb.auth.signInWithPassword({ email: email, password: password });
+      // 닫거나 다시 연 로그인 창에 이전 요청의 결과를 적용하지 않는다.
+      if($('login-form') !== form) return;
+      if(r.error){ if(hint) hint.textContent = '이메일 또는 비밀번호를 확인해주세요'; return; }
+      closeModal();
+    }catch(err){
+      if($('login-form') === form && hint) hint.textContent = '연결을 확인하고 다시 시도해주세요.';
+    }finally{ btn.disabled = false; }
   }
 
   var reportTarget = null;

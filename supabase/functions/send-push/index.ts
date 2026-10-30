@@ -75,7 +75,7 @@ Deno.serve(async () => {
       failed++;
       const txt = await res.text();
       // 앱을 지웠거나 알림을 끈 기기 — 다시 보내지 않게 지운다
-      if (res.status === 404 || /UNREGISTERED|registration-token-not-registered/.test(txt)) dead.push(t.token);
+      if (res.status === 404 || /UNREGISTERED|registration-token-not-registered|not a valid FCM registration token/.test(txt)) dead.push(t.token);
       else console.warn("fcm", res.status, txt.slice(0, 300));
     }
   }

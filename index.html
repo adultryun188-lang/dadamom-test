@@ -743,6 +743,15 @@
         <div class="my-stat"><span class="display" id="my-stat-post">0</span><span>내 게시물</span></div>
       </div>
 
+      <div class="card row" id="my-push-card" style="align-items:center; gap:13px; padding:14px 16px; border-radius:24px;">
+        <span class="my-ico" style="background:var(--w-sun);" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-bell"></use></svg></span>
+        <div class="col" style="flex:1; min-width:0; gap:2px;">
+          <span class="my-row-label">알림 받기</span>
+          <span class="helper" id="my-push-desc" style="margin:0;">내 글 댓글·응원 소식을 바로 알려 드려요</span>
+        </div>
+        <button type="button" data-push-toggle id="my-push-state" class="btn-primary" style="height:40px; min-height:40px; padding:0 16px; font-size:13px; flex:0 0 auto;">켜기</button>
+      </div>
+
       <div class="my-menu">
         <a href="#growth" class="my-row"><span class="my-ico" style="background:var(--w-leaf);" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-notebook-pen"></use></svg></span><span class="my-row-label">육아기록 · 성장</span><svg class="my-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></a>
         <a href="#prep" class="my-row"><span class="my-ico" style="background:var(--w-sun);" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-pen-line"></use></svg></span><span class="my-row-label">출산 준비물 · 선물 장부</span><svg class="my-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></a>
@@ -752,7 +761,6 @@
         <a href="#challenge" data-my-link="challenge" class="my-row"><span class="my-ico" style="background:var(--w-peach);" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-footprints"></use></svg></span><span class="my-row-label">참여이력</span><svg class="my-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></a>
         <a href="#benefit" data-my-link="benefit" class="my-row"><span class="my-ico" style="background:var(--w-sun);" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-gift"></use></svg></span><span class="my-row-label">혜택함</span><span id="my-benefit-badge" class="my-count">0</span></a>
         <button type="button" data-open-saved class="my-row"><span class="my-ico" style="background:var(--w-peach);" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-star"></use></svg></span><span class="my-row-label">스크랩한 글</span><svg class="my-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></button>
-        <button type="button" data-push-toggle class="my-row"><span class="my-ico" style="background:var(--w-sun);" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-bell"></use></svg></span><span class="my-row-label">알림 받기</span><span id="my-push-state" class="helper">꺼짐</span></button>
         <button type="button" data-share-app class="my-row"><span class="my-ico" style="background:var(--w-leaf);" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-mail"></use></svg></span><span class="my-row-label">다다맘 앱 공유하기</span><svg class="my-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></button>
       </div>
 
@@ -7273,7 +7281,8 @@
     }
 
     if(e.target.closest('[data-push-toggle]')){
-      if(!pushSupported()){ showToast('이 기기·브라우저는 알림을 지원하지 않아요'); return; }
+      if(pushNeedsAppUpdate()){ showToast('플레이스토어에서 다다맘을 업데이트해 주세요'); window.open('https://play.google.com/store/apps/details?id=kr.dadaran.dadamom', '_blank'); return; }
+      if(!pushSupported()){ showToast('이 브라우저는 알림을 지원하지 않아요. 휴대폰 크롬이나 다다맘 앱에서 켜 주세요'); return; }
       if(!requireLogin('알림 받기')) return;
       if(pushPref('pushToken')) disablePush(); else enablePush(false);
       return;
@@ -8229,9 +8238,23 @@
   function nativePush(){ var C = window.Capacitor; return C && C.isNativePlatform && C.isNativePlatform() && C.Plugins && C.Plugins.PushNotifications; }
   function pushSupported(){ return !!nativePush() || ('serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window && location.protocol === 'https:'); }
   function pushPref(k, v){ try{ if(v === undefined) return localStorage.getItem('dadamom.' + k); if(v === null) localStorage.removeItem('dadamom.' + k); else localStorage.setItem('dadamom.' + k, v); }catch(e){ return null; } }
+  // 알림 기능이 없는 옛 앱(1.1.1 이하). 앱 껍데기(UA)인데 푸시 플러그인이 없다.
+  function pushNeedsAppUpdate(){ return /DadamomAndroid/.test(navigator.userAgent) && !nativePush(); }
   function renderPushState(){
-    var el = document.getElementById('my-push-state');
-    if(el) el.textContent = !pushSupported() ? '이 기기는 지원 안 함' : pushPref('pushToken') ? '켜짐' : '꺼짐';
+    var btn = document.getElementById('my-push-state'), desc = document.getElementById('my-push-desc');
+    if(!btn || !desc) return;
+    var on = !!pushPref('pushToken');
+    if(pushNeedsAppUpdate()){
+      btn.textContent = '앱 업데이트'; btn.className = 'btn-primary';
+      desc.textContent = '앱을 최신 버전으로 업데이트하면 알림을 받을 수 있어요';
+    } else if(!pushSupported()){
+      btn.textContent = '안내'; btn.className = 'btn-ghost';
+      desc.textContent = '이 브라우저에서는 알림을 받을 수 없어요';
+    } else {
+      btn.textContent = on ? '끄기' : '켜기'; btn.className = on ? 'btn-ghost' : 'btn-primary';
+      desc.textContent = on ? '알림이 켜져 있어요 · 댓글·응원 소식을 알려 드려요' : '내 글 댓글·응원 소식을 바로 알려 드려요';
+    }
+    btn.setAttribute('aria-pressed', on ? 'true' : 'false');
   }
   async function getPushToken(){
     var P = nativePush();

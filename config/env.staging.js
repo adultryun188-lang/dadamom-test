@@ -14,5 +14,7 @@ window.DADAMOM_ENV = {
   // 실제 OAuth 왕복 검증을 준비한 뒤에만 true로 바꾼다. 비밀키는 이 파일에 넣지 않는다.
   NAVER_LOGIN: true,
   SHOW_TEST_BADGE: true,
+  // 가족 공유 시행일(운영 2026-11-06)을 테스트에서는 앞당긴다
+  FAMILY_OPEN_AT: '2026-10-01T00:00:00+09:00',
   BUILD: '__BUILD__'
 };

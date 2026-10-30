@@ -10,5 +10,7 @@ window.DADAMOM_ENV = {
   SOCIAL_LOGIN: false,
   NAVER_LOGIN: 'preview',
   SHOW_TEST_BADGE: true,
+  // 가족 공유 시행일(운영 2026-11-06)을 테스트에서는 앞당긴다
+  FAMILY_OPEN_AT: '2026-10-01T00:00:00+09:00',
   BUILD: 'local'
 };

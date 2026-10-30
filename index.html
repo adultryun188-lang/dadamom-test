@@ -391,7 +391,7 @@
     .toast{ bottom:40px; }
   }
 </style>
-<link rel="stylesheet" href="./rounded-ui.css?v=20261030-2">
+<link rel="stylesheet" href="./rounded-ui.css?v=20261030-3">
 
 <div class="app" id="app">
   <div class="test-banner" id="test-banner" role="status" hidden>
@@ -1008,6 +1008,15 @@
   // 아이콘: 이모지 대신 선 아이콘(shared-content.js). 2026-10-28 사장님 '이모지는 급조 같다'
   function ic(n){ return window.DadamomShared ? window.DadamomShared.icon(n) : ''; }   // 공용 파일이 안 와도 앱은 돌아가게
   var CH_PHOTO = { firststep:1, crawl:1, halloween:1, bump:1, cheeks:1 };   // assets/challenge/<id>.jpg 가 있는 챌린지
+  // 응원·투표 부탁 링크: 참가자가 가족·지인에게 보낸 주소 ?entry=<참가작 id>#challenge. 로그인을 거쳐도 열리게 기기에 잠깐 둔다
+  var ASK_ENTRY_KEY = 'dadamom.askEntry', askGuestShown = false;
+  (function(){
+    var m = /[?&]entry=([0-9a-f-]{36})(?:&|$)/i.exec(location.search);
+    if(!m) return;
+    try{ localStorage.setItem(ASK_ENTRY_KEY, m[1].toLowerCase()); }catch(e){}
+    var u = new URL(location.href); u.searchParams.delete('entry');
+    history.replaceState(null, '', u.pathname + u.search + (u.hash || '#challenge'));
+  })();
   function chArt(c, photo){ return photo && c && CH_PHOTO[c.id] ? '<img src="./assets/challenge/' + c.id + '.jpg" alt="" style="width:100%; height:100%; object-fit:cover;">' : ic('trophy'); }
   var SUPABASE_URL = ENV.SUPABASE_URL || '';
   var SUPABASE_KEY = ENV.SUPABASE_ANON_KEY || '';
@@ -3324,6 +3333,7 @@
       save();
       renderAll((location.hash || '').replace('#',''));
       if(location.hash === '#growth') renderGrowthScreen();
+      maybeOpenAskVote();
     });
     checkNoti();
   }
@@ -3882,6 +3892,58 @@
     el.innerHTML = homeAskBackHtml() + homeContestHtml() + homeOutcomesHtml();
   }
 
+  // ---------- 응원·투표 부탁하기 ----------
+  var ASK_RULE_HTML = '<span class="helper">가입한 지 7일이 지난 회원의 응원·투표가 점수에 들어가요. 새로 가입했다면 응원은 바로 할 수 있고, 투표는 7일 뒤부터 할 수 있어요.</span>';
+  function askVoteUrl(id){ return location.origin + location.pathname + '?entry=' + encodeURIComponent(id) + '#challenge'; }
+  async function shareAskVote(id){
+    var en = state.entries.filter(function(x){ return String(x.id) === String(id); })[0];
+    if(!en) return;
+    var ch = challengeList.filter(function(c){ return c.id === (en.challenge_key || 'firststep'); })[0];
+    var title = ch ? ch.title : '자랑 대회';
+    var url = askVoteUrl(id);
+    var text = '[다다맘 ' + title + '] ' + en.name + ' — 우리 아이 응원과 투표 부탁해요!';
+    if(navigator.share){
+      try{ await navigator.share({ title: '다다맘 ' + title, text: text, url: url }); return; }
+      catch(err){ if(err && err.name === 'AbortError') return; }
+    }
+    try{ await navigator.clipboard.writeText(text + '\n' + url); showToast('링크를 복사했어요. 카카오톡에 붙여 넣어 보내 보세요'); return; }catch(e){}
+    openModal('<div class="modal-head"><h3 class="display">응원·투표 부탁하기</h3><button class="modal-close" data-close-modal aria-label="닫기">✕</button></div>' +
+      '<p class="modal-desc">아래 글을 길게 눌러 복사한 뒤 카카오톡에 붙여 넣어 보내 주세요.</p>' +
+      '<textarea readonly rows="4" style="width:100%;">' + escapeHtml(text + '\n' + url) + '</textarea>');
+  }
+  function askVoteModalHtml(en){
+    var head = '<div class="modal-head"><h3 class="display">' + escapeHtml(en.name) + '</h3><button class="modal-close" data-close-modal aria-label="닫기">✕</button></div>';
+    var media = en.media_url ? mediaTag(en.media_url, 'width:100%; max-height:52vh; object-fit:contain; border-radius:16px; background:#000;') : '';
+    if(en.mine) return head + media + '<p class="modal-desc">내 참가작이에요. 이 링크를 가족·지인에게 보내 응원을 부탁해 보세요.</p>' +
+      '<button type="button" class="btn-primary" data-ask-vote="' + escapeHtml(String(en.id)) + '" style="width:100%;">' + ic('share-2') + ' 응원·투표 부탁하기</button>';
+    var on = myBallots[en.challenge_key || 'firststep'] === en.id;
+    return head + '<span class="spot-eyebrow">' + ic('heart') + ' 응원 부탁을 받았어요</span>' + media +
+      '<span class="helper">' + escapeHtml(en.age || '') + '</span>' + (en.note ? '<p style="font-size:14px; line-height:1.6;">' + escapeHtml(en.note) + '</p>' : '') +
+      '<div class="row" style="gap:8px;">' +
+        '<button type="button" class="btn-primary" data-vote="' + en.id + '" style="flex:1;">' + ic('heart') + (en.liked ? ' 응원했어요' : ' 응원하기') + '</button>' +
+        '<button type="button" class="btn-ghost" data-ballot="' + escapeHtml(String(en.id)) + '" style="flex:1;">' + ic('vote') + (on ? ' 투표했어요' : ' 투표하기') + '</button>' +
+      '</div>' + ASK_RULE_HTML;
+  }
+  function maybeOpenAskVote(){
+    var id = null;
+    try{ id = localStorage.getItem(ASK_ENTRY_KEY); }catch(e){}
+    if(!id) return;
+    if(!authUser){
+      if(askGuestShown || !document.getElementById('modal-backdrop').hidden) return;
+      askGuestShown = true;
+      openModal('<div class="modal-head"><h3 class="display">응원 부탁을 받았어요</h3><button class="modal-close" data-close-modal aria-label="닫기">✕</button></div>' +
+        '<p class="modal-desc">다다맘 자랑 대회에 나간 아이가 응원을 기다리고 있어요. 아이 사진을 지키려고 참가작은 회원에게만 보여 줘요. 로그인하면 바로 그 참가작으로 안내할게요.</p>' +
+        '<button type="button" class="btn-primary" data-open-auth-modal style="width:100%;">로그인하고 응원하기</button>' + ASK_RULE_HTML);
+      return;
+    }
+    var en = state.entries.filter(function(x){ return String(x.id) === id; })[0];
+    if(!en) return;   // 아직 못 받았을 수 있다. 다 받은 뒤 다시 부른다
+    try{ localStorage.removeItem(ASK_ENTRY_KEY); }catch(e){}
+    chOpenKey = state.challengeKey = en.challenge_key || 'firststep'; save();
+    if(location.hash !== '#challenge') location.hash = '#challenge'; else renderChallenge();
+    openModal(askVoteModalHtml(en));
+  }
+
   function feedCardHtml(p){
     var media = p.media_url
       ? sensWrap(p, mediaTag(p.media_url, 'width:100%; height:170px; object-fit:cover; border-radius:16px;'))
@@ -4316,7 +4378,9 @@
           ? '<button data-edit-entry="' + e.id + '" aria-label="내 참가작 수정" style="flex:0 0 auto; margin-left:auto; background:none; border:none; color:var(--text2); min-width:44px; min-height:44px; font-size:12px;">수정</button>' +
             '<button data-delete-entry="' + e.id + '" aria-label="내 참가작 삭제" style="flex:0 0 auto; background:none; border:none; color:var(--text2); min-width:44px; min-height:44px; font-size:12px;">삭제</button>'
           : '') +
-        '</div></div>';
+        '</div>' +
+        (e.mine && e.status === 'approved' ? '<button type="button" class="ask-vote" data-ask-vote="' + escapeHtml(String(e.id)) + '">' + ic('share-2') + ' 응원·투표 부탁하기</button>' : '') +
+        '</div>';
     }).join('');
   }
 
@@ -6922,6 +6986,8 @@
       });
       return;
     }
+    var askV = e.target.closest('[data-ask-vote]');
+    if(askV){ shareAskVote(askV.getAttribute('data-ask-vote')); return; }
     var entryPhoto = e.target.closest('[data-entry-photo]');
     if(entryPhoto){
       var ep = state.entries.filter(function(x){ return String(x.id) === entryPhoto.getAttribute('data-entry-photo'); })[0];

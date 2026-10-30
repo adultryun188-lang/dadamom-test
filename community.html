@@ -697,7 +697,7 @@
   .kfile:focus-within .kfile-btn{ outline:3px solid var(--accent, #E9A27F); outline-offset:2px; }
   .kfile-name{ font-size:12.5px; color:var(--text2); min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:100%; }
 </style>
-<link rel="stylesheet" href="./rounded-ui.css?v=20261030-2">
+<link rel="stylesheet" href="./rounded-ui.css?v=20261030-3">
 
 <a class="skip-link" href="#main">본문 바로가기</a>
 <header class="top">
@@ -1366,6 +1366,17 @@
     render();
   }
 
+  // 응원·투표 부탁 링크: 앱 주소(index.html?entry=…#challenge)로 보낸다. 받은 사람은 로그인 뒤 그 참가작 창이 열린다
+  async function askVoteWeb(btn){
+    var id = btn.getAttribute('data-ask-vote-web'), name = btn.getAttribute('data-name') || '우리 아이';
+    var ch = (chList || []).filter(function(x){ return x.id === chCurKey; })[0];
+    var url = new URL('./index.html', location.href).href.split('#')[0].split('?')[0] + '?entry=' + encodeURIComponent(id) + '#challenge';
+    var text = '[다다맘 ' + (ch ? ch.title : '자랑 대회') + '] ' + name + ' — 우리 아이 응원과 투표 부탁해요!';
+    if(navigator.share){ try{ await navigator.share({ title: '다다맘 자랑 대회', text: text, url: url }); return; }catch(err){ if(err && err.name === 'AbortError') return; } }
+    try{ await navigator.clipboard.writeText(text + '\n' + url); toast('링크를 복사했어요. 카카오톡에 붙여 넣어 보내 보세요'); }
+    catch(e){ openModal('<h3 class="display">응원·투표 부탁하기</h3><p class="helper">아래 글을 복사해 카카오톡에 붙여 넣어 보내 주세요.</p><textarea readonly rows="4">' + esc(text + '\n' + url) + '</textarea><button class="btn" data-close>닫기</button>'); }
+  }
+
   async function submitOutcome(e){
     e.preventDefault();
     var t = ($('outcome-text').value || '').trim(), hint = $('outcome-hint'), btn = e.target.querySelector('button[type=submit]');
@@ -1954,7 +1965,8 @@
         '<div class="in"><span class="nm">' + esc(e.name || '우리 아이') + (e.age ? ' <span class="helper">· ' + esc(e.age) + '</span>' : '') + (e.status && e.status !== 'approved' ? ' <span class="badge" style="font-size:11px; background:#FFF3DF; color:#9C5B12; padding:2px 7px; border-radius:999px;">' + (e.status === 'rejected' ? '반려됨' : '검수 중 · 나만 보여요') + '</span>' : '') + '</span>' +
         '<span class="nt">' + esc(e.note || '') + '</span>' +
         '<div style="display:flex; gap:6px; flex-wrap:wrap;"><button class="cheer" data-cheer="' + e.id + '" aria-pressed="' + on + '">' + emIc('💛') + ' 응원 <span>' + (e.votes || 0) + '</span></button>' +
-        (e.owner_id !== user.id && (!e.status || e.status === 'approved') ? '<button class="cheer" data-ballot="' + e.id + '" aria-pressed="' + (myB === e.id) + '" aria-label="이 참가작에 투표하기 (챌린지마다 한 달에 한 표)">' + (myB === e.id ? '' + emIc('🗳️') + ' 투표함 ' : '' + emIc('🗳️') + ' 투표 ') + (bcnt[e.id] || 0) + '</button>' : (user && e.owner_id === user.id && (!e.status || e.status === 'approved') ? '<span class="helper" style="align-self:center; font-weight:800;">' + emIc('🗳️') + ' 투표 ' + (bcnt[e.id] || 0) + '</span>' : '')) + '</div></div></div>';
+        (e.owner_id !== user.id && (!e.status || e.status === 'approved') ? '<button class="cheer" data-ballot="' + e.id + '" aria-pressed="' + (myB === e.id) + '" aria-label="이 참가작에 투표하기 (챌린지마다 한 달에 한 표)">' + (myB === e.id ? '' + emIc('🗳️') + ' 투표함 ' : '' + emIc('🗳️') + ' 투표 ') + (bcnt[e.id] || 0) + '</button>' : (user && e.owner_id === user.id && (!e.status || e.status === 'approved') ? '<span class="helper" style="align-self:center; font-weight:800;">' + emIc('🗳️') + ' 투표 ' + (bcnt[e.id] || 0) + '</span>' : '')) + '</div>' +
+      (user && e.owner_id === user.id && (!e.status || e.status === 'approved') ? '<button type="button" class="ask-vote" data-ask-vote-web="' + e.id + '" data-name="' + esc(e.name || '') + '">' + DadamomShared.icon('share-2') + ' 응원·투표 부탁하기</button>' : '') + '</div></div>';
     }).join('') : emptyHtml('👣', '아직 공개된 참가작이 없어요. 앱에서 첫 번째 주인공이 되어 보세요!', '<a class="btn primary" href="./index.html#challenge">앱에서 참여하기</a>');
   }
 
@@ -2524,6 +2536,7 @@
     if(!t){ if(e.target === $('modal')) closeModal(); return; }
     if(t.classList.contains('skip-link')){ e.preventDefault(); $('main').focus(); return; }
     if(t.hasAttribute('data-login')){ e.preventDefault(); openLogin(); }
+    else if(t.hasAttribute('data-ask-vote-web')) askVoteWeb(t);
     if(t.hasAttribute('data-social')){ socialLogin(t); return; }
     if(t.hasAttribute('data-popup-today')){ try{ localStorage.setItem(POPUP_KEY + t.getAttribute('data-popup-today'), todayISO()); }catch(e){} closeModal(); return; }
     else if(t.hasAttribute('data-share')){ sharePost(); }

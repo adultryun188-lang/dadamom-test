@@ -653,3 +653,5 @@ body{word-break:keep-all;overflow-wrap:anywhere;}
 #screen-community #community-tabs::-webkit-scrollbar{display:none;}
 #screen-community #community-tabs button{flex:0 0 auto;display:inline-flex;align-items:center;gap:5px;min-height:44px;padding:0 15px;border-radius:999px;border:1px solid transparent;background:none;font-size:14px;font-weight:800;color:var(--text2);white-space:nowrap;}
 #screen-community #community-tabs button[aria-selected="true"]{border-color:#EFCDB9;background:#FFF0E7;color:var(--accent-strong,#B5482A);}
+/* 응원·투표 부탁하기 (내 참가작) */
+.ask-vote{display:flex;align-items:center;justify-content:center;gap:6px;margin:0 10px 10px;min-height:42px;border:none;border-radius:999px;background:var(--accent-soft,#FFF0E7);color:var(--accent-strong,#B5482A);font-size:13px;font-weight:800;cursor:pointer;}

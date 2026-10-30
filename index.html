@@ -2456,8 +2456,8 @@
     var row = function(left, right){ return '<div style="display:flex; align-items:baseline; justify-content:space-between; gap:12px; padding:9px 0; border-top:1px solid var(--border);"><span style="font-size:13px; color:var(--text2); min-width:0;">' + left + '</span><b style="flex:0 0 auto; font-size:14px;">' + right + '</b></div>'; };
     return '<div class="card" style="padding:14px 16px 6px;">' +
       '<div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;"><b style="font-size:15px;">이번 달 경품</b><span class="helper">매달 첫 주 발표</span></div>' +
-      amts.map(function(a){ return row(escapeHtml(byAmt[a].join(' · ')) + ' 1위', '배민·올리브영 ' + a + '만 원'); }).join('') +
-      row('처음 참가하면 (선착순 ' + FIRST_GIFT.n + '명)', escapeHtml(FIRST_GIFT.item)) +
+      amts.map(function(a, i){ return row(i > 0 && amts.length > 1 ? '다른 대회 1위' : escapeHtml(byAmt[a].join(' · ')) + ' 1위', '배민·올리브영 ' + a + '만 원'); }).join('') +
+      row('처음 참가 선착순 ' + FIRST_GIFT.n + '명', escapeHtml(FIRST_GIFT.item.replace(' 아메리카노', ''))) +
     '</div>';
   }
   // 참여 자격은 단계(임신·육아)만 본다. 개월 수는 '추천' 순서에만 쓴다.

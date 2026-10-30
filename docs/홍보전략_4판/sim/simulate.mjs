@@ -13,11 +13,18 @@ const OUT = dirname(fileURLToPath(import.meta.url));
 function mulberry32(a) { return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 const rand = mulberry32(SEED);
 // 삼각분포: 나쁨·좋음을 양 끝, 중간을 꼭짓점으로 씀
-function tri(a, m, b) {
+function tri(a, m, b, u = rand()) {
   const lo = Math.min(a, b), hi = Math.max(a, b);
   if (hi === lo) return lo;
-  const u = rand(), f = (m - lo) / (hi - lo);
+  const f = (m - lo) / (hi - lo);
   return u < f ? lo + Math.sqrt(u * (hi - lo) * (m - lo)) : hi - Math.sqrt((1 - u) * (hi - lo) * (hi - m));
+}
+// 표준정규 (박스-뮬러)와 누적분포 (상관 넣을 때 씀)
+const gauss = () => Math.sqrt(-2 * Math.log(1 - rand())) * Math.cos(2 * Math.PI * rand());
+function Phi(z) { // Abramowitz-Stegun 26.2.17
+  const t = 1 / (1 + 0.2316419 * Math.abs(z)), d = 0.3989423 * Math.exp(-z * z / 2);
+  const p = d * t * (0.3193815 + t * (-0.3565638 + t * (1.781478 + t * (-1.821256 + t * 1.330274))));
+  return z > 0 ? 1 - p : p;
 }
 
 // ── 가정표: [나쁨, 중간, 좋음, 이름, 출처] ──
@@ -55,6 +62,30 @@ for (const [k, [b, m, g]] of Object.entries(P)) {
     for (const v of [b, m, g]) assert.ok(v >= 0 && v <= 1, `${k}: 확률이 0~1 밖`);
 }
 
+// ── 보정 가정 (05_검산.md 3절: 덜 낙관적으로) + 30만 원안에만 쓰는 무료 채널 가정 ──
+const P2 = {
+  ...P,
+  meta_cpm:   [20000, 11000, 8000, '메타 노출 1,000번 값(원)', '05 3-1: 나쁜 끝 2만으로'],
+  meta_ctr:   [0.007, 0.009, 0.010, '메타 클릭률', '05 3-1: 좋은 끝 01 기준 1%'],
+  meta_cvr:   [0.03, 0.05, 0.08, '메타 화면 → 가입', '05 3-2 보정 중간 5%'],
+  dg_cvr:     [0.03, 0.05, 0.08, '당근 화면 → 가입', '05 3-2 보정 중간 5%'],
+  entry:      [0.15, 0.30, 0.45, '가입자 중 참가작 올리는 비율', '05 3-2 보정 중간 30%'],
+  link_cvr:   [0.05, 0.15, 0.25, '링크로 온 사람 → 가입', '05 3-1: 20%는 높음'],
+  r7:         [0.08, 0.13, 0.18, '7일 재방문', '05 4절: 앱 평균 11~13%'],
+  members:    [1, 1, 1, '지금 회원 중 알림·공지를 보는 사람', '[확인] 운영 DB 10-30: profiles 2명 중 1명은 운영자'],
+  owner_ig:   [0, 1, 4, '사장님 개인 인스타 게시 1번으로 오는 가입', '[추정] 팔로워 수 모름'],
+  push_entry: [0.03, 0.08, 0.15, '기존 회원이 첫 참가 선물 보고 참가하는 비율', '[추정]'],
+  free_cafe:  [0, 3, 10, '맘카페 홍보 게시판 글로 한 달 가입', '[추정] 홍보 허용 게시판만'],
+  free_ig:    [0, 2, 8, '다다맘 인스타 계정으로 한 달 가입', '[추정] 새 계정이라 거의 안 닿음'],
+  gift_price: [1700, 1550, 1400, '첫 참가 선물 1장 값(원)', '07 메가커피 아메리카노 1,400~1,700원 (발송 수수료 확인 필요)'],
+  review_su:  [0, 0.5, 2, '참가자 후기 글 1편이 한 달에 데려오는 가입', '[추정]'],
+};
+// 같이 움직이는 가정 (첫 화면·소재 품질이라는 같은 원인). 모두 "클수록 좋음"이어야 함
+const CORR = ['meta_ctr', 'meta_cvr', 'dg_cvr', 'cafe_cvr', 'nv_cvr', 'land', 'entry', 'share', 'link_cvr', 'link_entry', 'r7', 'push_entry', 'free_cafe', 'free_ig', 'review_su', 'owner_ig'];
+const RHO = 0.5; // shortcut: 상관 0.5는 정한 값. 실측 2주 뒤 채널별 값이 나오면 다시 정함
+for (const k of CORR) assert.ok(P2[k][0] < P2[k][2], `${k}: 상관 묶음은 좋을수록 커야 함`);
+for (const [k, [b, m, g]] of Object.entries(P2)) assert.ok(Math.min(b, g) <= m && m <= Math.max(b, g), `${k}: 보정값 범위`);
+
 // ── 예산안 (월, 원). 03 6-1절 그대로 ──
 // other = 경품·추첨·예비 (사람을 데려오지 않는 돈)
 const PLANS = {
@@ -63,32 +94,53 @@ const PLANS = {
   rec: { label: '권장안 300만', total: 3000000, days: 30, halfStart: true, meta: 50000, dg: 10000, blog: 800000, cafe: 50000, cafeN: 3, cafeStart: 15, nv: 0, ig: 0, igN: 0, other: 350000 },
   agg: { label: '공격안 600만', total: 6000000, days: 30, halfStart: true, meta: 100000, dg: 20000, blog: 1200000, cafe: 100000, cafeN: 5, cafeStart: 15, nv: 200000, ig: 500000, igN: 5, other: 400000 },
 };
-for (const p of Object.values(PLANS))
-  assert.equal(p.meta * p.days + p.dg * p.days + p.blog + p.cafe + p.nv + p.ig + p.other, p.total, `${p.label}: 항목 합 ≠ 합계`);
+// ── 30만 원 미만 안 (06_30만원안.md). 광고는 날짜 구간으로, 선물은 상한으로 잡음 ──
+// 단가는 07_경품조사.md: 메가커피 아메리카노 1,400~1,700원(예산은 1,700으로), 이달의 대상 스냅스 포토북 3만 원대(예산은 39,000으로)
+// other = 이달의 대상 39,000 + 대회별 1위 커피 1,700 × 3 + 참가자 후기 선물 커피 2장 3,400 × 5
+const ZERO = { blog: 0, cafe: 0, cafeN: 0, cafeStart: 99, nv: 0, ig: 0, igN: 0, halfStart: false, days: 30 };
+const OTHER30 = 39000 + 1700 * 3 + 3400 * 5;
+const NEW_PLANS = {
+  s30a: { ...ZERO, label: '30만-가 당근 첫날부터 (추천)', total: 280100, meta: 0, dg: 8000, dgFrom: 1, dgTo: 21, free: true, giftN: 30, giftMax: 1700, reviewN: 5, other: OTHER30 },
+  s30b: { ...ZERO, label: '30만-나 메타 7일 몰아쓰기', total: 270100, meta: 20000, metaFrom: 1, metaTo: 7, dg: 5000, dgFrom: 1, dgTo: 7, free: true, giftN: 20, giftMax: 1700, reviewN: 5, other: OTHER30 },
+  s30d: { ...ZERO, label: '30만-라 당근 8일째부터 (이전 안)', total: 280100, meta: 0, dg: 8000, dgFrom: 8, dgTo: 28, free: true, giftN: 30, giftMax: 1700, reviewN: 5, other: OTHER30 },
+  s30c: { ...ZERO, label: '30만-다 광고 없이 무료만', total: 112100, meta: 0, dg: 0, free: true, giftN: 30, giftMax: 1700, reviewN: 5, other: OTHER30 },
+};
+const span = (p, ch) => p[ch] ? (p[ch + 'To'] ?? p.days) - (p[ch + 'From'] ?? 1) + 1 : 0;
+const budgetSum = p => p.meta * span(p, 'meta') + p.dg * span(p, 'dg') + p.blog + p.cafe + p.nv + p.ig + (p.giftN || 0) * (p.giftMax || 0) + p.other;
+for (const p of Object.values(PLANS)) assert.equal(budgetSum(p), p.total, `${p.label}: 항목 합 ≠ 합계`);
+for (const p of Object.values(NEW_PLANS)) { assert.equal(budgetSum(p), p.total, `${p.label}: 항목 합 ≠ 합계`); assert.ok(p.total < 300000, `${p.label}: 30만 원 이상`); }
 
-const CH = ['meta', 'dg', 'blog', 'cafe', 'nv', 'ig', 'link', 'fam'];
+const CH = ['meta', 'dg', 'blog', 'cafe', 'nv', 'ig', 'free', 'link', 'fam'];
 
 // ── 한 번 돌리기: 가정값(x) 하나로 한 달을 하루씩 계산 ──
 function run(plan, x) {
   const f = {}; for (const c of CH) f[c] = { imp: 0, clk: 0, su: 0, ent: 0 };
   let spent = 0, cumLand = 0, learnDone = false, learnDay = null;
   let cumSu = 0, cumEnt = 0, d14 = null, day30ent = null, overDays = 0;
+  let reach10 = null, reach20 = null, existEnt = 0, gifts = 0;
   const nBlog = plan.blog ? Math.floor(plan.blog / x.blog_cost) : 0;
+  const on = (ch, d) => plan[ch] && d >= (plan[ch + 'From'] ?? 1) && d <= (plan[ch + 'To'] ?? plan.days);
+  const mFrom = plan.metaFrom ?? 1;
   spent += plan.blog + plan.cafe + plan.ig + plan.other; // 정액
   for (let d = 1; d <= plan.days; d++) {
     const half = plan.halfStart && d <= 3 ? 0.5 : 1;
     const day = { su: 0, ent: 0 };
     const add = (c, imp, clk, su, ent) => { f[c].imp += imp; f[c].clk += clk; f[c].su += su; f[c].ent += ent; day.su += su; day.ent += ent; };
-    // 메타: 랜딩 페이지 조회 50번을 7일 안에 못 채우면 학습 제한으로 계속 비쌈
-    if (plan.meta) {
+    // 메타: 랜딩 페이지 조회 50번을 시작 후 7일 안에 못 채우면 학습 제한으로 계속 비쌈
+    if (on('meta', d)) {
       const s = plan.meta * half; spent += s;
       const cpm = x.meta_cpm * (learnDone ? 1 : 1 + x.learn_pen);
       const imp = s / cpm * 1000, clk = imp * x.meta_ctr, land = clk * x.land, su = land * x.meta_cvr;
       add('meta', imp, clk, su, su * x.entry);
       cumLand += land;
-      if (!learnDone && d <= 7 && cumLand >= 50) { learnDone = true; learnDay = d; }
+      if (!learnDone && d - mFrom < 7 && cumLand >= 50) { learnDone = true; learnDay = d - mFrom + 1; }
     }
-    if (plan.dg) { // 당근: 예산이 다 안 쓰이는 날이 있음
+    if (plan.free) { // 무료 채널: 사장님 글(맘카페 홍보 게시판)·인스타는 한 달에 고르게, 기존 회원 알림은 1~7일
+      add('free', 0, 0, (x.free_cafe + x.free_ig) / plan.days, (x.free_cafe + x.free_ig) / plan.days * x.entry);
+      if (d <= 7) { const e = x.members * x.push_entry / 7; existEnt += e; add('free', 0, 0, x.owner_ig / 7, e + x.owner_ig / 7 * x.entry); }
+      if (plan.reviewN && d >= 15) { const su = plan.reviewN * x.review_su / (plan.days - 14); add('free', 0, 0, su, su * x.entry); }
+    }
+    if (on('dg', d)) { // 당근: 예산이 다 안 쓰이는 날이 있음
       const s = plan.dg * half * x.dg_burn; spent += s;
       const clk = s / x.dg_cpc, su = clk * x.land * x.dg_cvr;
       add('dg', clk / x.dg_ctr, clk, su, su * x.entry);
@@ -117,25 +169,30 @@ function run(plan, x) {
     add('fam', 0, 0, day.su * x.fam_inv * x.fam_size, 0);
     if (day.ent > x.mod_cap) overDays++;
     cumSu += day.su; cumEnt += day.ent;
+    if (reach10 === null && cumEnt >= 10) reach10 = d;
+    if (reach20 === null && cumEnt >= 20) reach20 = d;
     if (day30ent === null && cumEnt >= 30) day30ent = d;
     if (d === 14) d14 = { su: cumSu, ent: cumEnt };
   }
+  // 첫 참가 선물: 승인된 첫 참가작 giftN명까지 (기존 회원 참가도 받음)
+  if (plan.giftN) { gifts = Math.min(plan.giftN, cumEnt); spent += gifts * x.gift_price; }
   const su = cumSu, ret = su * x.r7;
-  const adSpent = spent - plan.blog - plan.cafe - plan.ig - plan.other;
+  const adSpent = spent - plan.blog - plan.cafe - plan.ig - plan.other - gifts * (x.gift_price || 0);
   const paidSu = f.meta.su + f.dg.su + f.nv.su;
   // 자체 점검
   for (const c of CH) {
     assert.ok(f[c].su <= f[c].clk + 1e-9 || f[c].clk === 0, `${c}: 가입 > 클릭`);
     assert.ok(f[c].clk <= f[c].imp + 1e-9 || f[c].imp === 0, `${c}: 클릭 > 노출`);
   }
-  assert.ok(ret <= su && cumEnt <= su + plan.igN + 1e-9, '재방문·참가작이 가입보다 많음');
+  assert.ok(ret <= su && cumEnt <= su + plan.igN + existEnt + 1e-9, '재방문·참가작이 가입보다 많음');
+  assert.ok(gifts <= (plan.giftN || 0), '선물이 상한보다 많음');
   assert.ok(spent <= plan.total + 1, `${plan.label}: 쓴 돈 > 예산`);
   return {
     su, ent: cumEnt, ret, spent, unspent: plan.total - spent,
     cpa: plan.total / su, cpaAd: paidSu ? adSpent / paidSu : null, cpr: plan.total / ret,
     imp: Object.values(f).reduce((a, c) => a + c.imp, 0), clk: Object.values(f).reduce((a, c) => a + c.clk, 0),
     d14su: d14 ? d14.su : null, d14ent: d14 ? d14.ent : null, day30ent, learnDay, learnLimited: plan.meta > 0 && !learnDone,
-    overDays, nBlog, ch: Object.fromEntries(CH.map(c => [c, f[c].su])),
+    overDays, nBlog, reach10, reach20, gifts, existEnt, ch: Object.fromEntries(CH.map(c => [c, f[c].su])),
   };
 }
 
@@ -193,6 +250,48 @@ const verdictCpr = v => v < REF_CPR / 2 ? '쌈' : v <= REF_CPR ? '합당' : '비
 for (const o of Object.values(result.예산안)) o.판단 = { 가입1명값: verdictCpa(o.cpa.p50), 재방문1명값: verdictCpr(o.cpr.p50) };
 result.판단기준 = { 가입1명값: '8천 미만 쌈 / 8천~2만 합당 / 2만 초과 비쌈 (01 업계 범위·03 목표)', 재방문1명값: `기준선 ${REF_CPR}원(1.6만 ÷ 12%) 이하 합당, 절반 미만 쌈, 넘으면 비쌈` };
 
+// ── 2부: 05 보정 가정 + 같이 나빠지는 상관(ρ=0.5)으로 기존 4안 + 30만 원 3안을 다시 ──
+// 위 1부(기존 결과)는 그대로 두고, 같은 난수 흐름 뒤에 이어서 뽑음
+const sample2 = () => {
+  const zc = gauss();
+  return Object.fromEntries(Object.entries(P2).map(([k, [b, m, g]]) =>
+    [k, CORR.includes(k) ? tri(b, m, g, Phi(Math.sqrt(RHO) * zc + Math.sqrt(1 - RHO) * gauss())) : tri(b, m, g)]));
+};
+const mid2 = () => Object.fromEntries(Object.entries(P2).map(([k, v]) => [k, v[1]]));
+const draws2 = Array.from({ length: N }, sample2);
+for (const x of draws2) for (const k of ['land', 'entry', 'r7', 'meta_cvr', 'dg_cvr', 'push_entry']) assert.ok(x[k] >= 0 && x[k] <= 1, `${k} 확률 범위(2부)`);
+const ALL = { ...PLANS, ...NEW_PLANS };
+result.보정 = { 설명: '05_검산 보정 가정, 품질 묶음 상관 0.5 (가우스 코퓰라)', 상관묶음: CORR, 가정: P2, 예산안: {} };
+for (const [id, plan] of Object.entries(ALL)) {
+  const runs = draws2.map(x => run(plan, x));
+  const out = { 이름: plan.label, 합계: plan.total };
+  for (const k of [...KEYS, 'gifts']) out[k] = pct3(runs.map(r => r[k]));
+  out.채널별가입_중간 = Object.fromEntries(CH.map(c => [c, q(runs.map(r => r.ch[c]), 0.5)]));
+  out.참가작10개_도달일 = pct3(runs.map(r => r.reach10));
+  out.참가작10개_못넘는확률 = runs.filter(r => r.reach10 === null).length / N;
+  out.참가작20개_못넘는확률 = runs.filter(r => r.reach20 === null).length / N;
+  out.참가작30개_못넘는확률 = runs.filter(r => r.day30ent === null).length / N;
+  out.메타학습제한확률 = plan.meta ? runs.filter(r => r.learnLimited).length / N : null;
+  out.가입1명값_20000초과 = runs.filter(r => r.cpa > 20000).length / N;
+  for (const k of ['su', 'ent', 'ret']) assert.ok(out[k].p10 <= out[k].p50 && out[k].p50 <= out[k].p90, `${k} 분위수 순서(2부)`);
+  for (const k of ['참가작10개_못넘는확률', '참가작20개_못넘는확률', '참가작30개_못넘는확률', '가입1명값_20000초과']) assert.ok(out[k] >= 0 && out[k] <= 1);
+  for (const [name, idx] of [['모두나쁨', 0], ['모두좋음', 2]]) {
+    const r = run(plan, Object.fromEntries(Object.entries(P2).map(([k, v]) => [k, v[idx]])));
+    out[name] = { su: r.su, ent: r.ent, ret: r.ret, cpa: r.cpa, cpr: r.cpr };
+  }
+  assert.ok(out.모두나쁨.su <= out.su.p10 && out.su.p90 <= out.모두좋음.su, '양 끝이 분위수 밖(2부)');
+  out.판단 = { 가입1명값: verdictCpa(out.cpa.p50), 재방문1명값: verdictCpr(out.cpr.p50) };
+  result.보정.예산안[id] = out;
+}
+// 상관을 넣으면 퍼짐이 넓어져야 정상 (권장안 가입의 10~90% 폭 비교)
+{ const a = result.예산안.rec.su, b = result.보정.예산안.rec.su; assert.ok((b.p90 - b.p10) / b.p50 > (a.p90 - a.p10) / a.p50, '상관 반영 뒤 퍼짐이 넓어지지 않음'); }
+const base2 = run(NEW_PLANS.s30a, mid2());
+const tornado2 = Object.entries(P2).map(([k, [b, , g]]) => {
+  const lo = run(NEW_PLANS.s30a, { ...mid2(), [k]: b }), hi = run(NEW_PLANS.s30a, { ...mid2(), [k]: g });
+  return { 가정: k, 이름: P2[k][3], 나쁨_가입: lo.su, 좋음_가입: hi.su, 나쁨_참가작: lo.ent, 좋음_참가작: hi.ent, 폭_가입: Math.abs(hi.su - lo.su), 폭_참가작: Math.abs(hi.ent - lo.ent) };
+}).filter(t => t.폭_가입 + t.폭_참가작 > 0).sort((a, b) => (b.폭_가입 + b.폭_참가작) - (a.폭_가입 + a.폭_참가작));
+result.보정.민감도_30만가 = { 모두중간: { 가입: base2.su, 참가작: base2.ent, 재방문: base2.ret, 가입1명값: base2.cpa }, 순위: tornado2 };
+
 writeFileSync(join(OUT, '결과.json'), JSON.stringify(result, null, 1));
 
 // ── 결과.md ──
@@ -244,6 +343,46 @@ const md = [
   '- 하루 숫자는 기대값으로 계산했습니다(우연한 들쭉날쭉함은 뺌).',
   '- 공격안의 네이버 검색광고·제작자는 03에서는 3단계지만, 여기서는 "표 금액을 한 달에 다 쓴다"로 계산했습니다.',
   '- 후기단은 1명 = 가입 1 + 참가작 1 (계약 조건), 1~10일에 나눠 들어온다고 봤습니다.', '',
+  ...part2(),
 ].join('\n');
+function part2() {
+  const R2 = result.보정.예산안, ids2 = Object.keys(R2);
+  const row2 = (label, fn) => `| ${label} | ${ids2.map(i => fn(R2[i])).join(' | ')} |`;
+  return [
+    '---', '', '# 2부 — 05 검산 보정 가정 + 같이 나빠지는 경우 (30만 원 안 포함)', '',
+    '메타·당근 가입률 5%, 참가 30%, 7일 재방문 13%(중간) 등 05_검산.md 의 덜 낙관적인 값을 썼습니다.',
+    `품질 묶음(${CORR.length}개: 클릭률·가입률·참가율·재방문 등)은 상관 ${RHO}로 **같이 좋아지고 같이 나빠지게** 뽑았습니다. 1부보다 10%·90% 폭이 넓습니다.`, '',
+    '30만 원 안의 공통 (07_경품조사 단가): 이달의 대상 포토북 39,000 + 대회별 1위 커피 1,700원 × 3 + 참가자 후기 선물 커피 2장 3,400원 × 5 = 61,100원. 첫 참가 선물(승인된 첫 참가작 N명, 커피 1장 1,400~1,700원)은 1,700원 상한으로 예산에 넣음. 발송 수수료는 확인 필요.', '',
+    `| | ${ids2.map(i => R2[i].이름).join(' | ')} |`, `|---|${ids2.map(() => '---').join('|')}|`,
+    row2('예산 합계', o => w(o.합계) + '원'),
+    row2('가입', o => tri3(o.su)), row2('참가작', o => tri3(o.ent)), row2('7일 재방문 회원', o => tri3(o.ret)),
+    row2('가입 1명 값 (총예산 ÷ 가입)', o => tri3(o.cpa, man)),
+    row2('광고만 본 가입 1명 값', o => o.cpaAd.p50 === null ? '—' : tri3(o.cpaAd, man)),
+    row2('재방문 회원 1명 값', o => tri3(o.cpr, man)),
+    row2('첫 참가 선물 나간 장수', o => o.gifts.p50 === null ? '—' : tri3(o.gifts)),
+    row2('14일째 누적 가입 / 참가작 (중간)', o => `${w(o.d14su.p50)} / ${w(o.d14ent.p50)}`),
+    row2('참가작 10개 넘는 날 (중간)', o => o.참가작10개_도달일.p50 ? o.참가작10개_도달일.p50 + '일째' : '못 넘음'),
+    row2('한 달에 참가작 10개 못 넘을 확률', o => pc(o.참가작10개_못넘는확률)),
+    row2('한 달에 참가작 20개 못 넘을 확률', o => pc(o.참가작20개_못넘는확률)),
+    row2('한 달에 참가작 30개 못 넘을 확률', o => pc(o.참가작30개_못넘는확률)),
+    row2('메타 학습 제한 확률', o => o.메타학습제한확률 === null ? '—' : pc(o.메타학습제한확률)),
+    row2('가입 1명 값 2만 초과 확률', o => pc(o.가입1명값_20000초과)),
+    row2('모두 나쁨: 가입 / 참가작', o => `${w(o.모두나쁨.su)} / ${w(o.모두나쁨.ent)}`),
+    row2('모두 좋음: 가입 / 참가작', o => `${w(o.모두좋음.su)} / ${w(o.모두좋음.ent)}`),
+    row2('판단: 가입 1명 값', o => o.판단.가입1명값), row2('판단: 재방문 1명 값', o => o.판단.재방문1명값), '',
+    '## 2부-채널별 가입 (중간값)', '',
+    `| 채널 | ${ids2.map(i => R2[i].이름).join(' | ')} |`, `|---|${ids2.map(() => '---').join('|')}|`,
+    ...[['meta', '메타'], ['dg', '당근'], ['blog', '블로그 후기단'], ['cafe', '맘카페 배너'], ['nv', '네이버 검색'], ['ig', '인스타 제작자'], ['free', '무료(맘카페 글·인스타·후기 선물)'], ['link', '응원 링크'], ['fam', '가족 공유']]
+      .map(([c, n]) => row2(n, o => w(o.채널별가입_중간[c]))), '',
+    '## 2부-민감도 (30만-가, 다른 가정은 보정 중간에 고정)', '',
+    `모두 중간일 때: 가입 ${w(base2.su)} · 참가작 ${w(base2.ent)} · 재방문 ${w(base2.ret)} · 가입 1명 값 ${man(base2.cpa)}`, '',
+    '| 순위 | 가정 | 가입 (나쁨 → 좋음) | 참가작 (나쁨 → 좋음) |', '|---|---|---|---|',
+    ...tornado2.slice(0, 10).map((t, i) => `| ${i + 1} | ${t.이름} | ${w(t.나쁨_가입)} → ${w(t.좋음_가입)} | ${w(t.나쁨_참가작)} → ${w(t.좋음_참가작)} |`), '',
+    '## 2부-단순화한 것', '',
+    '- 첫 참가 선물이 참가율을 올리는 효과는 따로 더하지 않았습니다(보수적). 기존 회원 알림 참가만 따로 셉니다.',
+    '- 기존 회원은 1명(운영 DB 10-30: profiles 2명 중 1명이 운영자)으로 고쳤습니다. 사장님 개인 인스타 1번 게시(첫 주)를 무료 채널에 더했습니다.',
+    '- 브랜드 협찬 경품·제품 체험단은 회신 전이라 0으로 계산했습니다(오면 보너스).', '',
+  ];
+}
 writeFileSync(join(OUT, '결과.md'), md);
 console.log(md);

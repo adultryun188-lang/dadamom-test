@@ -379,7 +379,7 @@
     .navbar button{ flex:0 0 auto; flex-direction:row; gap:12px; font-size:15px; padding:12px 14px; border-radius:14px; }
     .navbar button:hover{ background:rgba(255,122,89,.08); color:var(--text); }
     .navbar button.active{ background:#FFF0E7; color:var(--accent-strong); }
-    .nav-site{ display:flex; align-items:center; gap:10px; margin-top:auto; padding:14px; border-radius:16px;
+    .nav-site{ display:flex; align-items:center; justify-content:center; text-align:center; gap:10px; margin-top:auto; padding:14px; border-radius:16px;
       background:linear-gradient(150deg,#FFF1E8,#FFF8E6); border:1px solid #F6DCCB; color:var(--accent-strong);
       font-size:14px; font-weight:700; text-decoration:none; }
     .nav-site:hover{ box-shadow:0 6px 16px rgba(201,67,24,.12); }
@@ -391,7 +391,7 @@
     .toast{ bottom:40px; }
   }
 </style>
-<link rel="stylesheet" href="./rounded-ui.css?v=20261030-1">
+<link rel="stylesheet" href="./rounded-ui.css?v=20261030-2">
 
 <div class="app" id="app">
   <div class="test-banner" id="test-banner" role="status" hidden>
@@ -679,11 +679,16 @@
           </div>
         </header>
       </div>
-      <div class="segmented round" role="tablist" aria-label="커뮤니티 종류" id="community-tabs">
-        <button data-community-tab="notice" role="tab">공지</button>
-        <button data-community-tab="brag" role="tab">이야기</button>
-        <button data-community-tab="qna" role="tab">Q&amp;A</button>
-        <button data-community-tab="photo" role="tab">사진</button>
+      <!-- 웹 게시판(community.html BOARDS)과 같은 이름·순서. 'brag' 는 예전 '이야기'(전체) 저장값을 그대로 쓴다 -->
+      <div class="board-tabs" role="tablist" aria-label="게시판" id="community-tabs">
+        <button data-community-tab="brag" role="tab"><svg class="ic" aria-hidden="true"><use href="#i-layout-grid"></use></svg>전체</button>
+        <button data-community-tab="best" role="tab"><svg class="ic" aria-hidden="true"><use href="#i-flame"></use></svg>인기글</button>
+        <button data-community-tab="photo" role="tab"><svg class="ic" aria-hidden="true"><use href="#i-camera"></use></svg>사진</button>
+        <button data-community-tab="t-질문" role="tab"><svg class="ic" aria-hidden="true"><use href="#i-circle-help"></use></svg>질문</button>
+        <button data-community-tab="t-자랑" role="tab"><svg class="ic" aria-hidden="true"><use href="#i-sparkles"></use></svg>자랑</button>
+        <button data-community-tab="t-고민" role="tab"><svg class="ic" aria-hidden="true"><use href="#i-message-circle-heart"></use></svg>고민</button>
+        <button data-community-tab="t-정보" role="tab"><svg class="ic" aria-hidden="true"><use href="#i-book-open"></use></svg>정보</button>
+        <button data-community-tab="notice" role="tab"><svg class="ic" aria-hidden="true"><use href="#i-megaphone"></use></svg>공지</button>
       </div>
       <input type="search" id="community-search" enterkeyhint="search" autocomplete="off" placeholder="글 검색 (예: 이유식, 낮잠, 어린이집)" aria-label="커뮤니티 글 검색"
         style="height:46px; border-radius:999px; border:1px solid var(--w-line, #EBDFD1); background:#fff; padding:0 18px; font:inherit; font-size:14px; color:var(--text);">
@@ -3780,21 +3785,22 @@
     if(b.parentElement) b.parentElement.classList.remove('sens');
     b.remove();
   }, true);
-  // ---------- 해결 후기 (0045) ----------
+  // ---------- 그 후 이야기 (0045, 화면 이름은 '그 후 이야기') ----------
   // 질문·고민 글을 쓴 사람이 '그래서 어떻게 됐는지'를 한 번 남긴다. 같은 개월 수 부모가 실제로 통한 방법을 모아 보는 게 다다맘의 강점.
   var OUTCOME_ASK_DAYS = 7;   // 글 쓰고 이만큼 지나면 홈에서 '어떻게 됐어요?'를 여쭤본다
   function isAskPost(p){ return /^\[(질문|고민)\]/.test((p && p.text) || ''); }
   function outcomeHtml(p){
-    if(p.outcome) return '<div class="outcome-box"><b>' + ic('circle-check') + ' 해결 후기</b><p>' + escapeHtml(p.outcome) + '</p></div>';
-    if(p.mine && isAskPost(p) && p.status === 'approved') return '<button type="button" class="outcome-ask" data-outcome-write="' + p.id + '">' + ic('pen-line') + ' 해결됐나요? 어떻게 됐는지 남겨 주세요</button>';
+    if(p.outcome) return '<div class="outcome-box"><b>' + ic('circle-check') + ' 그 후 이야기</b><p>' + escapeHtml(p.outcome) + '</p></div>';
+    if(p.mine && isAskPost(p) && p.status === 'approved') return '<button type="button" class="outcome-ask" data-outcome-write="' + p.id + '">' + ic('pen-line') + ' 그 뒤 어떻게 됐나요? 그 후 이야기 남기기</button>';
     return '';
   }
   function outcomeModalHtml(p){
     return '<div class="modal-head"><h3 class="display">어떻게 됐어요?</h3><button class="modal-close" data-close-modal aria-label="닫기">✕</button></div>' +
       '<p class="modal-desc">' + escapeHtml(postTitle(p.text)) + '</p>' +
-      '<div class="field"><label for="outcome-text">해결 후기</label><textarea id="outcome-text" rows="4" maxlength="500" placeholder="예) 숟가락을 실리콘으로 바꾸니 먹기 시작했어요. 2주쯤 걸렸어요.">' + escapeHtml(p.outcome || '') + '</textarea></div>' +
+      '<span class="helper">해결됐든 아니든 괜찮아요. 해 본 것과 지금 상황을 편하게 적어 주세요.</span>' +
+      '<div class="field"><label for="outcome-text">그 후 이야기</label><textarea id="outcome-text" rows="4" maxlength="500" placeholder="예) 숟가락을 실리콘으로 바꾸니 먹기 시작했어요. 2주쯤 걸렸어요.">' + escapeHtml(p.outcome || '') + '</textarea></div>' +
       '<span class="helper">같은 고민을 하는 엄마 아빠에게 큰 도움이 돼요. 링크·전화번호는 넣을 수 없어요.</span>' +
-      '<button class="btn-primary" data-outcome-save="' + p.id + '" style="width:100%; margin-top:10px;">후기 남기기</button>' +
+      '<button class="btn-primary" data-outcome-save="' + p.id + '" style="width:100%; margin-top:10px;">남기기</button>' +
       '<span class="helper" id="outcome-hint" role="alert"></span>';
   }
   async function saveOutcome(id){
@@ -3806,13 +3812,13 @@
     var r = await sb.rpc('set_post_outcome', { p_post: id, p_outcome: t });
     if(r.error){
       if(hint) hint.textContent = r.error.hint || '후기를 남기지 못했어요. 잠시 후 다시 시도해 주세요.';
-      if(btn){ btn.disabled = false; btn.textContent = '후기 남기기'; }
+      if(btn){ btn.disabled = false; btn.textContent = '남기기'; }
       return;
     }
     state.posts.forEach(function(x){ if(x.id === id){ x.outcome = t; x.outcomeAt = Date.now(); } });
     save(); closeModal();
     renderHome(); renderCommunity();   // 같은 글이 홈과 커뮤니티 양쪽에 있다 (CLAUDE.md 8절)
-    showToast('후기를 남겼어요. 같은 고민인 분들께 큰 도움이 돼요');
+    showToast('그 후 이야기를 남겼어요. 같은 고민인 분들께 큰 도움이 돼요');
   }
 
   // ---------- 홈 맨 위 강점 칸 ----------
@@ -3853,12 +3859,12 @@
       return '<button type="button" class="spot-row" data-open-comments="' + p.id + '">' +
         '<span class="spot-q">' + escapeHtml(postTitle(p.text)) + '</span>' +
         '<span class="spot-a">' + ic('circle-check') + ' ' + escapeHtml(o) + '</span>' +
-        (age ? '<span class="helper">' + escapeHtml(age) + ' 아이 엄마 아빠의 후기</span>' : '') + '</button>';
+        (age ? '<span class="helper">' + escapeHtml(age) + ' 아이 엄마 아빠 이야기</span>' : '') + '</button>';
     }).join('');
     return '<div class="spot-card spot-outcome">' +
-      '<span class="spot-eyebrow">' + escapeHtml(who) + ' 엄마 아빠가 해결한 방법</span>' +
-      '<b class="spot-title">같은 고민, 이렇게 풀었어요</b>' +
-      (rows || '<span class="spot-sub">아직 해결 후기가 없어요. 고민을 올리면 일주일 뒤 "어떻게 됐어요?"를 여쭤보고, 그 후기가 여기에 모여요.</span>') +
+      '<span class="spot-eyebrow">' + escapeHtml(who) + ' 엄마 아빠의 그 후 이야기</span>' +
+      '<b class="spot-title">같은 고민, 그 뒤 이렇게 됐어요</b>' +
+      (rows || '<span class="spot-sub">아직 그 후 이야기가 없어요. 고민을 올리면 일주일 뒤 "그 뒤 어떻게 됐어요?"를 여쭤보고, 그 이야기가 여기에 모여요.</span>') +
       '<button type="button" class="spot-go" data-open-compose>' + (rows ? '내 고민도 물어보기 ' : '첫 고민 물어보기 ') + ic('chevron-right') + '</button></div>';
   }
   function homeAskBackHtml(){
@@ -3866,9 +3872,9 @@
     var due = Date.now() - OUTCOME_ASK_DAYS * 86400000;
     var p = state.posts.filter(function(x){ return x.mine && isAskPost(x) && x.status === 'approved' && !x.outcome && x.createdAt && x.createdAt < due; })[0];
     if(!p) return '';
-    return '<div class="spot-card spot-ask"><span class="spot-eyebrow">' + ic('message-circle') + ' 지난 고민, 어떻게 됐어요?</span>' +
+    return '<div class="spot-card spot-ask"><span class="spot-eyebrow">' + ic('message-circle') + ' 지난 고민, 그 뒤 어떻게 됐어요?</span>' +
       '<b class="spot-title" style="font-size:15px;">' + escapeHtml(postTitle(p.text)) + '</b>' +
-      '<button type="button" class="btn-primary" data-outcome-write="' + p.id + '" style="height:42px; font-size:14px;">해결 후기 남기기</button></div>';
+      '<button type="button" class="btn-primary" data-outcome-write="' + p.id + '" style="height:42px; font-size:14px;">그 후 이야기 남기기</button></div>';
   }
   function renderHomeSpot(){
     var el = document.getElementById('home-spot');
@@ -4522,7 +4528,8 @@
     var f = state.feedFilter || 'all';
     var mine = state.viewMineOnly === 'posts';
     var msg = mine ? '아직 작성한 글이 없어요'
-            : state.communityTab === 'qna' ? '아직 올라온 질문이 없어요'
+            : state.communityTab === 'best' ? '좋아요 ' + HOT_MIN + '개 이상 받은 글이 여기에 모여요'
+            : /^t-/.test(state.communityTab || '') ? '아직 ' + state.communityTab.slice(2) + ' 글이 없어요'
             : f === 'peer' ? '아직 또래 글이 없어요'
             : f === 'interest' ? '관심 분야에 걸리는 글이 아직 없어요'
             : '아직 올라온 글이 없어요';
@@ -4542,9 +4549,12 @@
       '<span class="helper">새 체험단·이벤트가 열리면 공지로 알려드려요.<br>그동안 챌린지에 참여해 보세요. 챌린지마다 매달 1명에게 육아용품을 드려요.</span>' +
       '<a href="#challenge" class="pill" style="margin-top:4px; padding:10px 18px; background:var(--accent-soft); color:var(--accent2); font-size:13px; font-weight:800; text-decoration:none;">챌린지 보러 가기</a></div>';
   }
+  var HOT_MIN = 3;   // 웹(community.html)과 같은 인기글 기준: 좋아요 3개 이상
+  function isListTab(t){ return t === 'brag' || t === 'best' || /^t-/.test(t || ''); }
   function renderCommunity(){
+    if(state.communityTab === 'qna') state.communityTab = 't-질문';   // 예전 'Q&A' 탭
     var _search = document.getElementById('community-search');
-    if(_search){ _search.hidden = !(state.communityTab === 'brag' || state.communityTab === 'qna'); }
+    if(_search){ _search.hidden = !isListTab(state.communityTab); }
     var _fab = document.getElementById('fab');
     if(_fab){ _fab.hidden = (state.communityTab === 'notice'); }
     document.querySelectorAll('#community-tabs [data-community-tab]').forEach(function(btn){
@@ -4578,9 +4588,11 @@
       if(!noticesLoaded){ fetchNotices().then(function(){ if(state.communityTab === 'notice') renderCommunity(); }); }
       return;
     }
-    if(state.communityTab === 'brag' || state.communityTab === 'qna'){
+    if(isListTab(state.communityTab)){
       var allPosts = state.posts.slice().sort(function(a,b){ return b.createdAt - a.createdAt; });
-      if(state.communityTab === 'qna') allPosts = allPosts.filter(function(p){ return /^\[질문\]/.test(p.text || ''); });
+      if(state.communityTab === 'best') allPosts = allPosts.filter(function(p){ return (p.likes || 0) >= HOT_MIN; }).sort(function(a,b){ return b.likes - a.likes || b.createdAt - a.createdAt; });
+      var tTopic = /^t-(.+)$/.exec(state.communityTab || '');
+      if(tTopic) allPosts = allPosts.filter(function(p){ return (p.text || '').indexOf('[' + tTopic[1] + ']') === 0; });
       var myAgeValue = state.kidType === 'pregnant' ? pregWeeks(state.dueDate) : (state.kidType === 'parenting' ? ageMonths(state.birthMonth) : null);
       var peerThreshold = state.kidType === 'pregnant' ? 4 : 2;
       // peerOnly 는 예전 boolean 이었다. feedFilter 로 옮기면서 값을 넘겨받는다.
@@ -6437,7 +6449,7 @@
     if(!sb || !authUser){ noti = { items: [], unseen: 0, seen: 0 }; renderBell(); return; }
     var uid = authUser.id;
     try{
-      var mp = await sb.from('community_posts').select('id,text,status').eq('owner_id', uid).order('created_at', { ascending:false }).limit(100);
+      var mp = await sb.from('community_posts').select('id,text,status,created_at,outcome').eq('owner_id', uid).order('created_at', { ascending:false }).limit(100);
       if(!authUser || authUser.id !== uid || mp.error) return;
       var posts = mp.data || [], titles = {};
       posts.forEach(function(p){ titles[p.id] = postTitle(p.text); });
@@ -6450,6 +6462,10 @@
       okLog = okLog.slice(0, 20);
       notiWrite('status', map); notiWrite('ok', okLog);
       var items = okLog.map(function(x){ return { kind:'ok', id:x.id, title:x.t, at:x.at }; });
+      posts.forEach(function(p){   // 그 후 이야기 여쭙기: 질문·고민, 공개됨, 7일 지남, 아직 없음
+        var due = new Date(p.created_at).getTime() + OUTCOME_ASK_DAYS * 86400000;
+        if(p.status === 'approved' && !p.outcome && isAskPost(p) && due <= now) items.push({ kind:'ask', id:p.id, title:titles[p.id], at:due });
+      });
       if(posts.length){
         var cm = await sb.from('post_comments').select('post_id,author,content,created_at,owner_id')
           .in('post_id', posts.map(function(p){ return p.id; })).neq('owner_id', uid).order('created_at', { ascending:false }).limit(30);
@@ -6492,6 +6508,8 @@
     var head = '<div class="modal-head"><h3 class="display">알림</h3><button class="modal-close" data-close-modal aria-label="닫기">✕</button></div>';
     openModal(head + (noti.items.length
       ? linkListHtml(noti.items.map(function(i){
+          if(i.kind === 'ask') return { href:'#home', attr:' data-close-modal', isNew: i.at > seen, icon:'message-circle', meta:'홈 맨 위에서 남길 수 있어요',
+            html:'<b>"' + escapeHtml(i.title) + '"</b> 그 뒤 어떻게 됐나요? 그 후 이야기를 들려주세요' };
           if(i.kind === 'review') return { href:'#admin', attr:' data-close-modal', isNew:true, icon:'pen-line', meta:'관리자 화면에서 승인·반려해 주세요',
             html:'<b>검수 대기 ' + i.n + '건</b>이 있어요' };
           return {
@@ -6690,7 +6708,7 @@
           POST_TOPICS.map(function(t){
             return '<button type="button" class="chip-f" data-post-topic="' + t + '" aria-pressed="false">' + t + '</button>';
           }).join('') +
-        '</div></div>' +
+        '</div><span class="helper">질문·고민 글은 일주일 뒤 "그 뒤 어떻게 됐어요?"를 한 번 여쭤봐요. 남기는 건 자유예요.</span></div>' +
       '<div class="field"><label for="post-photo">사진·영상 (선택)</label><label class="kfile"><input type="file" class="kfile-input" id="post-photo" accept="image/jpeg,image/png,image/webp,video/mp4,video/quicktime"><span class="kfile-btn">' + ic('camera') + ' 사진·영상 고르기</span><span class="kfile-name">선택한 파일 없음</span></label><span class="helper" id="post-photo-hint">사진 25MB · 영상 1분까지 (큰 영상은 자동으로 줄여요)</span></div>' +
       '<div class="field"><label for="post-text">내용 *</label><textarea id="post-text" rows="4" placeholder="질문이나 이야기를 적어주세요"></textarea></div>' +
       '<div class="field"><label>공개범위 *</label>' +
@@ -6700,7 +6718,6 @@
       '<button type="button" data-post-visibility="private" role="tab" aria-selected="false" style="flex:1;">나만 보기</button>' +
       '</div><span class="helper" id="post-visibility-hint">커뮤니티의 모든 사람이 볼 수 있어요</span></div>' +
       '<p class="helper" style="margin:0;">다른 사람·선생님·업체의 실명이나 아이 신상을 올리면 바로 내려가요. 서로 다른 3명이 신고하면 자동으로 숨겨지고, 신고는 하루 안에 확인해요.</p>' +
-      '<label class="check-row"><input type="checkbox" id="post-anon"> 이름 숨기고 올리기 (다른 회원에게는 \'익명\'으로 보여요. 운영자는 누가 썼는지 알 수 있어요)</label>' +
       '<label class="check-row"><input type="checkbox" id="post-sensitive"> 사진이 민감할 수 있어요 (수유·목욕 등) — 흐리게 보이고 눌러야 보여요</label>' +
       '<label class="check-row"><input type="checkbox" id="post-sponsored"> 업체에서 제품이나 돈을 받고 쓰는 글이에요 (체험단·협찬) — 글에 \'제품 제공받음\'이 표시돼요</label>' +
       '<label class="check-row"><input type="checkbox" id="post-consent"> 아이 사진이 포함된다면 위 공개범위를 확인했고, 선택한 범위로 게시하는 것에 동의해요 *</label>' +
@@ -6744,7 +6761,7 @@
     var preview = post.text && post.text.length > 60 ? post.text.slice(0,60) + '…' : (post.text || '');
     return '<div class="modal-head"><h3 class="display" id="comments-modal-title">댓글 ' + (post.comments||0) + '개</h3><button class="modal-close" data-close-modal aria-label="닫기">✕</button></div>' +
       '<p class="modal-desc">' + escapeHtml(preview) + '</p>' +
-      (post.outcome ? '<div class="outcome-box"><b>' + ic('circle-check') + ' 해결 후기</b><p>' + escapeHtml(post.outcome) + '</p></div>' : '') +
+      (post.outcome ? '<div class="outcome-box"><b>' + ic('circle-check') + ' 그 후 이야기</b><p>' + escapeHtml(post.outcome) + '</p></div>' : '') +
       '<div class="col" style="gap:12px; max-height:38vh; overflow-y:auto;" id="comments-list"><span class="helper">불러오는 중...</span></div>' +
       '<div class="row" style="gap:8px; align-items:flex-end;">' +
       '<div class="field" style="flex:1; gap:0;"><textarea id="comment-text" rows="2" placeholder="댓글을 입력하세요"></textarea></div>' +
@@ -7468,8 +7485,7 @@
     }
     var mediaPath = upP.path;
     var signedNow = mediaPath ? (await signMediaPaths([mediaPath]))[mediaPath] || '' : '';
-    var anonEl = document.getElementById('post-anon');
-    var author = (anonEl && anonEl.checked) ? '익명 ' + roleLabel() : (state.nickname ? state.nickname + roleLabel() : '나');
+    var author = state.nickname ? state.nickname + roleLabel() : '나';   // 익명 올리기는 2026-10-30 뺐다
     var myStage = state.kidType;
     var myAgeVal = myStage === 'pregnant' ? pregWeeks(state.dueDate) : (myStage === 'parenting' ? ageMonths(state.birthMonth) : null);
     var visBtn = document.querySelector('#post-visibility-group [data-post-visibility][aria-selected="true"]');
@@ -7506,7 +7522,8 @@
     state.posts.unshift(newPost);
     save();
     closeModal(); renderCommunity(); renderHome();
-    showToast(visibility === 'private' ? '나만 보기로 저장했어요' : (newPost.status === 'approved' ? '등록했어요. 바로 공개됐어요' : '등록했어요. 검수 후 공개됩니다'));
+    var askNote = visibility !== 'private' && isAskPost(newPost) ? ' 일주일 뒤 그 후 이야기를 여쭤볼게요' : '';   // 강제 아님: 알림함·홈에서 한 번 여쭙는다
+    showToast(visibility === 'private' ? '나만 보기로 저장했어요' : (newPost.status === 'approved' ? '등록했어요. 바로 공개됐어요.' : '등록했어요. 검수 후 공개됩니다.') + askNote);
   }
 
   // ---------- 내가 올린 글·참가작 지우기 ----------
@@ -7800,8 +7817,7 @@
       return;
     }
     if(btn) btn.disabled = true;
-    var anonEl = document.getElementById('post-anon');
-    var author = (anonEl && anonEl.checked) ? '익명 ' + roleLabel() : (state.nickname ? state.nickname + roleLabel() : '나');
+    var author = state.nickname ? state.nickname + roleLabel() : '나';   // 익명 올리기는 2026-10-30 뺐다
     var post = state.posts.filter(function(x){ return x.id === postId; })[0];
     var res = await sb.from('post_comments').insert({ post_id: postId, author: author, content: val }).select().single();
     if(res.error || !res.data){

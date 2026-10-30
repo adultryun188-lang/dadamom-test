@@ -648,3 +648,8 @@ body{word-break:keep-all;overflow-wrap:anywhere;}
 .outcome-box b{display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:800;color:#4D7A33;}
 .outcome-box p{margin:0;font-size:13.5px;line-height:1.65;color:var(--text);white-space:pre-wrap;}
 .outcome-ask{display:flex;align-items:center;gap:6px;width:100%;min-height:44px;padding:10px 14px;border:1px dashed #E7B79C;border-radius:14px;background:#FFF8F3;color:#B5643F;font-size:13px;font-weight:700;text-align:left;cursor:pointer;}
+/* 앱 커뮤니티 게시판 탭: 웹 board-tabs 와 같은 모양 (2026-10-30) */
+#screen-community #community-tabs{align-self:stretch;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:0 0 2px;margin:0 -2px;}
+#screen-community #community-tabs::-webkit-scrollbar{display:none;}
+#screen-community #community-tabs button{flex:0 0 auto;display:inline-flex;align-items:center;gap:5px;min-height:44px;padding:0 15px;border-radius:999px;border:1px solid transparent;background:none;font-size:14px;font-weight:800;color:var(--text2);white-space:nowrap;}
+#screen-community #community-tabs button[aria-selected="true"]{border-color:#EFCDB9;background:#FFF0E7;color:var(--accent-strong,#B5482A);}

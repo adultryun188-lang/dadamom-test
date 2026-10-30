@@ -752,6 +752,7 @@
         <a href="#challenge" data-my-link="challenge" class="my-row"><span class="my-ico" style="background:var(--w-peach);" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-footprints"></use></svg></span><span class="my-row-label">참여이력</span><svg class="my-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></a>
         <a href="#benefit" data-my-link="benefit" class="my-row"><span class="my-ico" style="background:var(--w-sun);" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-gift"></use></svg></span><span class="my-row-label">혜택함</span><span id="my-benefit-badge" class="my-count">0</span></a>
         <button type="button" data-open-saved class="my-row"><span class="my-ico" style="background:var(--w-peach);" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-star"></use></svg></span><span class="my-row-label">스크랩한 글</span><svg class="my-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></button>
+        <button type="button" data-push-toggle class="my-row"><span class="my-ico" style="background:var(--w-sun);" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-bell"></use></svg></span><span class="my-row-label">알림 받기</span><span id="my-push-state" class="helper">꺼짐</span></button>
         <button type="button" data-share-app class="my-row"><span class="my-ico" style="background:var(--w-leaf);" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-mail"></use></svg></span><span class="my-row-label">다다맘 앱 공유하기</span><svg class="my-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></button>
       </div>
 
@@ -1084,6 +1085,8 @@
           refreshAdminStatus();
           if(prevId !== nextId){ switchStateForAccount(); }
           if(event === 'SIGNED_IN'){ clearAuthDraft(); flushPendingConsents(); showToast('로그인됐어요'); }
+          // 알림을 켜 둔 기기는 로그인한 계정으로 다시 묶는다 (다른 계정이면 그쪽으로 넘어감)
+          if(prevId !== nextId && nextId && pushPref('pushToken')){ setTimeout(function(){ enablePush(true); }, 0); }
         });
       }
     }catch(e){ /* 인증을 지원하지 않는 클라이언트에서도 앱 초기화는 계속 진행 */ }
@@ -7205,6 +7208,13 @@
       return;
     }
 
+    if(e.target.closest('[data-push-toggle]')){
+      if(!pushSupported()){ showToast('이 기기·브라우저는 알림을 지원하지 않아요'); return; }
+      if(!requireLogin('알림 받기')) return;
+      if(pushPref('pushToken')) disablePush(); else enablePush(false);
+      return;
+    }
+
     var shareAppBtn = e.target.closest('[data-share-app]');
     if(shareAppBtn){
       openShareModal({ title:'다다맘', text:'다다맘 · 임신·육아 기록과 부모 커뮤니티', url: shareUrlFor() });
@@ -8144,6 +8154,69 @@
       if(e) e.textContent = (ENV.ENV || '') + (ENV.BUILD ? (' · ' + ENV.BUILD) : '');
     }
   })();
+
+  // ---------- 푸시 알림 (0046 push_tokens · 0047 send-push) ----------
+  // Firebase 웹 설정·VAPID 는 공개값이다 (비밀 키는 Supabase Edge Function 비밀값에만 있다).
+  var FIREBASE_WEB = { apiKey:'AIzaSyBG4Ogep4OvVNx-IaWMPLXH7ZVuxS4WuQI', authDomain:'dadamom-1f97b.firebaseapp.com', projectId:'dadamom-1f97b',
+    storageBucket:'dadamom-1f97b.firebasestorage.app', messagingSenderId:'669030606180', appId:'1:669030606180:web:ee45393e545204d12bc671' };
+  var FCM_VAPID = 'BHN1dv7Djm_hDzBEWLPWzeAL2kr_h8CpXDrm0VnMXd4Oe6hrd-f6aVw5j4rPOHNdP08mUP7wk7cMCx4AnBiUvq8';
+  var FB_SDK = 'https://www.gstatic.com/firebasejs/10.12.2/';
+  function nativePush(){ var C = window.Capacitor; return C && C.isNativePlatform && C.isNativePlatform() && C.Plugins && C.Plugins.PushNotifications; }
+  function pushSupported(){ return !!nativePush() || ('serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window && location.protocol === 'https:'); }
+  function pushPref(k, v){ try{ if(v === undefined) return localStorage.getItem('dadamom.' + k); if(v === null) localStorage.removeItem('dadamom.' + k); else localStorage.setItem('dadamom.' + k, v); }catch(e){ return null; } }
+  function renderPushState(){
+    var el = document.getElementById('my-push-state');
+    if(el) el.textContent = !pushSupported() ? '이 기기는 지원 안 함' : pushPref('pushToken') ? '켜짐' : '꺼짐';
+  }
+  async function getPushToken(){
+    var P = nativePush();
+    if(P){
+      var perm = await P.requestPermissions();
+      if(perm.receive !== 'granted') throw new Error('DENIED');
+      return new Promise(function(resolve, reject){
+        P.addListener('registration', function(t){ resolve(t.value); });
+        P.addListener('registrationError', function(err){ reject(err); });
+        P.register();
+      });
+    }
+    if(await Notification.requestPermission() !== 'granted') throw new Error('DENIED');
+    var reg = await navigator.serviceWorker.ready;
+    var fa = await import(FB_SDK + 'firebase-app.js'), fm = await import(FB_SDK + 'firebase-messaging.js');
+    var app = fa.getApps().length ? fa.getApp() : fa.initializeApp(FIREBASE_WEB);
+    return fm.getToken(fm.getMessaging(app), { vapidKey: FCM_VAPID, serviceWorkerRegistration: reg });
+  }
+  async function enablePush(silent){
+    if(!pushSupported() || !sb || !authUser) return;
+    try{
+      var token = await getPushToken();
+      var r = await sb.rpc('register_push_token', { p_token: token, p_platform: nativePush() ? 'android' : 'web' });
+      if(r.error) throw r.error;
+      pushPref('pushToken', token);
+      if(!silent) showToast('알림을 켰어요. 댓글·응원 소식을 알려 드릴게요');
+    }catch(err){
+      console.warn('[다다맘] 알림 켜기 실패', err);
+      if(!silent) showToast(err && err.message === 'DENIED' ? '휴대폰 설정에서 다다맘 알림을 허용해 주세요' : '알림을 켜지 못했어요. 잠시 후 다시 시도해 주세요');
+    }
+    renderPushState();
+  }
+  async function disablePush(){
+    var token = pushPref('pushToken');
+    if(token && sb){
+      var r = await sb.from('push_tokens').delete().eq('token', token);
+      if(r.error){ showToast('알림을 끄지 못했어요. 잠시 후 다시 시도해 주세요'); return; }
+    }
+    pushPref('pushToken', null);
+    renderPushState();
+    showToast('알림을 껐어요');
+  }
+  // 앱: 알림을 누르면 그 화면으로
+  if(nativePush()){
+    nativePush().addListener('pushNotificationActionPerformed', function(a){
+      var link = a && a.notification && a.notification.data && a.notification.data.link;
+      if(link && link.charAt(0) === '#') location.hash = link;
+    });
+  }
+  renderPushState();
 
   // ---------- 서비스워커 ----------
   // index.html 은 network-first 로 받아오므로 배포한 변경이 바로 반영된다.

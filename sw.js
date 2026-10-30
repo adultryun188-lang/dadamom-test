@@ -91,3 +91,26 @@ self.addEventListener('fetch', (e) => {
     }))
   );
 });
+
+// 푸시 알림 (0047 send-push). 서버는 웹에 data 만 보내므로 여기서 직접 띄운다.
+self.addEventListener('push', (e) => {
+  let d = {};
+  try { const j = e.data ? e.data.json() : {}; d = j.data || j; } catch (_) {}
+  if (!d.title) return;
+  e.waitUntil(self.registration.showNotification(d.title, {
+    body: d.body || '',
+    icon: './icons/icon-192.png',
+    badge: './icons/icon-192.png',
+    tag: d.kind || 'dadamom',
+    data: { link: d.link || '#home' }
+  }));
+});
+
+self.addEventListener('notificationclick', (e) => {
+  e.notification.close();
+  const target = new URL('./' + ((e.notification.data && e.notification.data.link) || '#home'), self.registration.scope).href;
+  e.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((list) => {
+    for (const c of list) { if ('focus' in c) { c.navigate(target).catch(() => {}); return c.focus(); } }
+    return self.clients.openWindow(target);
+  }));
+});

@@ -2063,6 +2063,7 @@
               '<div class="row" style="align-items:center; gap:6px; flex-wrap:wrap;">' +
                 '<span style="font-size:13px; font-weight:700;">' + escapeHtml(a.nickname || '(닉네임 없음)') + '</span>' +
                 '<span class="helper">' + escapeHtml(a.trial_key || '') + ' · ' + escapeHtml(a.region || '') + '</span>' +
+                '<span class="helper" style="margin-left:auto;' + ((a.care_streak || 0) >= 7 ? ' font-weight:700;' : '') + '">육아기록 ' + (a.care_streak || 0) + '일 연속' + ((a.care_streak || 0) >= 7 ? ' · 우선' : '') + '</span>' +
               '</div>' +
               '<span class="helper" data-app-pii="' + a.id + '">' +
                 escapeHtml(a.name_masked || '***') + ' · ' + escapeHtml(a.contact_masked || '***') + ' · ' + escapeHtml(a.address_masked || '***') + '</span>' +
@@ -7860,7 +7861,7 @@
         if(btn){ btn.disabled = false; btn.textContent = '신청 완료하기'; }
         return;
       }
-      var payload = { trial_key:akey, nickname: state.nickname || '', region: state.region || '', id: appId };
+      var payload = { trial_key:akey, nickname: state.nickname || '', region: state.region || '', id: appId, care_streak: Math.min(careStreak(), 60) };
       var res = await sb.from('benefit_applications').insert(payload);
       if(res.error){
         console.error('benefit_applications insert error', res.error);

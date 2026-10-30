@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>우리 아이 응원 부탁해요 — 다다맘 자랑 대회</title>
+<!-- 응원·투표 부탁 링크 전용 주소. 카카오톡 등 미리보기에 '응원 부탁' 카드를 보여 주고, 열면 앱 화면의 그 참가작으로 보낸다.
+     참가작 사진·이름은 회원에게만 보여 주므로(0041) 미리보기에는 넣지 않는다. 예시 사진은 Pexels(assets/challenge). -->
+<meta name="description" content="가족·지인이 다다맘 자랑 대회에 나갔어요. 눌러서 응원과 투표를 해 주세요.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="다다맘">
+<meta property="og:title" content="우리 아이 응원 부탁해요 — 다다맘 자랑 대회">
+<meta property="og:description" content="눌러서 응원과 투표를 해 주세요. 매달 점수 1등 아이에게 육아용품을 드려요.">
+<meta property="og:url" content="https://dadamom.co.kr/vote.html">
+<meta property="og:image" content="https://dadamom.co.kr/icons/og-vote.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="ko_KR">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="./favicon.ico" sizes="48x48">
+<style>
+  html,body{margin:0;min-height:100%;background:#FFFBF5;color:#3D3027;font-family:-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;}
+  main{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px;text-align:center;word-break:keep-all;}
+  a{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 24px;border-radius:999px;background:#C2542F;color:#fff;font-weight:800;text-decoration:none;}
+</style>
+</head>
+<body>
+<main>
+  <p>응원하러 가는 중이에요…</p>
+  <a id="go" href="./index.html#challenge">바로 가기</a>
+</main>
+<script>
+  // ?entry=<참가작 id> 만 넘긴다 (다른 값은 버림)
+  (function(){
+    var m = /[?&]entry=([0-9a-f-]{36})(?:&|$)/i.exec(location.search);
+    var to = './index.html' + (m ? '?entry=' + m[1].toLowerCase() : '') + '#challenge';
+    document.getElementById('go').href = to;
+    location.replace(to);
+  })();
+</script>
+</body>
+</html>

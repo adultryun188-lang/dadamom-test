@@ -3894,7 +3894,7 @@
 
   // ---------- 응원·투표 부탁하기 ----------
   var ASK_RULE_HTML = '<span class="helper">가입한 지 7일이 지난 회원의 응원·투표가 점수에 들어가요. 새로 가입했다면 응원은 바로 할 수 있고, 투표는 7일 뒤부터 할 수 있어요.</span>';
-  function askVoteUrl(id){ return location.origin + location.pathname + '?entry=' + encodeURIComponent(id) + '#challenge'; }
+  function askVoteUrl(id){ return new URL('./vote.html', location.href).href.split('?')[0].split('#')[0] + '?entry=' + encodeURIComponent(id); }   // vote.html: 카톡 미리보기 카드 → 앱 화면으로 보냄
   async function shareAskVote(id){
     var en = state.entries.filter(function(x){ return String(x.id) === String(id); })[0];
     if(!en) return;

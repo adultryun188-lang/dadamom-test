@@ -32,7 +32,10 @@ async function page(sess) {
   ok('내 참가작에 응원·투표 부탁하기 버튼', await btn.count() === 1);
   if (await btn.count()) { await btn.click(); await p.waitForTimeout(800); }
   const clip = await p.evaluate(() => navigator.clipboard.readText().catch(() => ''));
-  ok('링크가 복사됨 (?entry=…#challenge)', clip.includes('?entry=' + id) && clip.includes('#challenge'), clip.slice(0, 120));
+  ok('링크가 복사됨 (vote.html?entry=…)', clip.includes('vote.html?entry=' + id), clip.slice(0, 120));
+  // 받은 링크(vote.html)가 앱 화면으로 넘겨 주는지
+  await p.goto(base + 'vote.html?entry=' + id); await p.waitForTimeout(2500);
+  ok('vote.html 은 앱 화면(#challenge)으로 넘김', p.url().includes('index.html') && p.url().endsWith('#challenge'), p.url());
   ok('A JS 오류 없음', errs.length === 0, errs.join(' / '));
   await c.close();
 }

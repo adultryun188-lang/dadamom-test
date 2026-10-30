@@ -1370,7 +1370,7 @@
   async function askVoteWeb(btn){
     var id = btn.getAttribute('data-ask-vote-web'), name = btn.getAttribute('data-name') || '우리 아이';
     var ch = (chList || []).filter(function(x){ return x.id === chCurKey; })[0];
-    var url = new URL('./index.html', location.href).href.split('#')[0].split('?')[0] + '?entry=' + encodeURIComponent(id) + '#challenge';
+    var url = new URL('./vote.html', location.href).href.split('#')[0].split('?')[0] + '?entry=' + encodeURIComponent(id);   // 카톡 미리보기 카드 → 앱 화면
     var text = '[다다맘 ' + (ch ? ch.title : '자랑 대회') + '] ' + name + ' — 우리 아이 응원과 투표 부탁해요!';
     if(navigator.share){ try{ await navigator.share({ title: '다다맘 자랑 대회', text: text, url: url }); return; }catch(err){ if(err && err.name === 'AbortError') return; } }
     try{ await navigator.clipboard.writeText(text + '\n' + url); toast('링크를 복사했어요. 카카오톡에 붙여 넣어 보내 보세요'); }

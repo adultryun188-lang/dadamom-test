@@ -371,8 +371,10 @@ function check(name, ok, detail) {
     page.on('pageerror', e => errs.push(e.message));
     await page.goto(BASE + '#onboarding', { waitUntil: 'load' });
     await page.waitForTimeout(800);
-    check('첫 화면에 인증번호 받기 버튼', await page.isVisible('#otp-send'));
-    check('회원가입 탭·비밀번호 가입이 없음', !(await page.$('[data-auth-mode="signup"]')) && !(await page.$('#auth-password2')));
+    check('첫 화면은 비밀번호 로그인', await page.isVisible('#auth-password-submit'));
+    check('첫 화면에 회원가입·인증번호 로그인 링크', !!(await page.$('[data-auth-view="signup"]')) && !!(await page.$('[data-auth-view="code"]')));
+    await page.click('[data-auth-view="code"]');
+    check('인증번호 로그인으로 바꾸면 받기 버튼', await page.isVisible('#otp-send'));
     await page.fill('#auth-email', 'new@dadamom.test');
     check('동의 전에는 못 보냄', await page.isDisabled('#otp-send'));
     await page.check('#consent-quick');
@@ -398,6 +400,7 @@ function check(name, ok, detail) {
     await prep(page);
     page.on('pageerror', e => errs.push(e.message));
     await page.goto(BASE + '#onboarding', { waitUntil: 'load' });
+    await page.click('[data-auth-view="code"]');
     await page.evaluate(() => { window.__SBSTUB.otpSendResult = { data: {}, error: { message: 'For security purposes, you can only request this after 42 seconds.' } }; });
     await page.waitForTimeout(500);
     await page.fill('#auth-email', 'x@dadamom.test');
@@ -406,6 +409,28 @@ function check(name, ok, detail) {
     await page.waitForTimeout(500);
     const rl = await page.evaluate(() => (document.getElementById('auth-hint') || {}).textContent || '');
     check('너무 자주 보내면 한국어 안내', rl.includes('1분에 한 번'), rl);
+    await page.close();
+
+    // 회원가입: 이메일·비밀번호 → 6자리 번호(type signup) → 로그인 (2026-10-30)
+    page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+    await prep(page);
+    page.on('pageerror', e => errs.push(e.message));
+    await page.goto(BASE + '#onboarding', { waitUntil: 'load' });
+    await page.waitForTimeout(500);
+    await page.click('[data-auth-view="signup"]');
+    await page.fill('#auth-email', 'join@dadamom.test');
+    await page.fill('#auth-password', 'abc12345');
+    await page.fill('#auth-password2', 'abc12345');
+    check('가입: 동의 전에는 못 누름', await page.isDisabled('#join-send'));
+    await page.check('#consent-quick');
+    check('가입: 동의하면 누를 수 있음', !(await page.isDisabled('#join-send')));
+    await page.click('#join-send');
+    await page.waitForTimeout(500);
+    check('가입: 번호 넣는 칸이 나옴', await page.isVisible('#auth-code'));
+    await page.fill('#auth-code', '123456');
+    await page.waitForTimeout(1500);
+    const jn = await page.evaluate(() => ({ uid: window.__SBSTUB.curId, type: window.__SBSTUB.otpType }));
+    check('가입: 맞는 번호면 로그인 (signup 확인)', jn.uid === 'u-otp' && jn.type === 'signup', JSON.stringify(jn));
     check('JS 오류 없음', errs.length === 0, errs.join('; '));
     await page.close();
   }

@@ -113,6 +113,7 @@
           signInWithOtp: function(a){ window.__SBSTUB.otpSentTo = a && a.email; return Promise.resolve(window.__SBSTUB.otpSendResult || { data:{}, error:null }); },
           // 인증번호 123456 만 맞다고 한다
           verifyOtp: function(a){
+            window.__SBSTUB.otpType = a.type;
             if(a.token !== '123456') return Promise.resolve({ data:{ session:null }, error:{ message:'Token has expired or is invalid' } });
             window.__SBSTUB.signIn('u-otp', a.email);
             return Promise.resolve({ data:{ session: session, user: session.user }, error:null });

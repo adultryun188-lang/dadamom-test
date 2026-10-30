@@ -155,7 +155,7 @@ try{
     await p.goto(WEB+'?from=ig-01#/p/p-public'); await p.locator('#main [data-login]').click();
     const href=await p.locator('#modal a').first().getAttribute('href');
     check('웹 가입 링크에 원글 전달',new URL(href).searchParams.get('returnTo')==='#/p/p-public');
-    await p.locator('#modal a').first().click(); await p.click('[data-auth-view="password"]'); await p.fill('#auth-email','flow@dadamom.test'); await p.fill('#auth-password','test-password');
+    await p.locator('#modal a').first().click(); await p.fill('#auth-email','flow@dadamom.test'); await p.fill('#auth-password','test-password');
     await p.click('#auth-password-submit'); await p.waitForURL(u=>u.pathname.endsWith('community.html')&&u.hash==='#/p/p-public');
     await p.locator('#cmt-form').waitFor(); check('로그인 후 원글 댓글 참여 가능',true);
   });
@@ -202,9 +202,10 @@ try{
   });
   await run('가입 인증 콜백',fixture(false,false),async p=>{
     await p.goto(APP+'?returnTo=%23%2Fp%2Fp-public&from=ig-01#onboarding');
-    await p.fill('#auth-email','new@dadamom.test'); await p.check('#consent-quick');
-    await p.click('#otp-send'); await p.waitForFunction(()=>!!window.__SBSTUB.otpArgs);
-    const callback=await p.evaluate(()=>window.__SBSTUB.otpArgs.options.emailRedirectTo);
+    await p.click('[data-auth-view="signup"]');
+    await p.fill('#auth-email','new@dadamom.test'); await p.fill('#auth-password','abc12345'); await p.fill('#auth-password2','abc12345'); await p.check('#consent-quick');
+    await p.click('#join-send'); await p.waitForFunction(()=>!!window.__SBSTUB.signupArgs);
+    const callback=await p.evaluate(()=>window.__SBSTUB.signupArgs.options.emailRedirectTo);
     check('가입 인증 메일 복귀 경로 보존',new URL(callback).searchParams.get('returnTo')==='#/p/p-public');
     check('가입 인증 대기 중 임의 복귀 안 함',new URL(p.url()).pathname.endsWith('index.html'));
   });

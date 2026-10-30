@@ -391,7 +391,7 @@
     .toast{ bottom:40px; }
   }
 </style>
-<link rel="stylesheet" href="./rounded-ui.css?v=20261028-3">
+<link rel="stylesheet" href="./rounded-ui.css?v=20261030-1">
 
 <div class="app" id="app">
   <div class="test-banner" id="test-banner" role="status" hidden>
@@ -493,6 +493,8 @@
         </a>
       </div>
 
+      <!-- 2026-10-30 차별화: 다다맘의 강점(이번 달 자랑 대회 · 또래가 해결한 방법)을 홈 맨 위에 -->
+      <div id="home-spot" class="col" style="gap:14px;"></div>
       <div id="home-install"></div>
       <!-- 홈 위쪽 배너 넘기기 (HOME_BANNERS). 5초마다 다음 장, 손으로 넘겨도 된다 -->
       <div id="home-banners"></div>
@@ -2357,6 +2359,7 @@
     }catch(e){ hallRows = []; }
     hallBusy = false;
     if((location.hash || '') === '#challenge') renderChallengeHall();
+    if((location.hash || '#home') === '#home') renderHomeSpot();
   }
   function hallMonthKey(d){ return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'); }
   function chLockedHtml(){ return '<div class="card col" style="grid-column:1/-1; padding:22px 18px; align-items:center; gap:8px; text-align:center;"><span style="font-size:28px;" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-lock"></use></svg></span><span style="font-size:14px; font-weight:800;">참가작은 회원만 볼 수 있어요</span><span class="helper">아이 사진을 지키려고 로그인한 회원에게만 보여 줘요.</span><button type="button" class="btn-primary" data-ch-login style="height:42px; padding:0 20px; font-size:14px;">로그인하고 보기</button></div>'; }
@@ -3231,7 +3234,8 @@
           text:r.text, media_path: r.media_path || '', media_url: '', img: false,
           likes:r.likes || 0, liked: likedIds.indexOf(r.id) > -1, comments:r.comments || 0,
           stage: r.stage || null, age_value: (r.age_value === 0 || r.age_value) ? r.age_value : null,
-          mine: isMineRow(r.owner_id, r.id, state.myPosts), status: r.status || 'approved', createdAt: new Date(r.created_at).getTime(), sponsored: !!r.sponsored, audience: r.audience || 'all', sensitive: !!r.sensitive
+          mine: isMineRow(r.owner_id, r.id, state.myPosts), status: r.status || 'approved', createdAt: new Date(r.created_at).getTime(), sponsored: !!r.sponsored, audience: r.audience || 'all', sensitive: !!r.sensitive,
+          outcome: r.outcome || '', outcomeAt: r.outcome_at ? new Date(r.outcome_at).getTime() : 0
         };
       });
       return await attachMediaUrls(rows);
@@ -3776,6 +3780,102 @@
     if(b.parentElement) b.parentElement.classList.remove('sens');
     b.remove();
   }, true);
+  // ---------- 해결 후기 (0045) ----------
+  // 질문·고민 글을 쓴 사람이 '그래서 어떻게 됐는지'를 한 번 남긴다. 같은 개월 수 부모가 실제로 통한 방법을 모아 보는 게 다다맘의 강점.
+  var OUTCOME_ASK_DAYS = 7;   // 글 쓰고 이만큼 지나면 홈에서 '어떻게 됐어요?'를 여쭤본다
+  function isAskPost(p){ return /^\[(질문|고민)\]/.test((p && p.text) || ''); }
+  function outcomeHtml(p){
+    if(p.outcome) return '<div class="outcome-box"><b>' + ic('circle-check') + ' 해결 후기</b><p>' + escapeHtml(p.outcome) + '</p></div>';
+    if(p.mine && isAskPost(p) && p.status === 'approved') return '<button type="button" class="outcome-ask" data-outcome-write="' + p.id + '">' + ic('pen-line') + ' 해결됐나요? 어떻게 됐는지 남겨 주세요</button>';
+    return '';
+  }
+  function outcomeModalHtml(p){
+    return '<div class="modal-head"><h3 class="display">어떻게 됐어요?</h3><button class="modal-close" data-close-modal aria-label="닫기">✕</button></div>' +
+      '<p class="modal-desc">' + escapeHtml(postTitle(p.text)) + '</p>' +
+      '<div class="field"><label for="outcome-text">해결 후기</label><textarea id="outcome-text" rows="4" maxlength="500" placeholder="예) 숟가락을 실리콘으로 바꾸니 먹기 시작했어요. 2주쯤 걸렸어요.">' + escapeHtml(p.outcome || '') + '</textarea></div>' +
+      '<span class="helper">같은 고민을 하는 엄마 아빠에게 큰 도움이 돼요. 링크·전화번호는 넣을 수 없어요.</span>' +
+      '<button class="btn-primary" data-outcome-save="' + p.id + '" style="width:100%; margin-top:10px;">후기 남기기</button>' +
+      '<span class="helper" id="outcome-hint" role="alert"></span>';
+  }
+  async function saveOutcome(id){
+    var el = document.getElementById('outcome-text'), hint = document.getElementById('outcome-hint');
+    var btn = document.querySelector('[data-outcome-save]');
+    var t = el ? el.value.trim() : '';
+    if(t.length < 5){ if(hint) hint.textContent = '5자 이상 적어 주세요'; return; }
+    if(btn){ btn.disabled = true; btn.textContent = '남기는 중...'; }
+    var r = await sb.rpc('set_post_outcome', { p_post: id, p_outcome: t });
+    if(r.error){
+      if(hint) hint.textContent = r.error.hint || '후기를 남기지 못했어요. 잠시 후 다시 시도해 주세요.';
+      if(btn){ btn.disabled = false; btn.textContent = '후기 남기기'; }
+      return;
+    }
+    state.posts.forEach(function(x){ if(x.id === id){ x.outcome = t; x.outcomeAt = Date.now(); } });
+    save(); closeModal();
+    renderHome(); renderCommunity();   // 같은 글이 홈과 커뮤니티 양쪽에 있다 (CLAUDE.md 8절)
+    showToast('후기를 남겼어요. 같은 고민인 분들께 큰 도움이 돼요');
+  }
+
+  // ---------- 홈 맨 위 강점 칸 ----------
+  function monthLeftDays(){
+    var k = new Date(Date.now() + 9 * 3600000);   // 한국 날짜
+    var end = new Date(Date.UTC(k.getUTCFullYear(), k.getUTCMonth() + 1, 1));
+    return Math.max(0, Math.ceil((end - k) / 86400000) - 1);
+  }
+  function homeContestHtml(){
+    var open = challengeList.filter(chOpen);
+    if(!open.length) return '';
+    var key = curMonthKST();
+    var top = (!chLocked() && hallRows) ? hallRows.filter(function(x){ return x.month === key && x.media_url; }).slice(0, 3) : [];
+    if(!chLocked() && hallRows == null) loadHall();
+    var thumbs = top.length
+      ? top.map(function(x){ return '<span class="spot-th">' + mediaThumb(x.media_url, 'width:100%; height:100%; object-fit:cover;') + '</span>'; }).join('')
+      : open.slice(0, 3).map(function(c){ return '<span class="spot-th">' + chArt(c, true) + '</span>'; }).join('');
+    var left = monthLeftDays();
+    return '<a href="#challenge" class="spot-card spot-contest">' +
+      '<span class="spot-eyebrow">이번 달 자랑 대회 · ' + (left ? 'D-' + left : '오늘 마감') + '</span>' +
+      '<b class="spot-title">우리 아이를 이달의 주인공으로</b>' +
+      '<span class="spot-sub">사진·영상으로 참가하고, 응원과 투표 점수 1등 아이에게 육아용품을 드려요 · 챌린지 ' + open.length + '개</span>' +
+      '<span class="spot-thumbs">' + thumbs + '</span>' +
+      '<span class="spot-go">참가하고 투표하기 ' + ic('chevron-right') + '</span></a>';
+  }
+  function homeOutcomesHtml(){
+    var av = myAgeValue();
+    var list = state.posts.filter(function(p){ return p.outcome && p.status === 'approved'; });
+    list.sort(function(a, b){
+      var da = (a.stage === state.kidType && a.age_value != null && av != null) ? Math.abs(a.age_value - av) : 99;
+      var db = (b.stage === state.kidType && b.age_value != null && av != null) ? Math.abs(b.age_value - av) : 99;
+      return da - db || b.outcomeAt - a.outcomeAt;
+    });
+    var who = (state.kidType === 'parenting' && av != null) ? av + '개월 또래' : (state.kidType === 'pregnant' && av != null) ? '임신 ' + av + '주 또래' : '또래';
+    var rows = list.slice(0, 3).map(function(p){
+      var age = p.stage === 'parenting' && p.age_value != null ? p.age_value + '개월' : p.stage === 'pregnant' && p.age_value != null ? '임신 ' + p.age_value + '주' : '';
+      var o = p.outcome.length > 70 ? p.outcome.slice(0, 70) + '…' : p.outcome;
+      return '<button type="button" class="spot-row" data-open-comments="' + p.id + '">' +
+        '<span class="spot-q">' + escapeHtml(postTitle(p.text)) + '</span>' +
+        '<span class="spot-a">' + ic('circle-check') + ' ' + escapeHtml(o) + '</span>' +
+        (age ? '<span class="helper">' + escapeHtml(age) + ' 아이 엄마 아빠의 후기</span>' : '') + '</button>';
+    }).join('');
+    return '<div class="spot-card spot-outcome">' +
+      '<span class="spot-eyebrow">' + escapeHtml(who) + ' 엄마 아빠가 해결한 방법</span>' +
+      '<b class="spot-title">같은 고민, 이렇게 풀었어요</b>' +
+      (rows || '<span class="spot-sub">아직 해결 후기가 없어요. 고민을 올리면 일주일 뒤 "어떻게 됐어요?"를 여쭤보고, 그 후기가 여기에 모여요.</span>') +
+      '<button type="button" class="spot-go" data-open-compose>' + (rows ? '내 고민도 물어보기 ' : '첫 고민 물어보기 ') + ic('chevron-right') + '</button></div>';
+  }
+  function homeAskBackHtml(){
+    if(!authUser) return '';
+    var due = Date.now() - OUTCOME_ASK_DAYS * 86400000;
+    var p = state.posts.filter(function(x){ return x.mine && isAskPost(x) && x.status === 'approved' && !x.outcome && x.createdAt && x.createdAt < due; })[0];
+    if(!p) return '';
+    return '<div class="spot-card spot-ask"><span class="spot-eyebrow">' + ic('message-circle') + ' 지난 고민, 어떻게 됐어요?</span>' +
+      '<b class="spot-title" style="font-size:15px;">' + escapeHtml(postTitle(p.text)) + '</b>' +
+      '<button type="button" class="btn-primary" data-outcome-write="' + p.id + '" style="height:42px; font-size:14px;">해결 후기 남기기</button></div>';
+  }
+  function renderHomeSpot(){
+    var el = document.getElementById('home-spot');
+    if(!el) return;
+    el.innerHTML = homeAskBackHtml() + homeContestHtml() + homeOutcomesHtml();
+  }
+
   function feedCardHtml(p){
     var media = p.media_url
       ? sensWrap(p, mediaTag(p.media_url, 'width:100%; height:170px; object-fit:cover; border-radius:16px;'))
@@ -3788,6 +3888,7 @@
         '<span style="font-size:11px; color:var(--text2);">' + escapeHtml(p.time) + '</span></div>' +
       media +
       postTextHtml(p.text) +
+      outcomeHtml(p) +
       '<div class="row" style="align-items:center; gap:16px;">' +
       '<button data-postlike="' + p.id + '" aria-pressed="' + p.liked + '" aria-label="좋아요, 현재 ' + p.likes + '개" style="display:flex; align-items:center; gap:5px; border:none; background:none; color:var(--text2); min-height:44px;">' +
       '<svg width="17" height="17" viewBox="0 0 24 24" fill="' + (p.liked ? 'var(--accent)' : 'none') + '" stroke="var(--accent)" stroke-width="1.8" aria-hidden="true"><path d="M12 21s-7.5-4.6-10-9.3C0.4 8.4 2.4 5 6 5c2 0 3.4 1 4 2.3C10.6 6 12 5 14 5c3.6 0 5.6 3.4 4 6.7-2.5 4.7-10 9.3-10 9.3z"/></svg>' +
@@ -3875,6 +3976,7 @@
     missionsEl.parentElement.hidden = !missionsEl.innerHTML;   // 미션이 하나도 없으면 '오늘의 미션' 칸째 숨김
     document.getElementById('home-feedbar').innerHTML = homeFeedBarHtml();
     document.getElementById('home-feed').innerHTML = homeFeedHtml();
+    renderHomeSpot();
     renderHomeBanners();
     renderHomeHot();
     renderHomeMag();
@@ -3919,7 +4021,7 @@
   function homeBannerList(){
     loadHomeBanners();
     if(homeDbBanners && homeDbBanners.length) return homeDbBanners;
-    return HOME_BANNERS.filter(function(b){ return b.key !== 'challenge' || challengeList.some(chOpen); });
+    return HOME_BANNERS.filter(function(b){ return b.key !== 'challenge'; });   // 챌린지는 홈 맨 위 강점 칸(renderHomeSpot)에서 크게 보여 준다
   }
   function renderHomeBanners(){
     var el = document.getElementById('home-banners');
@@ -4517,6 +4619,7 @@
           '<span style="font-size:12.5px; font-weight:700;">' + escapeHtml(p.author) + '</span>' + myStatusBadge(p) + sponsoredBadge(p) + audienceBadge(p) + '<span style="font-size:11px; color:var(--text2);">' + escapeHtml(p.time) + '</span></div>' +
           media +
           postTextHtml(p.text) +
+          outcomeHtml(p) +
           '<div class="row" style="align-items:center; gap:16px;">' +
           '<button data-postlike="' + p.id + '" aria-pressed="' + p.liked + '" aria-label="좋아요, 현재 ' + p.likes + '개" style="display:flex; align-items:center; gap:5px; border:none; background:none; color:var(--text2); min-height:44px;">' +
           '<svg width="17" height="17" viewBox="0 0 24 24" fill="' + (p.liked ? 'var(--accent)' : 'none') + '" stroke="var(--accent)" stroke-width="1.8" aria-hidden="true"><path d="M12 21s-7.5-4.6-10-9.3C0.4 8.4 2.4 5 6 5c2 0 3.4 1 4 2.3C10.6 6 12 5 14 5c3.6 0 5.6 3.4 4 6.7-2.5 4.7-10 9.3-10 9.3z"/></svg>' +
@@ -6641,6 +6744,7 @@
     var preview = post.text && post.text.length > 60 ? post.text.slice(0,60) + '…' : (post.text || '');
     return '<div class="modal-head"><h3 class="display" id="comments-modal-title">댓글 ' + (post.comments||0) + '개</h3><button class="modal-close" data-close-modal aria-label="닫기">✕</button></div>' +
       '<p class="modal-desc">' + escapeHtml(preview) + '</p>' +
+      (post.outcome ? '<div class="outcome-box"><b>' + ic('circle-check') + ' 해결 후기</b><p>' + escapeHtml(post.outcome) + '</p></div>' : '') +
       '<div class="col" style="gap:12px; max-height:38vh; overflow-y:auto;" id="comments-list"><span class="helper">불러오는 중...</span></div>' +
       '<div class="row" style="gap:8px; align-items:flex-end;">' +
       '<div class="field" style="flex:1; gap:0;"><textarea id="comment-text" rows="2" placeholder="댓글을 입력하세요"></textarea></div>' +
@@ -7186,6 +7290,14 @@
       openModal(composeModalHtml());
       return;
     }
+    var outW = e.target.closest('[data-outcome-write]');
+    if(outW){
+      var op = state.posts.filter(function(x){ return x.id === outW.getAttribute('data-outcome-write'); })[0];
+      if(op) openModal(outcomeModalHtml(op));
+      return;
+    }
+    var outS = e.target.closest('[data-outcome-save]');
+    if(outS){ saveOutcome(outS.getAttribute('data-outcome-save')); return; }
     var openComments = e.target.closest('[data-open-comments]');
     if(openComments){
       var cpid = openComments.getAttribute('data-open-comments');

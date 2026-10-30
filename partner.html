@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>브랜드 제휴 — 다다맘</title>
+<meta name="description" content="임신·육아 중인 부모의 실사용 후기와 사진을 체험단·대회 경품 협찬으로 받아 보세요. 다다맘 브랜드 제휴 안내.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="다다맘">
+<meta property="og:title" content="다다맘 브랜드 제휴 안내">
+<meta property="og:description" content="딱 맞는 월령의 부모가 직접 쓰고 남긴 후기와 사진. 체험단·대회 경품 협찬.">
+<link rel="icon" href="./favicon.ico" sizes="48x48">
+<link rel="icon" href="./icons/icon-192.png">
+<!-- 브랜드 제안 메일에 거는 안내 페이지 (홍보전략 4판 10). 회원 수·효과 수치는 쓰지 않는다 — 부풀리지 않기. 앱 코드와 무관한 정적 페이지. -->
+<style>
+  @font-face{font-family:'DadaRound';src:url('./assets/fonts/DadaRoundR.woff2') format('woff2');font-weight:400;font-display:swap;}
+  @font-face{font-family:'DadaRound';src:url('./assets/fonts/DadaRoundB.woff2') format('woff2');font-weight:700;font-display:swap;}
+  @font-face{font-family:'DadaRound';src:url('./assets/fonts/DadaRoundEB.woff2') format('woff2');font-weight:800;font-display:swap;}
+  :root{ --bg:#FFFBF7; --ink:#3D3027; --sub:#7A6A5D; --line:#F1E2D8; --card:#FFFFFF; --accent:#A34429; --soft:#FFE0CF; --soft-ink:#773B26; }
+  *{ box-sizing:border-box; }
+  html,body{ overflow-x:clip; }
+  body{ margin:0; background:var(--bg); color:var(--ink); font-family:'DadaRound',-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+    font-weight:700; line-height:1.7; word-break:keep-all; font-size:15px; }
+  main{ max-width:880px; margin:0 auto; padding:28px 16px 56px; }
+  .brand{ display:flex; align-items:center; gap:10px; text-decoration:none; color:var(--accent); font-size:20px; font-weight:800; }
+  .hero{ padding:36px 0 28px; }
+  .eyebrow{ font-size:13px; color:var(--accent); letter-spacing:.02em; }
+  h1{ font-size:clamp(26px,5vw,38px); line-height:1.3; letter-spacing:-.03em; margin:8px 0 14px; font-weight:800; }
+  .lead{ color:var(--sub); font-size:16px; margin:0; max-width:620px; }
+  h2{ font-size:20px; letter-spacing:-.02em; margin:44px 0 14px; font-weight:800; }
+  .grid{ display:grid; gap:12px; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); }
+  .card{ background:var(--card); border:1px solid var(--line); border-radius:18px; padding:20px 18px; box-shadow:0 2px 10px rgba(150,95,60,.04); }
+  .card h3{ margin:0 0 6px; font-size:16px; font-weight:800; }
+  .card p{ margin:0; color:var(--sub); font-size:14px; line-height:1.75; }
+  .num{ display:inline-flex; width:26px; height:26px; border-radius:50%; background:var(--soft); color:var(--soft-ink); font-size:13px; align-items:center; justify-content:center; margin-bottom:10px; }
+  table{ width:100%; border-collapse:collapse; font-size:14px; background:var(--card); border:1px solid var(--line); border-radius:18px; overflow:hidden; }
+  th,td{ text-align:left; padding:13px 14px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th{ background:#FFF6F0; font-weight:800; width:34%; }
+  tr:last-child td, tr:last-child th{ border-bottom:none; }
+  td{ color:var(--sub); }
+  ul.check{ list-style:none; padding:0; margin:0; display:grid; gap:8px; }
+  ul.check li{ padding-left:18px; position:relative; color:var(--sub); font-size:14px; }
+  ul.check li::before{ content:''; position:absolute; left:2px; top:.72em; width:7px; height:7px; border-radius:50%; background:var(--accent); }
+  .cta{ margin-top:44px; padding:26px 20px; border-radius:22px; background:#FFF1E8; border:1px solid #F1C9B2; }
+  .cta h2{ margin:0 0 8px; }
+  .cta p{ margin:0; color:var(--sub); }
+  .btn{ display:inline-flex; align-items:center; justify-content:center; min-height:48px; padding:0 22px; margin-top:16px; border-radius:999px;
+    background:var(--soft); color:var(--soft-ink); border:1px solid #EDBFA5; text-decoration:none; font-weight:800; }
+  .mail{ display:block; margin-top:10px; font-size:13.5px; color:var(--sub); word-break:break-all; }
+  footer{ margin-top:40px; font-size:12.5px; color:var(--sub); line-height:1.8; }
+  footer a{ color:var(--sub); }
+  a:focus-visible{ outline:3px solid var(--accent); outline-offset:3px; }
+  @media (max-width:520px){ th{ width:40%; } th,td{ padding:12px; } }
+</style>
+</head>
+<body>
+<main>
+  <a class="brand" href="./community.html">다다맘</a>
+
+  <section class="hero">
+    <span class="eyebrow">브랜드 제휴</span>
+    <h1>딱 그 시기의 부모가<br>직접 쓰고 남긴 후기와 사진</h1>
+    <p class="lead">다다맘은 임신부터 육아까지 기록하고, 우리 아이 자랑 대회로 모이는 부모 커뮤니티예요. 브랜드는 제품을 보내 주시면, 월령이 맞는 부모의 실사용 후기와 광고에 쓸 수 있는 사진을 받아 가세요.</p>
+  </section>
+
+  <h2>브랜드가 얻는 것</h2>
+  <div class="grid">
+    <div class="card"><span class="num">1</span><h3>광고에 쓸 수 있는 사진·후기</h3><p>참가할 때 브랜드 활용 동의를 따로 받아요. 쓰는 곳과 기간을 정해 두어, 상세페이지와 SNS 광고에 바로 쓸 수 있어요.</p></div>
+    <div class="card"><span class="num">2</span><h3>월령이 맞는 부모</h3><p>대회와 체험단을 임신 중, 4~10개월, 10~24개월처럼 나눠 열어요. 제품을 실제로 쓸 시기의 집에만 보여요.</p></div>
+    <div class="card"><span class="num">3</span><h3>가려낸 진짜 후기</h3><p>임산부 배지, 원본 사진·영상 확인, 육아기록을 이어 쓴 회원 우선 선정으로 대리 후기와 가짜 계정을 줄여요.</p></div>
+  </div>
+
+  <h2>함께하는 방법</h2>
+  <table>
+    <tr><th>체험단</th><td>제품을 보내 주시면 다다맘이 신청을 받아 월령과 기록을 보고 뽑아 보내 드려요. 받은 분은 커뮤니티에 사진과 후기를 남겨요. 비용은 제품만 들어요.</td></tr>
+    <tr><th>대회 경품 협찬</th><td>매달 열리는 자랑 대회의 1위 경품에 제품을 더해요. 대회 화면과 응원 부탁 링크에 "함께하는 브랜드"로 이름이 보이고, 당첨자가 사용 사진과 후기를 남겨요.</td></tr>
+    <tr><th>함께 대회 열기</th><td>제품과 어울리는 주제로 대회를 함께 만들어요. 예: 아이 혼자 잡고 먹기, 첫 신발 신고 걷기. 주제와 검수 기준은 함께 정해요.</td></tr>
+  </table>
+
+  <h2>진행 순서</h2>
+  <div class="grid">
+    <div class="card"><span class="num">1</span><h3>메일로 문의</h3><p>제품과 원하는 방식(체험단·경품·대회)을 알려 주세요.</p></div>
+    <div class="card"><span class="num">2</span><h3>대상과 기준 정하기</h3><p>월령, 인원, 후기 조건, 사진 활용 범위를 정해요.</p></div>
+    <div class="card"><span class="num">3</span><h3>모집과 선정</h3><p>다다맘이 모집하고 뽑아요. 배송 정보는 따로 보관하고 90일 뒤 지워요.</p></div>
+    <div class="card"><span class="num">4</span><h3>후기 전달</h3><p>후기와 사진, 활용 동의 내역을 정리해 드려요.</p></div>
+  </div>
+
+  <h2>약속하는 것</h2>
+  <div class="card">
+    <ul class="check">
+      <li>모든 후기에 "제품 제공받음" 표시를 붙여요. 좋은 후기만 쓰라고 요구하지 않아요.</li>
+      <li>사진과 후기는 활용 동의를 받은 범위 안에서만 전달해요. 동의를 철회하면 새로 쓰지 않아요.</li>
+      <li>아이 정보와 배송 정보는 브랜드에 넘기지 않아요. 브랜드가 직접 보내야 할 때는 그 건만 따로 동의를 받아요.</li>
+      <li>회원 수나 효과를 부풀려 말하지 않아요.</li>
+    </ul>
+  </div>
+
+  <div class="cta">
+    <h2>첫 파트너 조건</h2>
+    <p>지금 함께하시는 브랜드는 나중에 유료 상품이 생겨도 1년 동안 지금 조건 그대로 진행해요.</p>
+    <a class="btn" href="mailto:ryundaen@gmail.com?subject=%5B%EB%8B%A4%EB%8B%A4%EB%A7%98%20%EC%A0%9C%ED%9C%B4%20%EB%AC%B8%EC%9D%98%5D">제휴 문의 메일 쓰기</a>
+    <span class="mail">ryundaen@gmail.com</span>
+  </div>
+
+  <footer>
+    다다란 · 대표 윤대인 · 사업자등록번호 435-05-02816 · 통신판매업신고 제2024-인천남동구-0274호<br>
+    인천광역시 남동구 구월동 1306-15 3F · ryundaen@gmail.com<br>
+    <a href="./index.html#policy">개인정보처리방침</a> · <a href="./index.html#terms">이용약관</a>
+  </footer>
+</main>
+</body>
+</html>

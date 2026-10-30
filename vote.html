@@ -10,7 +10,7 @@
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="다다맘">
 <meta property="og:title" content="우리 아이 응원 부탁해요 — 다다맘 자랑 대회">
-<meta property="og:description" content="눌러서 응원과 투표를 해 주세요. 매달 점수 1등 아이에게 배민·올리브영 상품권을 드려요.">
+<meta property="og:description" content="눌러서 응원과 투표를 해 주세요. 매달 투표 1등 아이에게 배민·올리브영 상품권을 드려요.">
 <meta property="og:url" content="https://dadamom.co.kr/vote.html">
 <meta property="og:image" content="https://dadamom.co.kr/icons/og-vote.png">
 <meta property="og:image:width" content="1200">
@@ -30,10 +30,11 @@
   <a id="go" href="./index.html#challenge">바로 가기</a>
 </main>
 <script>
-  // ?entry=<참가작 id> 만 넘긴다 (다른 값은 버림)
+  // ?entry=<참가작 id> 와 가입 경로 from 만 넘긴다 (다른 값은 버림). from 이 없으면 'vote' — 응원 부탁 링크로 온 가입을 셀 수 있게.
   (function(){
     var m = /[?&]entry=([0-9a-f-]{36})(?:&|$)/i.exec(location.search);
-    var to = './index.html' + (m ? '?entry=' + m[1].toLowerCase() : '') + '#challenge';
+    var f = /[?&]from=([A-Za-z0-9-]{1,32})(?:&|$)/.exec(location.search);
+    var to = './index.html?from=' + (f ? f[1] : 'vote') + (m ? '&entry=' + m[1].toLowerCase() : '') + '#challenge';
     document.getElementById('go').href = to;
     location.replace(to);
   })();

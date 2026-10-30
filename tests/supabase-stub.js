@@ -118,7 +118,9 @@
             window.__SBSTUB.signIn('u-otp', a.email);
             return Promise.resolve({ data:{ session: session, user: session.user }, error:null });
           },
-          signInWithOAuth: function(){ return Promise.resolve({ error:null }); }
+          signInWithOAuth: function(a){ window.__SBSTUB.oauthArgs = a; return Promise.resolve(a && a.options && a.options.skipBrowserRedirect ? { data:{ url:'https://example.invalid/authorize?provider=' + a.provider }, error:null } : { error:null }); },
+          // 앱 돌아오기(1.1.3): 토큰으로 세션을 세운다
+          setSession: function(t){ window.__SBSTUB.setSessionArgs = t; window.__SBSTUB.signIn('u-app', 'app@dadamom.test'); return Promise.resolve({ data:{ session: session }, error:null }); }
         }
       };
     }

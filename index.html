@@ -1014,6 +1014,9 @@
   var ENV = (window.DADAMOM_ENV || {});
   // 아이폰·안드로이드 앱은 앱 안 웹뷰라 구글이 로그인을 막는다(disallowed_useragent). 그 앱에서만 구글 버튼을 숨긴다.
   var IOS_SHELL = /Dadamom(iOS|Android)/.test(navigator.userAgent);
+  // 앱(1.1.3~)은 구글 로그인을 크롬 탭으로 열고 kr.dadaran.dadamom://auth 로 돌아온다 (구글이 앱 안 화면 로그인을 막음).
+  var APP_AUTH_URL = 'kr.dadaran.dadamom://auth';
+  function appAuthPlugins(){ var C = window.Capacitor; return C && C.isNativePlatform && C.isNativePlatform() && C.Plugins && C.Plugins.Browser && C.Plugins.App ? C.Plugins : null; }
   // 아이콘: 이모지 대신 선 아이콘(shared-content.js). 2026-10-28 사장님 '이모지는 급조 같다'
   function ic(n){ return window.DadamomShared ? window.DadamomShared.icon(n) : ''; }   // 공용 파일이 안 와도 앱은 돌아가게
   var CH_PHOTO = { firststep:1, crawl:1, halloween:1, bump:1, cheeks:1 };   // assets/challenge/<id>.jpg 가 있는 챌린지
@@ -1135,7 +1138,7 @@
         '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3C6.477 3 2 6.463 2 10.742c0 2.708 1.79 5.09 4.49 6.462l-1.145 4.19a.4.4 0 0 0 .61.44l4.94-3.27c.35.03.7.05 1.05.05 5.523 0 10-3.463 10-7.872C22 6.463 17.523 3 12 3z" fill="#191919"/></svg>' +
         '카카오로 로그인' +
       '</button>' +
-      (IOS_SHELL ? '' : '<button type="button" class="btn-google" id="google-signin-btn">' +
+      (IOS_SHELL && !appAuthPlugins() ? '' : '<button type="button" class="btn-google" id="google-signin-btn">' +
         '<svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">' +
           '<path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 8 3l6-6C34.5 5.1 29.5 3 24 3 12.4 3 3 12.4 3 24s9.4 21 21 21 21-9.4 21-21c0-1.2-.1-2.4-.4-3.5z"/>' +
           '<path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.9 18.9 13 24 13c3.1 0 5.8 1.1 8 3l6-6C34.5 5.1 29.5 3 24 3 16.3 3 9.6 7.3 6.3 14.7z"/>' +
@@ -1623,6 +1626,14 @@
     var btn = document.getElementById(btnId);
     if(btn){ btn.disabled = true; }
     try{
+      var P = appAuthPlugins();
+      if(P){
+        var r2 = await sb.auth.signInWithOAuth({ provider: provider, options: { redirectTo: APP_AUTH_URL, skipBrowserRedirect: true } });
+        if(r2.error || !r2.data || !r2.data.url) throw (r2.error || new Error('no url'));
+        await P.Browser.open({ url: r2.data.url });
+        if(btn){ btn.disabled = false; }
+        return;
+      }
       var res = await sb.auth.signInWithOAuth({ provider: provider, options: { redirectTo: authCallbackUrl() } });
       if(res && res.error){
         if(hint) hint.textContent = label + ' 로그인 실패: ' + res.error.message;
@@ -1633,6 +1644,26 @@
       if(hint) hint.textContent = label + ' 로그인 중 오류가 발생했어요. 다시 시도해주세요.';
       if(btn){ btn.disabled = false; }
     }
+  }
+
+  // 크롬 탭에서 로그인을 마치고 앱으로 돌아왔을 때: 주소에 담긴 토큰(또는 code)으로 로그인
+  if(appAuthPlugins()){
+    appAuthPlugins().App.addListener('appUrlOpen', async function(ev){
+      var url = (ev && ev.url) || '';
+      if(url.indexOf(APP_AUTH_URL) !== 0 || !sb) return;
+      try{ await appAuthPlugins().Browser.close(); }catch(e){}
+      var q = new URLSearchParams((url.split('#')[1] || '') + '&' + (url.split('?')[1] || '').split('#')[0]);
+      try{
+        var r = q.get('access_token') && q.get('refresh_token')
+          ? await sb.auth.setSession({ access_token: q.get('access_token'), refresh_token: q.get('refresh_token') })
+          : q.get('code') ? await sb.auth.exchangeCodeForSession(q.get('code')) : { error: new Error(q.get('error_description') || 'no token') };
+        if(r.error) throw r.error;
+        closeModal();
+      }catch(err){
+        console.warn('[다다맘] 앱 로그인 돌아오기 실패', err);
+        showToast('로그인을 마치지 못했어요. 다시 시도해 주세요');
+      }
+    });
   }
 
   var naverSignInPending = false;

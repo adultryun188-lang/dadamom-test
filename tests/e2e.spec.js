@@ -435,6 +435,43 @@ function check(name, ok, detail) {
     await page.close();
   }
 
+  // ------------------------------------------------- 앱 안 구글 로그인 (1.1.3) --
+  // 앱 껍데기(UA)에 Capacitor Browser·App 플러그인이 있으면 구글 버튼이 보이고, 크롬 탭으로 열었다가
+  // kr.dadaran.dadamom://auth#access_token=… 으로 돌아오면 로그인된다.
+  console.log(NL + '[앱 안 구글 로그인]');
+  if (USE_STUB) {
+    for (const withPlugin of [false, true]) {
+      const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, userAgent: 'Mozilla/5.0 (Linux; Android 14) Chrome/130 Mobile DadamomAndroid' });
+      const page = await ctx.newPage();
+      await prep(page);
+      // 개발 env 는 소셜 버튼을 숨기므로(SOCIAL_LOGIN:false) 이 시험에서만 켠다
+      await page.route('**/env.js', async r => { const res = await r.fetch(); r.fulfill({ response: res, body: (await res.text()).replace('SOCIAL_LOGIN: false', 'SOCIAL_LOGIN: true') }); });
+      const errs = [];
+      page.on('pageerror', e => errs.push(e.message));
+      if (withPlugin) await page.addInitScript(() => {
+        window.__appUrl = null; window.__opened = null; window.__closed = 0;
+        window.Capacitor = { isNativePlatform: () => true, Plugins: {
+          Browser: { open: async (o) => { window.__opened = o.url; }, close: async () => { window.__closed++; } },
+          App: { addListener: (n, f) => { if (n === 'appUrlOpen') window.__appUrl = f; } } } };
+      });
+      await page.goto(BASE + '#onboarding', { waitUntil: 'load' });
+      await page.waitForTimeout(800);
+      const vis = await page.isVisible('#google-signin-btn');
+      if (!withPlugin) { check('옛 앱(플러그인 없음)은 구글 버튼 숨김', !vis); await ctx.close(); continue; }
+      check('새 앱은 구글 버튼 보임', vis);
+      await page.click('#google-signin-btn');
+      await page.waitForTimeout(300);
+      const o = await page.evaluate(() => ({ opened: window.__opened, args: window.__SBSTUB.oauthArgs }));
+      check('크롬 탭으로 구글 로그인 주소를 엶', !!o.opened && o.args.options.redirectTo === 'kr.dadaran.dadamom://auth' && o.args.options.skipBrowserRedirect === true, JSON.stringify(o.args && o.args.options));
+      await page.evaluate(() => window.__appUrl({ url: 'kr.dadaran.dadamom://auth#access_token=AT&refresh_token=RT&token_type=bearer' }));
+      await page.waitForTimeout(800);
+      const done = await page.evaluate(() => ({ uid: window.__SBSTUB.curId, set: window.__SBSTUB.setSessionArgs, closed: window.__closed }));
+      check('돌아오면 토큰으로 로그인·크롬 탭 닫음', done.uid === 'u-app' && done.set.access_token === 'AT' && done.set.refresh_token === 'RT' && done.closed === 1, JSON.stringify(done));
+      check('JS 오류 없음', errs.length === 0, errs.join('; '));
+      await ctx.close();
+    }
+  }
+
   // ------------------------------------------------- 모바일 기기 --
   console.log(NL + '[기기 프로파일]');
   for (const name of ['Pixel 7', 'iPhone 13', 'iPhone SE']) {

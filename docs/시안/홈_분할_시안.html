@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>홈 분할 시안</title>
+<!-- 시안 전용 (앱에 적용 안 함). 2026-10-31 사장님: 첫 화면 섹션이 너무 큼 → 위를 좌우로 나눠 왼쪽 내 정보, 오른쪽 위 미션 -->
+<style>
+  @font-face{font-family:'DadaRound';src:url('../../assets/fonts/DadaRoundR.woff2') format('woff2');font-weight:400;}
+  @font-face{font-family:'DadaRound';src:url('../../assets/fonts/DadaRoundB.woff2') format('woff2');font-weight:700;}
+  @font-face{font-family:'DadaRound';src:url('../../assets/fonts/DadaRoundEB.woff2') format('woff2');font-weight:800;}
+  :root{ --bg:#FFFBF7; --ink:#3D3027; --sub:#7A6A5D; --line:#F1E2D8; --peach:#FFEBDD; --peach-b:#F5D3BE; --leaf:#EEF3E6; --leaf-b:#D9E5CC; --accent:#A34429; --green:#4E7A34; }
+  *{ box-sizing:border-box; }
+  body{ margin:0; background:var(--bg); color:var(--ink); font-family:'DadaRound',-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif; font-weight:700; word-break:keep-all; }
+  .phone{ width:390px; height:844px; margin:0 auto; display:flex; flex-direction:column; background:var(--bg); overflow:hidden; }
+  .scroll{ flex:1; overflow:hidden; padding:14px 16px 12px; display:flex; flex-direction:column; gap:10px; }
+  .top{ display:flex; align-items:center; gap:10px; }
+  .logo{ width:40px; height:40px; border-radius:13px; background:#fff; box-shadow:0 2px 8px rgba(150,95,60,.12); display:flex; align-items:center; justify-content:center; color:#E2734F; font-weight:800; font-size:15px; }
+  .hello{ flex:1; line-height:1.25; } .hello small{ display:block; font-size:12px; color:var(--sub); } .hello b{ font-size:18px; font-weight:800; }
+  .pill{ border:1px solid var(--line); background:#fff; border-radius:999px; padding:7px 12px; font-size:12.5px; display:flex; align-items:center; gap:4px; }
+  svg{ width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; flex:0 0 auto; }
+  .split{ display:grid; grid-template-columns:1.12fr 1fr; gap:10px; }
+  .card{ border-radius:20px; border:1px solid var(--line); background:#fff; }
+  .me{ background:var(--peach); border-color:var(--peach-b); padding:14px 14px 12px; display:flex; flex-direction:column; gap:6px; }
+  .me .k{ font-size:11.5px; color:var(--accent); }
+  .me .dd{ font-size:40px; font-weight:800; color:var(--accent); line-height:1; letter-spacing:-.03em; }
+  .me .w{ font-size:13.5px; }
+  .me .tip{ font-size:12px; color:var(--sub); line-height:1.5; background:rgba(255,255,255,.7); border-radius:12px; padding:8px 10px; margin-top:2px; }
+  .me .btn{ margin-top:auto; text-align:center; background:#fff; border:1px solid var(--peach-b); border-radius:999px; padding:9px 0; font-size:13px; color:var(--accent); }
+  .right{ display:flex; flex-direction:column; gap:10px; }
+  .mission{ padding:12px 12px 6px; }
+  .h{ display:flex; justify-content:space-between; align-items:baseline; font-size:14px; font-weight:800; margin-bottom:4px; } .h span{ font-size:11px; color:var(--sub); font-weight:700; }
+  .mrow{ display:flex; align-items:center; gap:8px; padding:7px 0; border-top:1px solid var(--line); font-size:12.5px; }
+  .mrow:first-of-type{ border-top:none; }
+  .mrow .t{ flex:1; line-height:1.3; } .mrow .t small{ display:block; font-size:11px; color:var(--sub); }
+  .dot{ width:30px; height:30px; border-radius:10px; display:flex; align-items:center; justify-content:center; background:var(--peach); color:var(--accent); } .dot svg{ width:16px; height:16px; }
+  .prize{ background:var(--leaf); border-color:var(--leaf-b); padding:12px; font-size:12px; color:var(--sub); line-height:1.45; }
+  .prize b{ display:block; font-size:16px; color:var(--green); font-weight:800; margin:2px 0; }
+  .short{ display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
+  .short div{ display:flex; flex-direction:column; align-items:center; gap:4px; padding:10px 0 8px; border-radius:16px; background:#fff; border:1px solid var(--line); font-size:12px; }
+  .short svg{ color:var(--accent); width:20px; height:20px; }
+  .rec{ display:flex; align-items:center; gap:10px; padding:11px 12px; background:var(--leaf); border-color:var(--leaf-b); }
+  .rec .t{ flex:1; font-size:14px; font-weight:800; } .rec .t small{ display:block; font-size:11.5px; color:var(--sub); font-weight:700; }
+  .rec .go{ font-size:12.5px; color:var(--green); background:#fff; border:1px solid var(--leaf-b); border-radius:999px; padding:6px 12px; }
+  .contest{ padding:12px; display:flex; gap:10px; align-items:center; }
+  .contest .t{ flex:1; font-size:14px; font-weight:800; line-height:1.35; } .contest .t small{ display:block; font-size:11.5px; color:var(--accent); font-weight:700; }
+  .thumbs{ display:flex; gap:5px; } .thumbs img{ width:46px; height:46px; border-radius:12px; object-fit:cover; }
+  .after{ padding:11px 12px; display:flex; align-items:center; gap:8px; font-size:13px; } .after .t{ flex:1; } .after small{ display:block; color:var(--sub); font-size:11.5px; }
+  nav{ display:grid; grid-template-columns:repeat(5,1fr); border-top:1px solid var(--line); background:#fff; padding:6px 6px 10px; }
+  nav div{ display:flex; flex-direction:column; align-items:center; gap:2px; font-size:11px; color:var(--sub); padding:6px 0; border-radius:14px; }
+  nav div.on{ background:#FFEDE3; color:var(--accent); }
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="scroll">
+    <div class="top">
+      <div class="logo">dd</div>
+      <div class="hello"><small>안녕하세요</small><b>테스트님</b></div>
+      <svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+      <div class="pill">임신 41주차 <svg viewBox="0 0 24 24" style="width:14px;height:14px"><path d="m9 18 6-6-6-6"/></svg></div>
+    </div>
+
+    <!-- 위: 좌우 분할 -->
+    <div class="split">
+      <div class="card me">
+        <span class="k">예정일이 지났어요</span>
+        <span class="dd">D+1</span>
+        <span class="w">임신 41주차</span>
+        <span class="tip">병원과 상의해 다음 일정을 확인해 보세요</span>
+        <span class="btn">오늘 기록하기</span>
+      </div>
+      <div class="right">
+        <div class="card mission">
+          <div class="h">오늘의 미션 <span>전체</span></div>
+          <div class="mrow"><span class="dot"><svg viewBox="0 0 24 24"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg></span><span class="t">만삭·D라인<small>참여하기</small></span></div>
+          <div class="mrow"><span class="dot"><svg viewBox="0 0 24 24"><path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/></svg></span><span class="t">출산 준비물<small>3 / 20 챙김</small></span></div>
+        </div>
+        <div class="card prize">이번 달 자랑 대회 · D-1<b>1위 최대 4만 원</b>배민·올리브영 상품권</div>
+      </div>
+    </div>
+
+    <!-- 바로가기 한 줄 -->
+    <div class="short">
+      <div><svg viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>나들이</div>
+      <div><svg viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5C11 3 12 8 12 8s1-5 4.5-5a2.5 2.5 0 0 1 0 5"/></svg>혜택</div>
+      <div><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.4 3.6a2.1 2.1 0 1 1 3 3L7 19l-4 1 1-4Z"/></svg>준비물</div>
+      <div><svg viewBox="0 0 24 24"><path d="M19 14c1.5-1.5 3-3.2 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.8 0-3 .5-4.5 2-1.5-1.5-2.7-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4 3 5.5l7 7Z"/></svg>선물 장부</div>
+    </div>
+
+    <div class="card rec">
+      <span class="dot" style="background:#fff;color:var(--green)"><svg viewBox="0 0 24 24"><path d="M13.4 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7.4"/><path d="M2 6h4"/><path d="M2 10h4"/><path d="M2 14h4"/><path d="M2 18h4"/><path d="M18.4 2.6a2.1 2.1 0 1 1 3 3L16 11l-4 1 1-4Z"/></svg></span>
+      <span class="t">오늘의 육아기록<small>수유·수면, 키·몸무게, 예방접종</small></span>
+      <span class="go">기록 ›</span>
+    </div>
+
+    <div class="card contest">
+      <span class="t"><small>이번 달 자랑 대회</small>참가하고 투표하기 ›</span>
+      <span class="thumbs"><img src="../../assets/challenge/firststep.jpg" alt=""><img src="../../assets/challenge/bump.jpg" alt=""><img src="../../assets/challenge/halloween.jpg" alt=""></span>
+    </div>
+
+    <div class="card after">
+      <span class="t">같은 고민, 그 뒤 이렇게 됐어요<small>임신 41주 또래 엄마 아빠의 그 후 이야기</small></span>
+      <svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+    </div>
+  </div>
+
+  <nav>
+    <div class="on"><svg viewBox="0 0 24 24"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>홈</div>
+    <div><svg viewBox="0 0 24 24"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><path d="M4 22v-7"/></svg>챌린지</div>
+    <div><svg viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>브랜드관</div>
+    <div><svg viewBox="0 0 24 24"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>커뮤니티</div>
+    <div><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg>MY</div>
+  </nav>
+</div>
+</body>
+</html>

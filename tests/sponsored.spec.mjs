@@ -18,14 +18,15 @@ try {
   const p = await ctx.newPage(); p.on('pageerror', e => errs.push(e.message));
   await p.goto('http://localhost:8000/index.html'); await p.waitForTimeout(2000);
   await p.locator('[data-popup-today]').click({ timeout: 1500 }).catch(() => {});
-  await p.click('[data-auth-view="password"]'); await p.fill('#auth-email', 'momA@dadamom.test'); await p.fill('#auth-password', 'dadamom-test-1234');
+  await p.locator('[data-auth-view="password"]').click({ timeout: 1500 }).catch(() => {});   // 10-30 부터 비밀번호 로그인이 첫 화면
+await p.fill('#auth-email', 'momA@dadamom.test'); await p.fill('#auth-password', 'dadamom-test-1234');
   await p.click('#auth-password-submit'); await p.waitForTimeout(4500);
   await p.locator('[data-popup-today]').click({ timeout: 1500 }).catch(() => {});
   await p.evaluate(() => { location.hash = '#home'; }); await p.waitForTimeout(1200);
   ok('앱 첫 화면: 안전 안내 칸 뺌 (10-28 사장님)', !(await p.textContent('body')).includes('아이 사진이 안전한 곳'));
   await p.evaluate(() => { location.hash = '#challenge'; }); await p.waitForTimeout(2000);
   await p.click('[data-challenge-open="firststep"]'); await p.waitForTimeout(800);
-  ok('앱 챌린지: 규칙 전체 보기(원본 확인·경품 세금)', /원본 확인/.test(await p.textContent('#challenge-example')) && /세금/.test(await p.textContent('#challenge-example')));
+  ok('앱 챌린지: 규칙 전체 보기(원본 확인·상품권)', /원본 사진·영상을 확인/.test(await p.textContent('#challenge-example')) && /상품권/.test(await p.textContent('#challenge-example')));
   await p.evaluate(() => { location.hash = '#community'; }); await p.waitForTimeout(1500);
   await p.locator('[data-open-compose]:visible').first().click({ timeout: 3000 }).catch(e => console.log('  (글쓰기 버튼: ' + e.message.split('\n')[0] + ')'));
   await p.waitForTimeout(800);

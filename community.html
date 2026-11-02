@@ -1976,7 +1976,7 @@
         '<div style="display:flex; gap:6px; flex-wrap:wrap;"><button class="cheer" data-cheer="' + e.id + '" aria-pressed="' + on + '">' + emIc('💛') + ' 응원 <span>' + (e.votes || 0) + '</span></button>' +
         (e.owner_id !== user.id && (!e.status || e.status === 'approved') ? '<button class="cheer" data-ballot="' + e.id + '" aria-pressed="' + (myB === e.id) + '" aria-label="이 참가작에 투표하기 (챌린지마다 한 달에 한 표)">' + (myB === e.id ? '' + emIc('🗳️') + ' 투표함 ' : '' + emIc('🗳️') + ' 투표 ') + (bcnt[e.id] || 0) + '</button>' : (user && e.owner_id === user.id && (!e.status || e.status === 'approved') ? '<span class="helper" style="align-self:center; font-weight:800;">' + emIc('🗳️') + ' 투표 ' + (bcnt[e.id] || 0) + '</span>' : '')) + '</div>' +
       (user && e.owner_id === user.id && (!e.status || e.status === 'approved') ? '<button type="button" class="ask-vote" data-ask-vote-web="' + e.id + '" data-name="' + esc(e.name || '') + '">' + DadamomShared.icon('share-2') + ' 응원·투표 부탁하기</button>' : '') + '</div></div>';
-    }).join('') : emptyHtml('👣', '아직 공개된 참가작이 없어요. 앱에서 첫 번째 주인공이 되어 보세요!', '<a class="btn primary" href="./index.html#challenge">앱에서 참여하기</a>');
+    }).join('') : emptyHtml('👣', '지금 참가하면 이달의 첫 주인공 · 처음 참가 ' + FIRST_GIFT_W.n + '명 ' + FIRST_GIFT_W.item, '<a class="btn primary" href="./index.html#challenge">앱에서 참여하기</a>');
   }
 
   async function castBallotWeb(btn){

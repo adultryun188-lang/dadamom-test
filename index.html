@@ -4460,7 +4460,7 @@
       ? '<div class="row" style="grid-column:1/-1; align-items:center; justify-content:space-between; background:var(--accent-soft); border-radius:12px; padding:10px 14px;"><span style="font-size:12.5px; font-weight:700; color:var(--accent2);">내 참여 기록만 보는 중</span><button type="button" data-clear-my-filter class="link-quiet" style="background:none; border:none;">전체보기</button></div>'
       : '';
     if(list.length === 0){
-      document.getElementById('entries').innerHTML = challengeMineBanner + '<div class="card col" style="grid-column:1/-1; padding:22px 18px; align-items:center; gap:6px; text-align:center;"><span style="font-size:28px; color:var(--accent2);">' + ic('trophy') + '</span><span style="font-size:14px; font-weight:800;">첫 주인공이 되어 보세요</span><span class="helper">' + (cur.media_rule === 'video' ? '1분 이내 영상 하나면' : '사진 한 장이면') + ' 참여할 수 있어요. 응원과 투표를 가장 많이 받으면 이달의 주인공!</span></div>';
+      document.getElementById('entries').innerHTML = challengeMineBanner + '<div class="card col" style="grid-column:1/-1; padding:22px 18px; align-items:center; gap:6px; text-align:center;"><span style="font-size:28px; color:var(--accent2);">' + ic('trophy') + '</span><span style="font-size:14px; font-weight:800;">지금 참가하면 이달의 첫 주인공</span><span class="helper">' + (cur.media_rule === 'video' ? '1분 이내 영상 하나면' : '사진 한 장이면') + ' 참여할 수 있어요 · 처음 참가 ' + FIRST_GIFT.n + '명 ' + FIRST_GIFT.item + '</span></div>';
       return;
     }
     document.getElementById('entries').innerHTML = challengeMineBanner + list.map(function(e){

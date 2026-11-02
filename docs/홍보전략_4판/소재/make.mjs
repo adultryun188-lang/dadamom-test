@@ -1,4 +1,4 @@
-// 홍보 1단계 소재 이미지 (당근 1080x1080 2종, 인스타 1080x1350 4장).
+﻿// 홍보 1단계 소재 이미지 (당근 1080x1080 2종, 인스타 1080x1350 4장).
 //   node docs/홍보전략_4판/소재/make.mjs   → 같은 폴더에 PNG
 // 글씨 중심 + 예시 사진은 작은 액자(원본이 640px 이라 크게 쓰면 흐림). 이모지 없음. 글꼴은 앱과 같은 DadaRound.
 import { chromium } from 'playwright';
@@ -44,27 +44,22 @@ h1 em{font-style:normal;color:#A34429}
 
 const BRAND = `<div class="brand"><img src="${f('icons/icon-192.png')}" alt="">다다맘</div>`;
 
+// 당근 심사: 1:1, 1MB 이하, 이미지 속 글씨는 절반 미만, 흐린 사진 불가 → 사진이 위 70%, 글씨는 아래 띠 한 줄.
+// 예시 사진 원본이 640x360 이라 크게 늘리면 흐려져서 720px 로 만든다(최소 200px).
+const DG = (photos, small, big) => `<div style="position:absolute;inset:0;padding:0;display:flex;flex-direction:column">
+  <div style="height:500px;display:flex;gap:4px;position:relative">${photos}
+    <span style="position:absolute;right:14px;top:14px;font-size:16px;color:#fff;background:rgba(0,0,0,.35);padding:4px 10px;border-radius:999px">예시 사진</span></div>
+  <div style="flex:1;padding:26px 36px;display:flex;flex-direction:column;justify-content:center;gap:8px">
+    <div style="display:flex;align-items:center;gap:10px;font-size:22px;color:#7A6A5D"><img src="${f('icons/icon-192.png')}" style="width:34px;height:34px;border-radius:10px">${small}</div>
+    <div style="font-size:50px;font-weight:800;letter-spacing:-.03em;line-height:1.15">${big}</div>
+  </div></div>`;
+const PH = (n, pos = '50% 50%') => `<div style="flex:1;overflow:hidden"><img src="${PHOTO(n)}" style="width:100%;height:100%;object-fit:cover;object-position:${pos};display:block"></div>`;
+
 const items = [
   // 당근 A: 볼살 4만 원
-  { file: 'danggn-a.png', w: 1080, h: 1080, body: `${BRAND}
-    <div style="display:flex;gap:44px;margin-top:56px;align-items:center">
-      <div style="flex:1;display:flex;flex-direction:column;gap:26px">
-        <span class="chip">이번 달 볼살 자랑</span>
-        <h1 style="font-size:84px">볼살 사진<br>한 장으로<br><em>배민 4만 원</em></h1>
-      </div>
-      <div class="photo" style="width:330px;height:420px"><img src="${PHOTO('cheeks')}" style="object-position:58% 40%"></div>
-    </div>
-    <div class="sub" style="margin-top:38px">투표를 가장 많이 받은 아이 1명 · 배민 또는 올리브영</div>
-    <div class="foot"><span>처음 참가하면 커피 한 잔</span><span class="cta">참가하기</span></div>` },
+  { file: 'danggn-a.png', w: 720, h: 720, body: DG(PH('cheeks', '58% 40%'), '다다맘 · 이번 달 볼살 자랑 대회', '볼살 자랑 1위 <em style="font-style:normal;color:#A34429">배민 4만 원</em>') },
   // 당근 B: 첫 참가 커피
-  { file: 'danggn-b.png', w: 1080, h: 1080, body: `${BRAND}
-    <span class="chip" style="margin-top:60px">우리 아이 자랑 대회</span>
-    <h1 style="margin-top:28px">처음 참가하면<br><em>커피 한 잔</em> 드려요</h1>
-    <div class="card" style="margin-top:44px">
-      <div class="row"><span>볼살 자랑 1위</span><b>4만 원</b></div>
-      <div class="row"><span>첫걸음 · 배밀이 · 만삭 1위</span><b>2만 원</b></div>
-    </div>
-    <div class="foot"><span>매달 열려요 · 선착순 30명 메가커피</span><span class="cta">참가하기</span></div>` },
+  { file: 'danggn-b.png', w: 720, h: 720, body: DG(PH('firststep', '50% 30%') + PH('crawl', '45% 50%'), '다다맘 · 매달 열리는 아이 자랑 대회', '처음 참가하면 <em style="font-style:normal;color:#A34429">커피 한 잔</em>') },
   // 인스타 1: 표지
   { file: 'insta-1.png', w: 1080, h: 1350, body: `${BRAND}
     <span class="chip" style="margin-top:70px">매달 열리는 자랑 대회</span>

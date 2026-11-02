@@ -473,6 +473,7 @@
 
       <div class="field">
         <label for="nickname-input">아이 애칭 (선택)</label>
+        <span class="helper" id="nickname-hint">채팅·커뮤니티에 이 이름으로 보여요. 한 번 정하면 한 달에 한 번 바꿀 수 있어요.</span>
         <input type="text" id="nickname-input" maxlength="12" placeholder="예: 콩이, 서윤">
       </div>
 
@@ -787,6 +788,7 @@
         <div class="row" style="justify-content:space-between; gap:8px;"><span class="chat-err" id="chat-err" role="alert"></span><span class="chat-count" id="chat-count">0/200</span></div>
       </form>
     </div>
+    <nav class="navbar" data-nav aria-label="주요 메뉴"></nav>
   </section>
 
   <!-- BRAND (앱 전용 브랜드관) — 머리는 웹 브랜드관과 같은 문구·공용 page-hero 스타일 -->
@@ -2473,6 +2475,7 @@
     // 브랜드관은 앱 전용 화면(#brand). 데이터는 웹과 같은 mall_* 표, 모양은 공용 rounded-ui.css
     {id:'brand', label:'브랜드관', icon:'<path d="M6 7h12l-1 13H7L6 7z"/><path d="M9 7a3 3 0 0 1 6 0"/>'},
     {id:'community', label:'커뮤니티', icon:'<path d="M21 11.5a8.4 8.4 0 0 1-8.9 8.4 9 9 0 0 1-3.6-.7L3 20l1.3-3.9a8.2 8.2 0 0 1-1-4A8.4 8.4 0 0 1 12.1 3a8.3 8.3 0 0 1 8.9 8.5z"/>'},
+    {id:'chat', label:'채팅', app:true, icon:'<path d="M14 9a2 2 0 0 1-2 2H6l-4 4V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2z"/><path d="M18 9h2a2 2 0 0 1 2 2v11l-4-4h-6a2 2 0 0 1-2-2v-1"/>'},   // 실시간 채팅은 앱에서만 탭이 보인다 (0057)
     {id:'my', label:'MY', icon:'<circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4.5 5-6 8-6s6.5 1.5 8 6"/>'}
   ];
 
@@ -3566,7 +3569,7 @@
   var NAV_PARENT = { growth:'home', outing:'home', benefit:'home', prep:'home', magazine:'home', faq:'my' };   // 탭에서 빠진 화면은 홈 탭을 켠다
   function buildNav(active){
     active = NAV_PARENT[active] || active;
-    return NAV.map(function(n){
+    return NAV.filter(function(n){ return !n.app || isNativeApp(); }).map(function(n){
       var isActive = n.id === active;
       return '<button data-goto="' + n.id + '" class="' + (isActive ? 'active' : '') + '"' + (isActive ? ' aria-current="page"' : '') + '>' +
         '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + n.icon + '</svg>' +
@@ -6065,12 +6068,7 @@
   function chatEntryHtml(){
     var box = 'display:flex; align-items:center; gap:12px; width:100%; min-height:56px; padding:12px 16px; margin-top:12px; background:#FFFFFF; border:1px solid #F0E6DD; border-radius:20px; color:#3A2E28; font:inherit; text-align:left;';
     var dot = '<span style="flex:0 0 auto; width:40px; height:40px; border-radius:999px; background:#FBE9DF; color:#A34429; display:flex; align-items:center; justify-content:center;">';
-    if(isNativeApp()){
-      return '<button type="button" data-chat-open style="' + box + '">' + dot + ic('message-circle') + '</span>' +
-        '<span style="flex:1; display:flex; flex-direction:column; gap:2px;"><b style="font-size:15px; font-weight:800;">실시간 채팅</b>' +
-        '<span style="font-size:13px; color:#7A675C;">지금 들어와 있는 엄마·아빠와 바로 이야기해요</span></span>' +
-        '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#857369" stroke-width="2" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></button>';
-    }
+    if(isNativeApp()) return '';   // 앱은 아래 '채팅' 탭이 입구 (2026-11-02 사장님)
     return '<div style="' + box + '">' + dot + ic('smartphone') + '</span>' +
       '<span style="flex:1; display:flex; flex-direction:column; gap:2px;"><b style="font-size:15px; font-weight:800;">실시간 채팅은 앱에서</b>' +
       '<span style="font-size:13px; color:#7A675C;">앱을 받으면 지금 들어와 있는 사람과 이야기할 수 있어요</span></span>' +
@@ -6103,7 +6101,7 @@
     var mine = !!(authUser && m.user_id === authUser.id);
     var nick = escapeHtml(m.nickname || '회원'), body = escapeHtml(m.body || '');
     return '<div class="chat-msg' + (mine ? ' mine' : '') + '">' +
-      '<span class="chat-meta">' + (mine ? '' : nick + ' · ') + chatTime(m.created_at) + '</span>' +
+      '<span class="chat-meta">' + nick + ' · ' + chatTime(m.created_at) + '</span>' +
       (mine ? '<div class="chat-bubble">' + body + '</div>'
             : '<button type="button" class="chat-bubble" data-chat-msg="' + escapeHtml(String(m.id)) + '" data-chat-owner="' + escapeHtml(String(m.user_id || '')) + '" aria-label="' + nick + '님의 글. 눌러서 신고하거나 차단해요">' + body + '</button>') +
       '</div>';
@@ -6255,7 +6253,7 @@
       return;
     }
     if(id === 'chat' && (!isNativeApp() || !chatAgreed())){   // 채팅은 앱에서만, 이용 규칙 동의 뒤에만
-      location.hash = '#community';
+      location.hash = '#' + (isNativeApp() && shownScreen && shownScreen !== 'chat' ? shownScreen : 'community');
       if(!isNativeApp()) showToast('실시간 채팅은 앱에서 할 수 있어요'); else openModal(chatRulesHtml());
       return;
     }
@@ -6659,6 +6657,7 @@
   function applyProfileRow(row){
     if(!row) return false;
     state.nickname   = row.nickname || '';
+    serverNickname   = row.nickname || '';
     state.kidType    = row.kid_type || null;
     state.parentRole = row.parent_role || null;
     state.dueDate    = row.due_date ? String(row.due_date).slice(0,10) : '';
@@ -6669,7 +6668,8 @@
     return true;
   }
 
-  async function saveProfileRemote(){
+  var serverNickname = '';   // 서버에 저장된 닉네임 (한 달 제한에 걸리면 이 값으로 되돌린다, 0058)
+  async function saveProfileRemote(noRetry){
     if(!sb || !authUser) return false;
     var profileUid = authUser.id, profileState = state;
     try{
@@ -6685,7 +6685,14 @@
         onboarded: !!state.onboarded,
         signup_from: storedFrom()   // 행이 처음 생길 때만 남는다 (수정 때는 DB 가 옛 값 유지)
       });
+      if(res && res.error && !noRetry && /NICKNAME_COOLDOWN/.test(res.error.message || '') && state === profileState){
+        showToast(res.error.hint || '닉네임은 한 달에 한 번 바꿀 수 있어요');
+        state.nickname = serverNickname; save();   // 이름만 되돌리고 나머지 칸은 저장한다
+        var nk = document.getElementById('nickname-input'); if(nk) nk.value = serverNickname;
+        return saveProfileRemote(true);
+      }
       if(res && res.error){ console.warn('[다다맘] 프로필 저장 실패', res.error); return false; }
+      serverNickname = state.nickname || '';
       if(!authUser || authUser.id !== profileUid || state !== profileState) return false;
       resumeCommunityReturn();
       return true;

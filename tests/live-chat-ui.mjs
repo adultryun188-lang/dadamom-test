@@ -16,7 +16,7 @@ let failed = 0; const ok = (n, c, x = '') => { console.log((c ? 'PASS ' : 'FAIL 
 const h = (t, x = {}) => ({ apikey: K, Authorization: 'Bearer ' + (t || K), ...x });
 const J = { 'Content-Type': 'application/json' };
 const login = async e => (await (await fetch(U + '/auth/v1/token?grant_type=password', { method: 'POST', headers: h(null, J), body: JSON.stringify({ email: e, password: 'dadamom-test-1234' }) })).json());
-const A = await login('momA@dadamom.test'), B = await login('momB@dadamom.test'), M = await login('admin@dadamom.test');
+const A = await login('momA@dadamom.test'), B = await login('momB@dadamom.test'), M = await login('admin@dadamom.test'), C = await login('dadC@dadamom.test');
 const tag = Date.now().toString(36);
 const b = await chromium.launch();
 const page = async (sess, app) => {
@@ -34,19 +34,28 @@ try {
   // 3) 웹
   const w = await page(A, false);
   await w.goto(BASE + 'index.html?nc=' + Date.now() + '#community'); await w.waitForTimeout(5000);
-  ok('웹: 입구 대신 "앱에서 채팅하기" 안내', await w.locator('#chat-entry:has-text("앱에서 채팅하기")').count() === 1 && await w.locator('[data-chat-open]').count() === 0);
+  ok('웹: 채팅 탭 없이 "앱에서 채팅하기" 안내', await w.locator('#chat-entry:has-text("앱에서 채팅하기")').count() === 1 && await w.locator('[data-goto="chat"]').count() === 0);
   await w.goto(BASE + 'index.html?nc=' + Date.now() + '#chat'); await w.waitForTimeout(3000);
   ok('웹: #chat 으로 와도 커뮤니티로 돌려보냄', (await w.evaluate(() => location.hash)) === '#community');
   // 3) 앱 흉내
   const pa = await page(A, true), pb = await page(B, true);
   await pa.goto(BASE + 'index.html?nc=' + Date.now() + '#community'); await pa.waitForTimeout(5000);
-  ok('앱(흉내): 커뮤니티 위쪽에 채팅 입구', await pa.locator('[data-chat-open]:visible').count() === 1);
-  await pa.locator('[data-chat-open]').click(); await pa.waitForTimeout(2500);
-  ok('앱: 입구를 누르면 채팅 화면', (await pa.evaluate(() => location.hash)) === '#chat' && await pa.locator('#screen-chat:visible').count() === 1);
+  ok('앱(흉내): 아래 탭에 채팅', await pa.locator('#screen-community [data-goto="chat"]:visible').count() === 1 && await pa.locator('#chat-entry').innerText() === '');
+  await pa.locator('#screen-community [data-goto="chat"]').click(); await pa.waitForTimeout(2500);
+  ok('앱: 채팅 탭을 누르면 채팅 화면 (아래 탭도 보임)', (await pa.evaluate(() => location.hash)) === '#chat' && await pa.locator('#screen-chat:visible').count() === 1 && await pa.locator('#screen-chat [data-goto="chat"].active').count() === 1);
   await pb.goto(BASE + 'index.html?nc=' + Date.now() + '#community'); await pb.waitForTimeout(5000);
-  await pb.locator('[data-chat-open]').click(); await pb.waitForTimeout(4000);   // 새 기기는 아이 정보를 받기 전 #chat 바로가기를 홈으로 돌린다 → 실제 순서대로 들어간다
+  await pb.locator('#screen-community [data-goto="chat"]').click(); await pb.waitForTimeout(4000);   // 새 기기는 아이 정보를 받기 전 #chat 바로가기를 홈으로 돌린다 → 실제 순서대로 들어간다
   const online = await pa.locator('#chat-online').innerText();
   ok('지금 들어와 있는 사람 수 (두 창이면 2)', online === '2', online);
+
+  const pn = await page(C, true);   // 규칙 동의 기록을 지워 처음 온 사람처럼
+  await pn.addInitScript(() => { for (const k of Object.keys(localStorage)) if (k.startsWith('dadamom.chatRules')) localStorage.removeItem(k); });
+  await pn.goto(BASE + 'index.html?nc=' + Date.now() + '#community'); await pn.waitForTimeout(5000);
+  await pn.locator('#screen-community [data-goto="chat"]').click(); await pn.waitForTimeout(2000);
+  ok('처음엔 규칙 동의 창이 뜨고 화면은 그대로', await pn.locator('[data-chat-agree]').count() === 1 && (await pn.evaluate(() => location.hash)) === '#community');
+  await pn.locator('[data-chat-agree]').click(); await pn.waitForTimeout(2500);
+  ok('동의하면 채팅 화면', (await pn.evaluate(() => location.hash)) === '#chat');
+  await pn.locator('[data-chat-back]').click(); await pn.waitForTimeout(1500);
 
   // 2) 실시간 1초
   const msg = '실시간 시험 ' + tag;
@@ -57,6 +66,9 @@ try {
   while (Date.now() - t0 < 5000) { if (await pb.locator('#chat-list .chat-bubble', { hasText: msg }).count()) { seen = Date.now() - t0; break; } await sleep(50); }
   ok('A 가 보내면 B 화면에 1초 안에 뜸', seen > 0 && seen <= 1000, seen ? seen + 'ms' : '안 뜸');
   ok('내 글은 오른쪽(내 글 모양)', await pa.locator('#chat-list .chat-msg.mine', { hasText: msg }).count() === 1);
+  const myMeta = await pa.locator('#chat-list .chat-msg.mine', { hasText: msg }).locator('.chat-meta').innerText();
+  const myNick = ((await (await fetch(U + '/rest/v1/profiles?select=nickname&id=eq.' + A.user.id, { headers: h(A.access_token) })).json())[0] || {}).nickname || '회원';
+  ok('내 글에도 닉네임이 보임', myMeta.startsWith(myNick + ' · '), myMeta);
 
   // 4) 실패 이유가 화면에
   await sleep(3200); await pa.fill('#chat-input', '먼저 ' + tag); await pa.click('#chat-send'); await pa.waitForFunction(() => document.getElementById('chat-input').value === '', null, { timeout: 2500 });
@@ -84,7 +96,7 @@ try {
   ok('차단 누름 → 화면에서 사라짐 + DB 에 차단 기록', stillB === 0 && blk.length === 1, 'screen ' + stillB + ' / db ' + blk.length);
 
   // 나가면 연결 끊김
-  await pb.locator('[data-chat-back]').click(); await pb.waitForTimeout(2500);
+  await pb.locator('[data-chat-back]').click(); await pb.waitForTimeout(5000);
   const online2 = await pa.locator('#chat-online').innerText();
   ok('B 가 나가면 사람 수가 줄어듦 (연결 끊김)', online2 === '1', online2);
   ok('화면 오류 없음', !w.errs.length && !pa.errs.length && !pb.errs.length, [...w.errs, ...pa.errs, ...pb.errs].join(' / '));

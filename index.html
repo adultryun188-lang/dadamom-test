@@ -6058,7 +6058,8 @@
   // 나가거나 앱을 내리면 채널을 끊는다 (동시 접속 수가 곧 비용·한도).
   var CHAT_RULES_KEY = 'dadamom.chatRules.v1.';
   var chatChannel = null, chatMsgs = [], chatStick = true, chatLoading = false;
-  function isNativeApp(){ var C = window.Capacitor; return !!(C && C.isNativePlatform && C.isNativePlatform()); }
+  // 안드로이드 앱(Capacitor, server.url = 운영 사이트)은 접속 이름표에 DadamomAndroid 를 붙인다 — 다리 연결이 늦게 와도 앱으로 본다
+  function isNativeApp(){ var C = window.Capacitor; return !!(C && C.isNativePlatform && C.isNativePlatform()) || /DadamomAndroid/.test(navigator.userAgent || ''); }
   function chatAgreed(){ try{ return !!(authUser && localStorage.getItem(CHAT_RULES_KEY + authUser.id)); }catch(e){ return false; } }
 
   function chatEntryHtml(){

@@ -59,7 +59,7 @@ try {
   ok('내 글은 오른쪽(내 글 모양)', await pa.locator('#chat-list .chat-msg.mine', { hasText: msg }).count() === 1);
 
   // 4) 실패 이유가 화면에
-  await sleep(3200); await pa.fill('#chat-input', '먼저 ' + tag); await pa.click('#chat-send'); await pa.waitForTimeout(300);
+  await sleep(3200); await pa.fill('#chat-input', '먼저 ' + tag); await pa.click('#chat-send'); await pa.waitForFunction(() => document.getElementById('chat-input').value === '', null, { timeout: 2500 });
   await pa.fill('#chat-input', '바로 또 ' + tag); await pa.click('#chat-send'); await pa.waitForTimeout(1500);
   const e1 = await pa.locator('#chat-err').innerText();
   ok('3초 안 연속 → 이유가 화면에 보임', /천천히/.test(e1), e1);

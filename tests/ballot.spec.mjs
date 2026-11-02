@@ -51,7 +51,7 @@ try {
   ok('비로그인은 투표 수를 못 봄', cntAnon.status >= 400, 'HTTP ' + cntAnon.status);
   const hall = await rpc(B.access_token, 'challenge_hall', { p_months: 1 });
   const row = (hall.body || []).find(x => x.entry_id === id);
-  ok('주인공 점수에 투표 5점이 들어감', row && row.month_ballots === 1 && row.score >= 5, JSON.stringify(row || hall.body));
+  ok('주인공 점수 = 투표 수 (0050)', row && row.month_ballots === 1 && row.score === 1, JSON.stringify(row || hall.body));
 } catch (e) { failed++; console.log('FAIL 실행 중단: ' + e.message.split('\n')[0]); }
 finally {
   await fetch(U + '/rest/v1/challenge_entries?id=eq.' + id, { method: 'DELETE', headers: h(A.access_token) });

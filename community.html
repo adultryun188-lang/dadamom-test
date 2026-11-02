@@ -1839,8 +1839,22 @@
 
   // ---------- 챌린지 (앱과 같은 challenge_entries · entry_votes) ----------
   // 챌린지 첫 화면: 이달의 주인공 + 챌린지 카드 세로 목록 (참가작 수·응원·최근 사진)
+  // 이번 달 경품판 (앱 index.html chPrizeBoardHtml 과 같은 내용). 금액은 challenges.prize 에서 읽는다.
+  var FIRST_GIFT_W = { n:30, item:'메가커피 1잔' };
+  function chPrizeAmtW(c){ var m = /(\d+)만 원/.exec((c && c.prize) || ''); return m ? +m[1] : 0; }
+  function prizeBoardWeb(){
+    var byAmt = {};
+    chList.filter(chOpenW).forEach(function(c){ var a = chPrizeAmtW(c); if(a) (byAmt[a] = byAmt[a] || []).push(c.title); });
+    var amts = Object.keys(byAmt).map(Number).sort(function(a, b){ return b - a; });
+    if(!amts.length) return '';
+    var row = function(l, r){ return '<div style="display:flex; justify-content:space-between; align-items:baseline; gap:16px; padding:12px 0; border-top:1px solid var(--w-line, #EBDFD1);"><span style="color:var(--text2);">' + l + '</span><b style="font-size:17px; white-space:nowrap;">' + r + '</b></div>'; };
+    return '<section class="panel"><div class="panel-h"><h2 class="display">이번 달 경품</h2><span class="helper">매달 첫 주 발표</span></div><div style="padding:0 20px 14px;">' +
+      amts.map(function(a, i){ return row(i > 0 && amts.length > 1 ? '다른 대회 1위' : esc(byAmt[a].join(' · ')) + ' 1위', '배민·올리브영 ' + a + '만 원'); }).join('') +
+      row('처음 참가 선착순 ' + FIRST_GIFT_W.n + '명', FIRST_GIFT_W.item) + '</div></section>';
+  }
   async function renderChallengeList(main){
-    main.innerHTML = '<section class="warm-page challenge-page">' + webHero('다다맘 챌린지', '우리 아이 <em>자랑 대회</em>', '챌린지에 맞게 사진이나 1분 영상으로 참여하고, 응원과 투표를 가장 많이 받으면 이달의 주인공이 돼요.', '🏆') +
+    main.innerHTML = '<section class="warm-page challenge-page">' + webHero('다다맘 챌린지', '우리 아이 <em>자랑 대회</em>', '사진이나 1분 영상으로 참여하고, 대회마다 투표를 가장 많이 받은 아이가 1위예요.', '🏆') +
+      prizeBoardWeb() +
       '<section class="panel" id="ch-hall" hidden></section>' +
       '<section class="panel"><div class="panel-h"><h2 class="display">진행 중인 챌린지</h2><span class="helper">' + chList.length + '개</span></div>' +
       '<div id="ch-list" style="display:flex; flex-direction:column; gap:12px; padding:0 20px 20px;"><div class="helper">불러오는 중…</div></div></section></section>';
@@ -1861,6 +1875,7 @@
         '<span style="flex:0 0 auto; width:64px; height:64px; border-radius:20px; background:#FFF3DF; display:flex; align-items:center; justify-content:center; font-size:30px; overflow:hidden; color:#B5643F;" aria-hidden="true">' + chArtW(c) + '</span>' +
         '<span style="display:flex; flex-direction:column; gap:5px; min-width:0; flex:1;">' +
           '<span style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;"><b style="font-size:17px;">' + esc(c.title) + '</b><span class="dday' + (open ? '' : ' off') + '">' + (open ? chDd(c) : '마감') + '</span></span>' +
+          (open && chPrizeAmtW(c) ? '<span style="font-size:13px; font-weight:800; color:var(--accent2, #A34429);">1위 상품권 ' + chPrizeAmtW(c) + '만 원' + (c.sponsor ? ' · ' + esc(c.sponsor) + ' 함께' : '') + '</span>' : '') +
           '<span class="helper">' + esc(c.target_label || '전체') + ' · ' + esc(c.description || '').slice(0, 60) + '</span>' +
           '<span class="helper" style="font-weight:700;">' + (user ? '참가작 ' + mine.length + '개' + (cheers ? ' · ' + emIc('💛') + ' 응원 ' + cheers : '') : '' + emIc('🔒') + ' 참가작은 회원 공개') + '</span>' +
         '</span>' +

@@ -719,6 +719,7 @@
           </div>
         </header>
       </div>
+      <div id="chat-entry"></div><!-- 실시간 채팅 입구: 앱이면 입구, 웹이면 '앱에서 채팅하기' 안내 (0057) -->
       <!-- 웹 게시판(community.html BOARDS)과 같은 이름·순서. 'brag' 는 예전 '이야기'(전체) 저장값을 그대로 쓴다 -->
       <div class="board-tabs" role="tablist" aria-label="게시판" id="community-tabs">
         <button data-community-tab="brag" role="tab"><svg class="ic" aria-hidden="true"><use href="#i-layout-grid"></use></svg>전체</button>
@@ -739,6 +740,53 @@
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent-ink)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
     </button>
     <nav class="navbar" data-nav aria-label="주요 메뉴"></nav>
+  </section>
+
+  <!-- CHAT (앱 전용 실시간 채팅, 0057). 디자인 값은 docs/디자인_리뉴얼_지시서 4번만 쓴다 -->
+  <section class="screen" id="screen-chat" hidden>
+    <style>
+      #screen-chat{ background:#FFFBF7; }
+      #screen-chat .chat-wrap{ position:relative; flex:1 1 auto; min-height:0; display:flex; flex-direction:column; }
+      #screen-chat .chat-list{ min-height:0; }
+      #screen-chat .chat-head{ display:flex; align-items:center; gap:8px; padding:12px 20px; background:#FFFFFF; border-bottom:1px solid #F0E6DD; }
+      #screen-chat .chat-back{ border:none; background:none; color:#3A2E28; min-width:44px; min-height:44px; margin-left:-12px; display:flex; align-items:center; justify-content:center; }
+      #screen-chat .chat-title{ font-size:17px; font-weight:800; color:#3A2E28; margin:0; flex:1; }
+      #screen-chat .chat-online{ font-size:13px; color:#7A675C; display:flex; align-items:center; gap:4px; }
+      #screen-chat .chat-online b{ color:#A34429; font-weight:800; }
+      #screen-chat .chat-list{ flex:1; overflow-y:auto; padding:16px 20px; display:flex; flex-direction:column; gap:12px; -webkit-overflow-scrolling:touch; }
+      #screen-chat .chat-msg{ display:flex; flex-direction:column; align-items:flex-start; gap:4px; max-width:80%; }
+      #screen-chat .chat-msg.mine{ align-self:flex-end; align-items:flex-end; }
+      #screen-chat .chat-meta{ font-size:12px; color:#857369; }
+      #screen-chat .chat-bubble{ font:inherit; font-size:15px; font-weight:400; line-height:1.5; color:#3A2E28; background:#FFFFFF; border:1px solid #F0E6DD; border-radius:12px; padding:8px 12px; text-align:left; white-space:pre-wrap; word-break:break-word; }
+      #screen-chat button.chat-bubble{ cursor:pointer; }
+      #screen-chat .chat-msg.mine .chat-bubble{ background:#FBE9DF; border-color:#FBE9DF; }
+      #screen-chat .chat-empty{ margin:auto; text-align:center; font-size:13px; color:#7A675C; line-height:1.6; }
+      #screen-chat .chat-new{ position:absolute; left:50%; transform:translateX(-50%); bottom:92px; border:none; border-radius:999px; background:#A34429; color:#FFFFFF; font:inherit; font-size:13px; font-weight:700; padding:8px 16px; box-shadow:0 2px 8px rgba(80,50,30,.06); }
+      #screen-chat .chat-form{ background:#FFFFFF; border-top:1px solid #F0E6DD; padding:8px 20px calc(8px + env(safe-area-inset-bottom)); }
+      #screen-chat .chat-row{ display:flex; gap:8px; align-items:flex-end; }
+      #screen-chat .chat-input{ flex:1; font:inherit; font-size:15px; color:#3A2E28; border:1px solid #F0E6DD; border-radius:12px; padding:10px 12px; min-height:44px; max-height:120px; resize:none; background:#FFFFFF; }
+      #screen-chat .chat-send{ border:none; border-radius:12px; background:#A34429; color:#FFFFFF; font:inherit; font-size:15px; font-weight:700; min-height:44px; padding:0 16px; }
+      #screen-chat .chat-send:disabled{ opacity:.5; }
+      #screen-chat .chat-err{ display:block; min-height:16px; margin-top:4px; font-size:12px; color:#C2410C; }
+      #screen-chat .chat-count{ font-size:12px; color:#857369; }
+    </style>
+    <div class="chat-wrap">
+      <header class="chat-head">
+        <button type="button" class="chat-back" data-chat-back aria-label="커뮤니티로 돌아가기"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg></button>
+        <h1 class="chat-title">실시간 채팅</h1>
+        <span class="chat-online" aria-live="polite"><svg class="ic" aria-hidden="true"><use href="#i-users"></use></svg><span>지금 <b id="chat-online">1</b>명</span></span>
+      </header>
+      <div class="chat-list" id="chat-list" role="log" aria-live="polite" aria-label="채팅 글"></div>
+      <button type="button" class="chat-new" id="chat-new" hidden>새 메시지</button>
+      <form class="chat-form" id="chat-form" autocomplete="off">
+        <div class="chat-row">
+          <label for="chat-input" class="sr-only" style="position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0);">채팅 입력</label>
+          <textarea id="chat-input" class="chat-input" rows="1" maxlength="200" placeholder="욕설·광고·연락처는 보낼 수 없어요" enterkeyhint="send"></textarea>
+          <button type="submit" class="chat-send" id="chat-send">보내기</button>
+        </div>
+        <div class="row" style="justify-content:space-between; gap:8px;"><span class="chat-err" id="chat-err" role="alert"></span><span class="chat-count" id="chat-count">0/200</span></div>
+      </form>
+    </div>
   </section>
 
   <!-- BRAND (앱 전용 브랜드관) — 머리는 웹 브랜드관과 같은 문구·공용 page-hero 스타일 -->
@@ -1903,6 +1951,7 @@
     await fetchBlocks();
     closeModal();
     showToast('차단했어요. 이 사용자의 글이 보이지 않아요');
+    if(shownScreen === 'chat') renderChatList();
     refreshRemote();
     renderMy();
   }
@@ -2196,8 +2245,16 @@
       var res = await sb.from('reports').select('*').eq('status','open')
         .order('created_at', {ascending:false}).limit(100);
       if(!res.error && Array.isArray(res.data)) adminReports = res.data;
+      // 채팅 신고는 대상 글을 바로 보여 준다 (관리자는 숨긴 글도 읽을 수 있다)
+      var chatIds = adminReports.filter(function(r){ return r.target_type === 'chat'; }).map(function(r){ return r.target_id; });
+      adminChatBodies = {};
+      if(chatIds.length){
+        var cr = await sb.from('chat_messages').select('id,nickname,body,hidden').in('id', chatIds);
+        if(!cr.error) (cr.data || []).forEach(function(m){ adminChatBodies[m.id] = m; });
+      }
     }catch(e){}
   }
+  var adminChatBodies = {};
 
   function reportAdminHtml(){
     var head = '<h2 class="display" style="font-size:15px;">신고 접수' +
@@ -2205,7 +2262,7 @@
     if(!adminReports.length){
       return head + '<p class="helper">처리할 신고가 없어요.</p>';
     }
-    var typeLabel = { post:'커뮤니티 글', comment:'댓글', entry:'미션 인증' };
+    var typeLabel = { post:'커뮤니티 글', comment:'댓글', entry:'미션 인증', chat:'실시간 채팅' };
     return head + adminReports.map(function(r){
       return '<div class="card col" style="gap:8px; padding:14px;">' +
         '<div class="row" style="align-items:center; gap:8px; flex-wrap:wrap;">' +
@@ -2214,6 +2271,9 @@
           '<span class="helper">' + timeAgo(r.created_at) + '</span>' +
         '</div>' +
         (r.detail ? '<p style="font-size:13px; line-height:1.55;">' + escapeHtml(r.detail) + '</p>' : '') +
+        (r.target_type === 'chat' && adminChatBodies[r.target_id]
+          ? '<p style="font-size:13px; line-height:1.55;">' + escapeHtml(adminChatBodies[r.target_id].nickname || '회원') + ': ' + escapeHtml(adminChatBodies[r.target_id].body || '') +
+            (adminChatBodies[r.target_id].hidden ? ' <span class="helper">(숨김)</span>' : '') + '</p>' : '') +
         '<span class="helper" style="word-break:break-all;">대상 ID ' + escapeHtml(String(r.target_id || '')) + '</span>' +
         '<div class="row" style="gap:8px;">' +
           '<button type="button" class="btn-primary" style="flex:1; height:40px; font-size:13px;" data-report-resolve="' + r.id + '">조치 완료</button>' +
@@ -2226,6 +2286,11 @@
     if(!sb) return;
     var res = await sb.from('reports').update({ status: status }).eq('id', id);
     if(res.error){ showToast('처리하지 못했어요'); return; }
+    var rep = adminReports.filter(function(r){ return r.id === id; })[0];
+    if(status === 'resolved' && rep && rep.target_type === 'chat'){   // 채팅은 '조치 완료' = 그 글 숨기기
+      var hr = await sb.from('chat_messages').update({ hidden: true }).eq('id', rep.target_id);
+      if(hr.error){ console.warn('[채팅 숨김]', hr.error); showToast('채팅 글을 숨기지 못했어요'); }
+    }
     showToast(status === 'resolved' ? '조치 완료로 표시했어요' : '반려했어요');
     renderAdmin();
   }
@@ -4724,6 +4789,8 @@
   var HOT_MIN = 3;   // 웹(community.html)과 같은 인기글 기준: 좋아요 3개 이상
   function isListTab(t){ return t === 'brag' || t === 'best' || /^t-/.test(t || ''); }
   function renderCommunity(){
+    var _chatEntry = document.getElementById('chat-entry');
+    if(_chatEntry) _chatEntry.innerHTML = chatEntryHtml();
     if(state.communityTab === 'qna') state.communityTab = 't-질문';   // 예전 'Q&A' 탭
     var _search = document.getElementById('community-search');
     if(_search){ _search.hidden = !isListTab(state.communityTab); }
@@ -5980,9 +6047,170 @@
     famPull();
   }
 
+  // ---------- 실시간 채팅 (앱 전용, 0057 · docs/실시간채팅_앱전용_지시서_2026-11-02.md) ----------
+  // 화면은 Capacitor 앱에서만 연다. 웹은 커뮤니티 위쪽에 '앱에서 채팅하기' 안내만.
+  // 들어오면 최근 50개 + 새 글 실시간(postgres_changes: 읽기 규칙이 그대로 적용) + 지금 있는 사람 수(Presence).
+  // 나가거나 앱을 내리면 채널을 끊는다 (동시 접속 수가 곧 비용·한도).
+  var CHAT_RULES_KEY = 'dadamom.chatRules.v1.';
+  var chatChannel = null, chatMsgs = [], chatStick = true, chatLoading = false;
+  function isNativeApp(){ var C = window.Capacitor; return !!(C && C.isNativePlatform && C.isNativePlatform()); }
+  function chatAgreed(){ try{ return !!(authUser && localStorage.getItem(CHAT_RULES_KEY + authUser.id)); }catch(e){ return false; } }
+
+  function chatEntryHtml(){
+    var box = 'display:flex; align-items:center; gap:12px; width:100%; min-height:56px; padding:12px 16px; margin-top:12px; background:#FFFFFF; border:1px solid #F0E6DD; border-radius:20px; color:#3A2E28; font:inherit; text-align:left;';
+    var dot = '<span style="flex:0 0 auto; width:40px; height:40px; border-radius:999px; background:#FBE9DF; color:#A34429; display:flex; align-items:center; justify-content:center;">';
+    if(isNativeApp()){
+      return '<button type="button" data-chat-open style="' + box + '">' + dot + ic('message-circle') + '</span>' +
+        '<span style="flex:1; display:flex; flex-direction:column; gap:2px;"><b style="font-size:15px; font-weight:800;">실시간 채팅</b>' +
+        '<span style="font-size:13px; color:#7A675C;">지금 들어와 있는 엄마·아빠와 바로 이야기해요</span></span>' +
+        '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#857369" stroke-width="2" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></button>';
+    }
+    return '<div style="' + box + '">' + dot + ic('smartphone') + '</span>' +
+      '<span style="flex:1; display:flex; flex-direction:column; gap:2px;"><b style="font-size:15px; font-weight:800;">실시간 채팅은 앱에서</b>' +
+      '<span style="font-size:13px; color:#7A675C;">앱을 받으면 지금 들어와 있는 사람과 이야기할 수 있어요</span></span>' +
+      '<a href="https://play.google.com/store/apps/details?id=kr.dadaran.dadamom" target="_blank" rel="noopener" style="flex:0 0 auto; min-height:44px; padding:0 12px; border-radius:12px; background:#A34429; color:#FFFFFF; font-size:13px; font-weight:700; display:inline-flex; align-items:center; text-decoration:none;">앱에서 채팅하기</a></div>';
+  }
+
+  function chatRulesHtml(){
+    return '<div class="modal-head"><h3 class="display">실시간 채팅 이용 규칙</h3><button class="modal-close" data-close-modal aria-label="닫기">✕</button></div>' +
+      '<ul style="margin:0; padding-left:18px; font-size:15px; font-weight:400; line-height:1.7; color:#3A2E28;">' +
+        '<li>욕설·비방, 광고, 연락처·계좌·링크는 보낼 수 없어요</li>' +
+        '<li>나와 아이의 이름·사는 곳 같은 개인정보는 쓰지 마세요</li>' +
+        '<li>규칙을 어긴 글은 숨겨지고, 운영자가 확인해 이용을 제한할 수 있어요</li>' +
+        '<li>불편한 글은 눌러서 신고하거나 쓴 사람을 차단할 수 있어요</li>' +
+        '<li>채팅은 30일이 지나면 지워져요</li>' +
+      '</ul>' +
+      '<button type="button" class="btn-primary" data-chat-agree style="height:46px; margin-top:16px;">동의하고 들어가기</button>';
+  }
+
+  function chatOpen(){
+    if(!isNativeApp()){ showToast('실시간 채팅은 앱에서 할 수 있어요'); return; }
+    if(!requireLogin('채팅')) return;
+    if(!chatAgreed()){ openModal(chatRulesHtml()); return; }
+    location.hash = '#chat';
+  }
+
+  function chatTime(t){ try{ return new Date(t).toLocaleTimeString('ko-KR', { hour:'2-digit', minute:'2-digit' }); }catch(e){ return ''; } }
+  function chatErr(msg){ var el = document.getElementById('chat-err'); if(el) el.textContent = msg || ''; }
+
+  function chatMsgHtml(m){
+    var mine = !!(authUser && m.user_id === authUser.id);
+    var nick = escapeHtml(m.nickname || '회원'), body = escapeHtml(m.body || '');
+    return '<div class="chat-msg' + (mine ? ' mine' : '') + '">' +
+      '<span class="chat-meta">' + (mine ? '' : nick + ' · ') + chatTime(m.created_at) + '</span>' +
+      (mine ? '<div class="chat-bubble">' + body + '</div>'
+            : '<button type="button" class="chat-bubble" data-chat-msg="' + escapeHtml(String(m.id)) + '" data-chat-owner="' + escapeHtml(String(m.user_id || '')) + '" aria-label="' + nick + '님의 글. 눌러서 신고하거나 차단해요">' + body + '</button>') +
+      '</div>';
+  }
+
+  function renderChatList(toBottom){
+    var list = document.getElementById('chat-list');
+    if(!list) return;
+    var rows = chatMsgs.filter(function(m){ return blockedIds.indexOf(m.user_id) === -1; });
+    list.innerHTML = rows.length ? rows.map(chatMsgHtml).join('')
+      : '<p class="chat-empty">' + (chatLoading ? '불러오는 중이에요' : '아직 글이 없어요.<br>먼저 인사를 건네 보세요.') + '</p>';
+    if(toBottom || chatStick){ list.scrollTop = list.scrollHeight; document.getElementById('chat-new').hidden = true; }
+  }
+
+  function chatAdd(m){
+    if(!m || !m.id || m.hidden || chatMsgs.some(function(x){ return x.id === m.id; })) return;
+    chatMsgs.push(m);
+    if(chatMsgs.length > 200) chatMsgs = chatMsgs.slice(-200);
+    var mine = !!(authUser && m.user_id === authUser.id);
+    renderChatList(mine);
+    if(!chatStick && !mine && blockedIds.indexOf(m.user_id) === -1) document.getElementById('chat-new').hidden = false;
+  }
+
+  async function chatEnter(){
+    if(chatChannel || chatLoading || !sb || !authUser) return;
+    chatLoading = true; chatMsgs = []; chatStick = true; chatErr(''); renderChatList(true);
+    var res = await sb.from('chat_messages').select('id,user_id,nickname,body,created_at')
+      .eq('room', 'all').order('created_at', { ascending:false }).limit(50);
+    chatLoading = false;
+    if(res.error){ console.warn('[채팅]', res.error); chatErr('채팅을 불러오지 못했어요. 잠시 뒤 다시 들어와 주세요'); }
+    else chatMsgs = (res.data || []).reverse();
+    renderChatList(true);
+    if(shownScreen !== 'chat' || chatChannel) return;   // 불러오는 사이에 나갔으면 연결하지 않는다
+    var me = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now()) + Math.random();
+    var ch = sb.channel('chat-room-all', { config:{ presence:{ key:me } } });
+    chatChannel = ch;
+    ch.on('postgres_changes', { event:'INSERT', schema:'public', table:'chat_messages', filter:'room=eq.all' }, function(p){ chatAdd(p.new); })
+      .on('presence', { event:'sync' }, function(){
+        var n = Math.max(1, Object.keys(ch.presenceState() || {}).length);
+        var el = document.getElementById('chat-online'); if(el) el.textContent = n;
+      })
+      .subscribe(function(status){
+        if(status === 'SUBSCRIBED'){ ch.track({ at: Date.now() }); }   // 사람 수만 센다. 아이디·닉네임은 싣지 않는다
+        else if(status === 'CHANNEL_ERROR' || status === 'TIMED_OUT'){ chatErr('실시간 연결이 끊겼어요. 나갔다가 다시 들어와 주세요'); }
+      });
+  }
+
+  function chatLeave(){
+    if(!chatChannel) return;
+    var ch = chatChannel; chatChannel = null;
+    try{ ch.untrack(); }catch(e){}
+    try{ sb.removeChannel(ch); }catch(e){}
+  }
+
+  async function chatSend(){
+    var inp = document.getElementById('chat-input'), btn = document.getElementById('chat-send');
+    if(!inp || !sb || !authUser) return;
+    var body = inp.value.trim();
+    if(!body){ chatErr('내용을 입력해 주세요'); return; }
+    if(body.length > 200){ chatErr('200자까지 보낼 수 있어요'); return; }
+    btn.disabled = true; chatErr('');
+    var id = crypto.randomUUID();
+    var res = await sb.from('chat_messages').insert({ id:id, body:body });   // .select() 안 붙임 — INSERT…RETURNING 지뢰
+    btn.disabled = false;
+    if(res.error){ console.warn('[채팅]', res.error); chatErr(res.error.hint || '보내지 못했어요. 잠시 뒤 다시 보내 주세요'); return; }
+    inp.value = ''; chatCountUpdate(); chatStick = true;
+    // 보통은 실시간으로 곧 붙는다. 늦으면 직접 읽어 붙인다
+    setTimeout(async function(){
+      if(chatMsgs.some(function(m){ return m.id === id; })) return;
+      var r = await sb.from('chat_messages').select('id,user_id,nickname,body,created_at').eq('id', id).maybeSingle();
+      if(r.data) chatAdd(r.data);
+    }, 1500);
+  }
+  function chatCountUpdate(){ var inp = document.getElementById('chat-input'), c = document.getElementById('chat-count'); if(inp && c) c.textContent = inp.value.length + '/200'; }
+
+  document.addEventListener('click', function(e){
+    if(!e.target.closest) return;
+    if(e.target.closest('[data-chat-open]')){ chatOpen(); return; }
+    if(e.target.closest('[data-chat-agree]')){
+      try{ if(authUser) localStorage.setItem(CHAT_RULES_KEY + authUser.id, new Date().toISOString()); }catch(err){}
+      closeModal(); location.hash = '#chat'; return;
+    }
+    if(e.target.closest('[data-chat-back]')){ location.hash = '#community'; return; }
+    var cm = e.target.closest('[data-chat-msg]');
+    if(cm){
+      var msg = chatMsgs.filter(function(m){ return String(m.id) === cm.getAttribute('data-chat-msg'); })[0];
+      openReport('chat', cm.getAttribute('data-chat-msg'), cm.getAttribute('data-chat-owner'),
+        '채팅 글을 신고합니다' + (msg ? ': "' + String(msg.body || '').slice(0, 40) + '"' : ''));
+      return;
+    }
+    if(e.target.closest('#chat-new')){ chatStick = true; renderChatList(true); }
+  });
+  (function(){
+    var form = document.getElementById('chat-form'), inp = document.getElementById('chat-input'), list = document.getElementById('chat-list');
+    if(form) form.addEventListener('submit', function(e){ e.preventDefault(); chatSend(); });
+    if(inp){
+      inp.addEventListener('input', function(){ chatCountUpdate(); chatErr(''); });
+      inp.addEventListener('keydown', function(e){ if(e.key === 'Enter' && !e.shiftKey && !e.isComposing){ e.preventDefault(); chatSend(); } });
+    }
+    if(list) list.addEventListener('scroll', function(){
+      chatStick = list.scrollHeight - list.scrollTop - list.clientHeight < 40;
+      if(chatStick) document.getElementById('chat-new').hidden = true;
+    });
+    document.addEventListener('visibilitychange', function(){   // 앱을 내리면 끊고, 다시 열면 이어 붙인다
+      if(document.hidden) chatLeave();
+      else if(shownScreen === 'chat') chatEnter();
+    });
+  })();
+
   // ---------- ROUTING ----------
   var shownScreen = '';
   function showScreen(id){
+    if(shownScreen === 'chat' && id !== 'chat') chatLeave();
     document.querySelectorAll('.screen').forEach(function(s){ s.hidden = (s.id !== 'screen-' + id); });
     // 화면이 바뀔 때만 짧게 떠오르는 효과 (0.2초). 같은 화면을 다시 그릴 때는 움직이지 않는다.
     // 본문(.scroll)에만 줘서 아래 탭은 제자리. '동작 줄이기' 설정이면 rounded-ui.css 가 끈다.
@@ -5997,7 +6225,7 @@
 
   function route(){
     var id = (location.hash || '').replace('#', '');
-    var valid = ['onboarding','home','challenge','benefit','community','outing','growth','prep','magazine','faq','brand','my','admin','policy','terms'];
+    var valid = ['onboarding','home','challenge','benefit','community','outing','growth','prep','magazine','faq','brand','my','admin','policy','terms','chat'];
     // 로그인 없이 볼 수 있는 화면: 커뮤니티 글, 챌린지·혜택(광고가 데려오는 곳, 참가·신청은 로그인 필요), 브랜드관, 약관
     var guestPages = ['onboarding','community','challenge','benefit','brand','magazine','faq','policy','terms'];
     if(valid.indexOf(id) === -1){
@@ -6020,8 +6248,14 @@
       location.hash = '#onboarding';
       return;
     }
+    if(id === 'chat' && (!isNativeApp() || !chatAgreed())){   // 채팅은 앱에서만, 이용 규칙 동의 뒤에만
+      location.hash = '#community';
+      if(!isNativeApp()) showToast('실시간 채팅은 앱에서 할 수 있어요'); else openModal(chatRulesHtml());
+      return;
+    }
     showScreen(id);
     renderAll(id);
+    if(id === 'chat') chatEnter();
     if(['home','challenge','benefit','community','my','growth'].indexOf(id) > -1){
       refreshRemote();
     }

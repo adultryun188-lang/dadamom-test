@@ -1069,7 +1069,7 @@
     var u = new URL(location.href); u.searchParams.delete('entry');
     history.replaceState(null, '', u.pathname + u.search + (u.hash || '#challenge'));
   })();
-  function chArt(c, photo){ return photo && c && CH_PHOTO[c.id] ? '<img src="./assets/challenge/' + c.id + '.jpg" alt="" style="width:100%; height:100%; object-fit:cover;">' : ic('trophy'); }
+  function chArt(c, photo){ return photo && c && CH_PHOTO[c.id] ? '<img src="./assets/challenge/' + c.id + '.jpg?v=20261102" alt="" style="width:100%; height:100%; object-fit:cover;">' : ic('trophy'); }
   var SUPABASE_URL = ENV.SUPABASE_URL || '';
   var SUPABASE_KEY = ENV.SUPABASE_ANON_KEY || '';
   if(!SUPABASE_URL || !SUPABASE_KEY){
@@ -2456,7 +2456,7 @@
     var v = c.example_video && /^(https:\/\/|\.\/assets\/)[^\s"<>]+$/.test(c.example_video) ? c.example_video : '';
     var poster = /^\.\/assets\/.+\.mp4$/.test(v) ? v.replace(/\.mp4$/, '.jpg') : '';
     // 예시 영상을 같은 이름으로 바꿔 넣으면 브라우저가 예전 파일을 기억한다 — 바꿀 때마다 이 날짜를 올린다
-    if(poster){ v += '?v=20261027b'; poster += '?v=20261027b'; }
+    if(poster){ v += '?v=20261102'; poster += '?v=20261102'; }
     var photoEx = c.media_rule === 'photo' && poster;   // 사진만 챌린지는 예시도 사진으로
     return '<section class="card col" aria-label="이렇게 찍어 주세요" style="gap:12px; padding:16px;">' +
       '<div class="row" style="align-items:baseline; justify-content:space-between; gap:8px;"><b class="display" style="font-size:16px;">' + ic(c.media_rule === 'photo' ? 'camera' : 'video') + ' 이렇게 찍어 주세요</b>' + (v ? '<span class="helper">' + (photoEx ? '예시 사진' : '예시 영상') + ' · Pexels</span>' : '') + '</div>' +

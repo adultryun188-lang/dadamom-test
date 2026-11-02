@@ -10,6 +10,7 @@ const HERE = path.dirname(url.fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '../../..');
 const f = p => url.pathToFileURL(path.join(ROOT, p)).href;
 const PHOTO = n => f('assets/challenge/' + n + '.jpg');
+// 예시 사진: Pexels 무료(상업 이용 가능). 볼살 photos/13247629, 만삭 videos/9215638 장면 (2026-11-02 교체)
 
 const base = (w, h, body) => `<!doctype html><html lang="ko"><meta charset="utf-8"><style>
 @font-face{font-family:D;src:url('${f('assets/fonts/DadaRoundR.woff2')}');font-weight:400}
@@ -57,7 +58,7 @@ const PH = (n, pos = '50% 50%') => `<div style="flex:1;overflow:hidden"><img src
 
 const items = [
   // 당근 A: 볼살 4만 원
-  { file: 'danggn-a.png', w: 720, h: 720, body: DG(PH('cheeks', '58% 40%'), '다다맘 · 이번 달 볼살 자랑 대회', '볼살 자랑 1위 <em style="font-style:normal;color:#A34429">배민 4만 원</em>') },
+  { file: 'danggn-a.png', w: 720, h: 720, body: DG(PH('cheeks', '50% 35%'), '다다맘 · 이번 달 볼살 자랑 대회', '볼살 자랑 1위 <em style="font-style:normal;color:#A34429">배민 4만 원</em>') },
   // 당근 B: 첫 참가 커피
   { file: 'danggn-b.png', w: 720, h: 720, body: DG(PH('firststep', '50% 30%') + PH('crawl', '45% 50%'), '다다맘 · 매달 열리는 아이 자랑 대회', '처음 참가하면 <em style="font-style:normal;color:#A34429">커피 한 잔</em>') },
   // 인스타 1: 표지
@@ -66,8 +67,8 @@ const items = [
     <h1 style="margin-top:30px">우리 아이를<br>이달의 <em>주인공</em>으로</h1>
     <div style="display:flex;gap:22px;margin-top:60px">
       <div class="photo" style="flex:1;height:420px"><img src="${PHOTO('firststep')}" style="object-position:50% 30%"></div>
-      <div class="photo" style="flex:1;height:420px"><img src="${PHOTO('cheeks')}" style="object-position:58% 40%"></div>
-      <div class="photo" style="flex:1;height:420px"><img src="${PHOTO('bump')}" style="object-position:50% 50%"></div>
+      <div class="photo" style="flex:1;height:420px"><img src="${PHOTO('cheeks')}" style="object-position:47% 40%"></div>
+      <div class="photo" style="flex:1;height:420px"><img src="${PHOTO('bump')}" style="object-position:60% 50%"></div>
     </div>
     <div class="foot"><span>예시 사진 · Pexels</span><span>넘겨서 보기 ›</span></div>` },
   // 인스타 2: 경품

@@ -805,7 +805,7 @@
     var v = c.example_video && /^(https:\/\/|\.\/assets\/)[^\s"<>]+$/.test(c.example_video) ? c.example_video : '';
     var poster = /^\.\/assets\/.+\.mp4$/.test(v) ? v.replace(/\.mp4$/, '.jpg') : '';
     // 예시 영상을 같은 이름으로 바꿔 넣으면 브라우저가 예전 파일을 기억한다 — 바꿀 때마다 이 날짜를 올린다
-    if(poster){ v += '?v=20261027b'; poster += '?v=20261027b'; }
+    if(poster){ v += '?v=20261102'; poster += '?v=20261102'; }
     var li = function(arr, muted){ return arr.map(function(g){ return '<li style="margin:4px 0;' + (muted ? ' color:var(--text2);' : '') + '">' + esc(g) + '</li>'; }).join(''); };
     var photoEx = c.media_rule === 'photo' && poster;   // 사진만 챌린지는 예시도 사진으로
     return '<section class="panel" aria-labelledby="ch-ex-title"><div class="panel-h"><h2 class="display" id="ch-ex-title">' + (c.media_rule === 'photo' ? emIc('📷') : emIc('📹')) + ' 이렇게 찍어 주세요</h2>' + (v ? '<span class="helper">' + (photoEx ? '예시 사진' : '예시 영상') + ' · Pexels</span>' : '') + '</div>' +
@@ -935,7 +935,7 @@
     '🔕':'bell-off','🎪':'ticket','🛝':'ferris-wheel','📍':'map-pin','✏️':'pencil','🖼️':'image','🏷️':'tag','🧸':'package','🏆 ':'trophy','↗':'arrow-up-right','💛':'heart','🗳️':'vote',
     '👍':'thumbs-up','📌':'pin','📤':'share-2','👤':'user','🚨':'triangle-alert','📹':'video','🎬':'video','⚖️':'scale','📏':'ruler','🍼':'milk','💉':'syringe','📈':'trending-up','🎁':'gift','⚙️':'settings' };
   var CH_PHOTO = { firststep:1, crawl:1, halloween:1, bump:1, cheeks:1 };   // assets/challenge/<id>.jpg 가 있는 챌린지
-  function chArtW(c){ return c && CH_PHOTO[c.id] ? '<img src="./assets/challenge/' + c.id + '.jpg" alt="" style="width:100%; height:100%; object-fit:cover; border-radius:inherit;">' : DadamomShared.icon('trophy'); }
+  function chArtW(c){ return c && CH_PHOTO[c.id] ? '<img src="./assets/challenge/' + c.id + '.jpg?v=20261102" alt="" style="width:100%; height:100%; object-fit:cover; border-radius:inherit;">' : DadamomShared.icon('trophy'); }
   function emIc(e){ var n = EM_IC[e]; return n ? DadamomShared.icon(n) : ''; }
   function stageEmoji(stage){ return DadamomShared.icon(stage === 'pregnant' || stage === 'parenting' ? 'baby' : 'user'); }
   function roleLabel(r){ return r === 'mom' ? '맘' : r === 'dad' ? '아빠' : r === 'guardian' ? '보호자' : '맘·아빠'; }

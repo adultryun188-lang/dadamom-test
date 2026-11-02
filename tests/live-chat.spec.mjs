@@ -23,7 +23,7 @@ const send = async (who, body, extra = {}) => {
   return { ok: r.ok, status: r.status, id, code: err && err.message, hint: err && err.hint };
 };
 const read = async (who, id) => {
-  const r = await fetch(U + '/rest/v1/chat_messages?select=id,body,user_id,nickname,hidden&id=eq.' + id, { headers: h(who && who.access_token) });
+  const r = await fetch(U + '/rest/v1/chat_messages?select=id,body,user_id,nickname,hidden,is_master&id=eq.' + id, { headers: h(who && who.access_token) });
   return { status: r.status, rows: r.ok ? await r.json() : null };
 };
 const nick = async who => ((await (await fetch(U + '/rest/v1/profiles?select=nickname&id=eq.' + who.user.id, { headers: h(who.access_token) })).json())[0] || {}).nickname;
@@ -89,6 +89,14 @@ try {
   const hid = (await read(M, m1.id)).rows[0];
   ok('서로 다른 3명 신고 → 숨김', hid && hid.hidden === true);
   ok('숨긴 글은 회원에게 안 보임', ((await read(B, m1.id)).rows || []).length === 0);
+  // 운영자 표시 (0059): 서버가 단다, 회원은 흉내 못 냄
+  await sleep(3200);
+  const fake = await send(B, '나도 운영자 ' + tag, { is_master: true });
+  const fr = (await read(M, fake.id)).rows[0];
+  ok('회원이 운영자 표시를 넣어도 서버가 지움', fake.ok && fr && fr.is_master === false, JSON.stringify(fr));
+  const mm = await send(M, '운영자 안내입니다 ' + tag);
+  const mr = (await read(B, mm.id)).rows[0];
+  ok('운영자 계정 글에는 운영자 표시', mm.ok && mr && mr.is_master === true, JSON.stringify(mr));
 } catch (e) { failed++; console.log('FAIL 실행 중단: ' + e.message.split('\n')[0]); }
 finally {
   for (const id of reports) await fetch(U + '/rest/v1/reports?id=eq.' + id, { method: 'PATCH', headers: h(M.access_token, J), body: JSON.stringify({ status: 'dismissed' }) });

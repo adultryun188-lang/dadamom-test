@@ -331,6 +331,40 @@
   .btn-ghost:hover{ background:#FFFBF7; box-shadow:0 4px 12px rgba(201,67,24,.08); }
   .chip.on, .chip-f[aria-pressed="true"]{ border:1px solid #EDBFA5; background:var(--accent-soft); color:var(--accent-strong); }
   .segmented button[aria-selected="true"]{ box-shadow:0 2px 8px rgba(120,60,20,.06); color:var(--accent-strong); }
+  /* 홈 좌우 분할 (2026-11-02 시안 docs/시안/홈_분할_시안.png) */
+  .home-split{ display:grid; grid-template-columns:1.12fr 1fr; gap:10px; align-items:stretch; }
+  .home-split.solo{ grid-template-columns:1fr; }
+  .home-split > #home-status{ display:flex; min-width:0; }
+  .home-split > #home-status > *{ flex:1; }
+  .hs2-me{ display:flex; flex-direction:column; gap:6px; padding:14px 14px 12px; border-radius:22px; background:#FFEBDD; border:1px solid #F5D3BE; min-width:0; }
+  .hs2-k{ font-size:12px; font-weight:800; color:var(--w-em, #A34429); }
+  .hs2-dd{ font-size:38px; line-height:1.05; font-weight:800; letter-spacing:-.03em; color:var(--w-em, #A34429); word-break:keep-all; }
+  .hs2-age{ font-size:14px; font-weight:800; }
+  .hs2-tip{ font-size:12.5px; line-height:1.55; color:var(--text2); background:rgba(255,255,255,.72); border-radius:14px; padding:9px 11px; }
+  .hs2-btn{ margin-top:auto; min-height:42px; border-radius:999px; background:#fff; border:1px solid #F1C9B2; color:var(--w-em, #A34429); font-size:13.5px; font-weight:800; }
+  .hs2-right{ display:flex; flex-direction:column; gap:10px; min-width:0; }
+  .hs2-mission{ padding:12px 12px 4px; border-radius:22px; }
+  .hs2-h{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:2px; } .hs2-h b{ font-size:14.5px; font-weight:800; } .hs2-h a{ font-size:12px; }
+  .hs2-row{ display:flex; align-items:center; gap:8px; padding:8px 0; text-decoration:none; color:var(--text); min-height:44px; }
+  .hs2-row + .hs2-row{ border-top:1px solid var(--border); }
+  .hs2-dot{ width:32px; height:32px; flex:0 0 auto; border-radius:11px; background:var(--accent-soft); color:var(--accent2); display:flex; align-items:center; justify-content:center; }
+  .hs2-t{ display:flex; flex-direction:column; min-width:0; flex:1; line-height:1.3; text-align:left; }
+  .hs2-t b{ font-size:13.5px; font-weight:800; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .hs2-t small{ font-size:11.5px; color:var(--text2); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .hs2-prize{ display:flex; flex-direction:column; gap:2px; padding:12px; border-radius:22px; background:var(--w-leaf, #EEF3E6); border:1px solid #D9E5CC; text-decoration:none; color:var(--text); }
+  .hs2-prize[hidden]{ display:none; }
+  .hs2-pk, .hs2-ps{ font-size:11.5px; color:var(--text2); } .hs2-prize b{ font-size:17px; font-weight:800; color:#3F6B49; }
+  .hs2-line{ display:flex; align-items:center; gap:10px; width:100%; padding:12px 14px; border-radius:20px; text-decoration:none; color:var(--text); background:var(--surface); font:inherit; }
+  .hs2-line .hs2-t b{ font-size:14.5px; } .hs2-em{ color:var(--accent2) !important; font-weight:800; }
+  .hs2-thumbs{ display:flex; gap:5px; flex:0 0 auto; } .hs2-thumbs .spot-th{ width:46px; height:46px; border-radius:12px; overflow:hidden; display:flex; align-items:center; justify-content:center; background:var(--w-sun); }
+  .hs2-thumbs .spot-th img, .hs2-thumbs .spot-th video{ width:100%; height:100%; object-fit:cover; }
+  #screen-home .growth-cta{ padding:11px 12px; border-radius:20px; } #screen-home .growth-cta-ico{ width:40px; height:40px; border-radius:14px; }
+  #screen-home .growth-cta b{ font-size:14.5px; } #screen-home .quick-tile{ padding:10px 2px 8px; gap:5px; border-radius:18px; }
+  #screen-home .hs2-row{ background:none; border-radius:0; box-shadow:none; }
+  #screen-home .hs2-mission #home-missions{ background:none; border:none; border-radius:0; }   /* rounded-ui.css 의 옛 미션 카드 모양을 끈다 */
+  #home-install:empty, #home-ask:empty{ display:none; }
+  #screen-home .quick-ico{ width:36px; height:36px; border-radius:12px; }
+  @media (max-width:340px){ .home-split{ grid-template-columns:1fr; } }
   .mission-go{ background:var(--accent-soft); color:#B53A12; }   /* accent-strong 은 이 배경에서 4.49:1 로 기준(4.5) 미달 */
   #home-fab, #fab{ background:var(--btn-grad) !important; border:1px solid #EDBFA5 !important; box-shadow:0 6px 18px rgba(150,95,60,.12) !important; }
   .navbar{ background:rgba(255,255,255,.88); backdrop-filter:saturate(1.4) blur(14px); -webkit-backdrop-filter:saturate(1.4) blur(14px); }
@@ -493,22 +527,20 @@
         </a>
       </div>
 
-      <!-- 2026-10-30 차별화: 다다맘의 강점(이번 달 자랑 대회 · 또래가 해결한 방법)을 홈 맨 위에 -->
-      <div id="home-spot" class="col" style="gap:14px;"></div>
       <div id="home-install"></div>
-      <!-- 홈 위쪽 배너 넘기기 (HOME_BANNERS). 5초마다 다음 장, 손으로 넘겨도 된다 -->
-      <div id="home-banners"></div>
-      <div id="home-status"></div>
-
-      <!-- 성장(육아기록)은 아래 탭에서 빠져서 홈 위쪽 큰 카드로 연다 -->
-      <button type="button" data-goto="growth" class="growth-cta">
-        <span class="growth-cta-ico" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-notebook-pen"></use></svg></span>
-        <span class="col" style="gap:3px; min-width:0; flex:1; text-align:left;">
-          <b>오늘의 육아기록</b>
-          <span class="helper">수유·수면, 키·몸무게, 예방접종</span>
-        </span>
-        <span class="growth-cta-go">기록하기 ›</span>
-      </button>
+      <div id="home-ask"></div>
+      <!-- 2026-11-02 홈 시안(docs/시안/홈_분할_시안.png): 첫 화면에 다 들어오게 위를 좌우로 나눈다.
+           왼쪽 = 내 정보(D-day·주수), 오른쪽 위 = 오늘의 미션, 오른쪽 아래 = 이번 달 경품 -->
+      <div class="home-split" id="home-split">
+        <div id="home-status"></div>
+        <div class="hs2-right">
+          <div class="card hs2-mission">
+            <div class="hs2-h"><b>오늘의 미션</b><a href="#challenge" class="link-quiet">전체</a></div>
+            <div id="home-missions"></div>
+          </div>
+          <a href="#challenge" class="hs2-prize" id="home-prize" hidden></a>
+        </div>
+      </div>
 
       <nav class="quick-grid" aria-label="바로가기">
         <!-- 아래 탭에서 뺀 나들이·혜택을 여기서 연다. 챌린지·브랜드관은 탭에 있다 -->
@@ -519,13 +551,20 @@
         <button type="button" data-goto="prep" data-prep-tab="gift" class="quick-tile"><span class="quick-ico" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-heart-handshake"></use></svg></span><span>선물 장부</span></button>
       </nav>
 
-      <div class="home-sec">
-        <div class="home-sec-head">
-          <h2 class="home-sec-title display">오늘의 미션</h2>
-          <a href="#challenge" class="link-quiet">전체보기</a>
-        </div>
-        <div class="card col" style="gap:0; padding:0; overflow:hidden;" id="home-missions"></div>
-      </div>
+      <!-- 성장(육아기록)은 아래 탭에서 빠져서 홈 카드로 연다 -->
+      <button type="button" data-goto="growth" class="growth-cta">
+        <span class="growth-cta-ico" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-notebook-pen"></use></svg></span>
+        <span class="col" style="gap:2px; min-width:0; flex:1; text-align:left;">
+          <b>오늘의 육아기록</b>
+          <span class="helper">수유·수면, 키·몸무게, 예방접종</span>
+        </span>
+        <span class="growth-cta-go">기록 ›</span>
+      </button>
+
+      <!-- 자랑 대회 · 그 후 이야기 (다다맘 강점) — 한 줄짜리 카드로 -->
+      <div id="home-spot" class="col" style="gap:10px;"></div>
+      <!-- 홈 배너 넘기기 (HOME_BANNERS). 5초마다 다음 장, 손으로 넘겨도 된다 -->
+      <div id="home-banners"></div>
 
       <div class="home-sec" id="home-hot-sec" hidden>
         <div class="home-sec-head">
@@ -3764,32 +3803,26 @@
         '<span class="pill" style="margin-top:4px; width:fit-content; padding:8px 14px; background:var(--accent-soft); color:var(--accent2); font-size:12.5px; font-weight:800;">30초면 끝나요 ' + ARROW + '</span>' +
       '</a>';
     }
+    // 홈 왼쪽 큰 칸: D-day(또는 아이 나이) + 주수·월령 + 이번 주 한 줄 안내 + 기록 버튼
     var dd = ddayInfo();
     var info = weekMonthInfo();
     var age = ageLabel();
-    var left = dd
-      ? '<div class="col" style="gap:4px; min-width:0;">' +
-          '<span class="hs-label">' + escapeHtml(dd.label) + '</span>' +
-          '<span class="hs-value display">' + escapeHtml(dd.value) + '</span>' +
-          (age && !info ? '<span class="hs-age">' + escapeHtml(age) + '</span>' : '') +
-        '</div>'
-      : '<div class="col" style="gap:4px;"><span class="hs-label">우리 아이</span>' +
-        '<span class="hs-value display" style="font-size:24px;">' + escapeHtml(age || '다다맘') + '</span></div>';
-
-    var tip = info
-      ? '<div class="hs-tip">' +
-          '<span class="hs-tip-label">' + ic('lightbulb') + ' ' + escapeHtml(info.label) + '</span>' +
-          '<span style="font-size:14.5px; font-weight:800; line-height:1.45;">' + escapeHtml(info.headline) + '</span>' +
-          '<p style="font-size:13px; line-height:1.65; color:var(--text2); margin:0;">' + escapeHtml(info.tip) + '</p>' +
-          '<span class="helper" style="font-size:11.5px;">일반적인 정보이며 개인차가 있어요. 정확한 평가는 전문의와 상담해주세요.</span>' +
-        '</div>'
-      : '';
-
-    // 웹(community.html) 페이지 머리와 같은 구성: 크림 바탕 글 + 초록 그림판. 스타일은 공용 rounded-ui.css
-    return '<div class="home-hero">' +
-      '<div class="hh-top">' + left +
-      '<div class="hh-art" aria-hidden="true"><span>' + ic(dd ? dd.icon : 'sprout') + '</span></div></div>' +
-      tip + '</div>';
+    return '<div class="hs2-me">' +
+      '<span class="hs2-k">' + escapeHtml(dd ? dd.label : '우리 아이') + '</span>' +
+      '<span class="hs2-dd display">' + escapeHtml(dd ? dd.value : (age || '다다맘')) + '</span>' +
+      (dd && age ? '<span class="hs2-age">' + escapeHtml(age) + '</span>' : '') +
+      (info ? '<span class="hs2-tip">' + escapeHtml(info.tip) + '</span>' : '') +
+      '<button type="button" class="hs2-btn" data-goto="growth">오늘 기록하기</button>' +
+    '</div>';
+  }
+  // 홈 오른쪽 아래: 이번 달 자랑 대회 경품 (가장 큰 1위 금액)
+  function homePrizeHtml(){
+    var open = challengeList.filter(chOpen);
+    var max = open.reduce(function(m, c){ return Math.max(m, chPrizeAmt(c)); }, 0);
+    if(!max) return '';
+    var left = monthLeftDays();
+    return '<span class="hs2-pk">이번 달 자랑 대회 · ' + (left ? 'D-' + left : '오늘 마감') + '</span>' +
+      '<b>1위 최대 ' + max + '만 원</b><span class="hs2-ps">배민·올리브영 상품권</span>';
   }
 
   // 챌린지 + 체험단을 하나의 '미션' 목록으로 — 홈에서 바로 확인하고 시작
@@ -3803,71 +3836,27 @@
     while(days[key(d)] && n < 60){ n++; d.setDate(d.getDate() - 1); }
     return n;
   }
+  // 홈 오른쪽 위 '오늘의 미션' — 좁은 칸이라 두 줄만 (아이콘 + 제목 + 한 줄)
   function homeMissionsHtml(){
     var rows = [];
-
-    // 0) 육아기록 이어 쓰기 (꾸준히 쓰면 체험단을 먼저 뽑는다 — 경쟁 조사 9번)
+    var row = function(href, icon, title, sub, attr){
+      return '<a href="' + href + '" class="hs2-row"' + (attr || '') + '><span class="hs2-dot" aria-hidden="true">' + ic(icon) + '</span>' +
+        '<span class="hs2-t"><b>' + escapeHtml(title) + '</b><small>' + escapeHtml(sub) + '</small></span></a>';
+    };
+    // 0) 육아기록 이어 쓰기 (7일이면 체험단 우선 — 0048) / 임신 중이면 출산 준비물
     if(authUser && state.kidType === 'parenting'){
       var streak = careStreak();
-      rows.push(
-      '<a href="#growth" class="mission-row">' +
-        '<div class="mission-ico" style="background:var(--w-leaf);" aria-hidden="true">' + ic(streak ? 'flame' : 'notebook-pen') + '</div>' +
-        '<div class="mission-main">' +
-          '<span class="mission-title">' + (streak ? '육아기록 ' + streak + '일째 이어 쓰는 중' : '오늘 육아기록 남기기') + '</span>' +
-          '<span class="helper">' + (streak >= 7 ? '체험단을 뽑을 때 먼저 뽑아 드려요' : '7일 이어 쓰면 체험단을 뽑을 때 먼저 뽑아 드려요') + '</span>' +
-        '</div>' +
-        '<span class="mission-go">기록</span>' +
-      '</a>');
+      rows.push(row('#growth', streak ? 'flame' : 'notebook-pen', streak ? '육아기록 ' + streak + '일째' : '육아기록', streak >= 7 ? '체험단 우선' : '7일 쓰면 우선 선정'));
+    } else if(state.kidType === 'pregnant'){
+      var all = prepAllItems(), done = all.filter(function(k){ return state.prepChecked[k]; }).length;
+      rows.push(row('#prep', 'list-checks', '출산 준비물', done + ' / ' + all.length + ' 챙김', ' data-goto="prep" data-prep-tab="check"'));
     }
-
-    // 1) 챌린지
-    // 마감된 챌린지는 홈에 띄우지 않는다 (챌린지 탭에서는 결과를 계속 볼 수 있다). 우리 아이에게 맞는 것부터 둘까지.
-    chRecommended().filter(chOpen).slice(0, 2).forEach(function(c){
-      var cIneligible = !chEligible(c);
-      var n = state.entries.filter(function(e){ return (e.challenge_key || 'firststep') === c.id; }).length;
-      var cSub = cIneligible ? '지금 ' + n + '명 참여 중' : (c.target_label || '전체') + ' · 지금 ' + n + '명 참여 중';
-      rows.push(
-      '<a href="#challenge" class="mission-row" data-challenge-go="' + escapeHtml(c.id) + '">' +
-        '<div class="mission-ico" style="background:var(--chip-b); overflow:hidden;" aria-hidden="true">' + chArt(c, true) + '</div>' +
-        '<div class="mission-main">' +
-          '<div class="row" style="align-items:center; gap:6px;">' +
-            '<span class="mission-title">' + escapeHtml(c.title) + '</span>' +
-            '<span class="dday">' + chDdayLabel(c) + '</span>' +
-          '</div>' +
-          '<span class="helper">' + escapeHtml(cSub) + '</span>' +
-        '</div>' +
-        '<span class="mission-go">' + (cIneligible ? '응원' : '참여') + '</span>' +
-      '</a>');
+    // 1) 챌린지 — 우리 아이에게 맞는 것부터, 마감된 건 빼고
+    chRecommended().filter(chOpen).forEach(function(c){
+      if(rows.length >= 2) return;
+      var title = String(c.title || '').replace(/\s*(자랑|챌린지|대회)$/, '');
+      rows.push(row('#challenge', 'trophy', title, chEligible(c) ? '참여하기' : '응원하기', ' data-challenge-go="' + escapeHtml(c.id) + '"'));
     });
-
-    // 2) 체험단 — 관심 분야에 걸리는 것부터
-    var trials = TRIALS.filter(function(t){ return !trialExpired(t); });
-    trials = trials.slice().sort(function(a, b){
-      return (trialInterest(b) ? 1 : 0) - (trialInterest(a) ? 1 : 0);
-    });
-    trials.slice(0, 3).forEach(function(t){
-      var fit = (t.eligibility === 'both' || t.eligibility === state.kidType);
-      var hit = trialInterest(t);
-      var d = parseMD(t.deadline);
-      var dl = d ? Math.ceil((d.getTime() - Date.now()) / 86400000) : null;
-      var closed = (dl != null && dl < 0);
-      var dday = (dl == null) ? '' : (closed ? '마감' : (dl === 0 ? 'D-DAY' : 'D-' + dl));
-      rows.push(
-        '<a href="#benefit" class="mission-row">' +
-          '<div class="mission-ico" style="background:' + t.bg + ';" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-gift"></use></svg></div>' +
-          '<div class="mission-main">' +
-            '<div class="row" style="align-items:center; gap:6px;">' +
-              '<span class="mission-title">' + escapeHtml(t.title) + '</span>' +
-              (dday ? '<span class="dday' + (closed ? ' off' : '') + '">' + dday + '</span>' : '') +
-            '</div>' +
-            '<span class="helper">' + escapeHtml(t.brand) + ' · ' + t.total + '명 모집' +
-              (hit ? ' · 관심 분야 ' + escapeHtml(hit) : '') + (fit ? '' : ' · 대상 아님') + '</span>' +
-          '</div>' +
-          '<span class="mission-go' + (closed || !fit ? ' off' : '') + '">' +
-            (closed ? '마감' : (fit ? '신청' : '대상 아님')) + '</span>' +
-        '</a>');
-    });
-
     return rows.join('');
   }
 
@@ -3967,13 +3956,9 @@
     var thumbs = top.length
       ? top.map(function(x){ return '<span class="spot-th">' + mediaThumb(x.media_url, 'width:100%; height:100%; object-fit:cover;') + '</span>'; }).join('')
       : open.slice(0, 3).map(function(c){ return '<span class="spot-th">' + chArt(c, true) + '</span>'; }).join('');
-    var left = monthLeftDays();
-    return '<a href="#challenge" class="spot-card spot-contest">' +
-      '<span class="spot-eyebrow">이번 달 자랑 대회 · ' + (left ? 'D-' + left : '오늘 마감') + '</span>' +
-      '<b class="spot-title">우리 아이를 이달의 주인공으로</b>' +
-      '<span class="spot-sub">투표 1위 상품권 최대 4만 원 · 챌린지' + open.length + '개</span>' +
-      '<span class="spot-thumbs">' + thumbs + '</span>' +
-      '<span class="spot-go">참가하고 투표하기 ' + ic('chevron-right') + '</span></a>';
+    return '<a href="#challenge" class="card hs2-line">' +
+      '<span class="hs2-t"><small class="hs2-em">이번 달 자랑 대회</small><b>참가하고 투표하기 ›</b></span>' +
+      '<span class="hs2-thumbs">' + thumbs + '</span></a>';
   }
   function homeOutcomesHtml(){
     var av = myAgeValue();
@@ -3984,19 +3969,12 @@
       return da - db || b.outcomeAt - a.outcomeAt;
     });
     var who = (state.kidType === 'parenting' && av != null) ? av + '개월 또래' : (state.kidType === 'pregnant' && av != null) ? '임신 ' + av + '주 또래' : '또래';
-    var rows = list.slice(0, 3).map(function(p){
-      var age = p.stage === 'parenting' && p.age_value != null ? p.age_value + '개월' : p.stage === 'pregnant' && p.age_value != null ? '임신 ' + p.age_value + '주' : '';
-      var o = p.outcome.length > 70 ? p.outcome.slice(0, 70) + '…' : p.outcome;
-      return '<button type="button" class="spot-row" data-open-comments="' + p.id + '">' +
-        '<span class="spot-q">' + escapeHtml(postTitle(p.text)) + '</span>' +
-        '<span class="spot-a">' + ic('circle-check') + ' ' + escapeHtml(o) + '</span>' +
-        (age ? '<span class="helper">' + escapeHtml(age) + ' 아이 엄마 아빠 이야기</span>' : '') + '</button>';
-    }).join('');
-    return '<div class="spot-card spot-outcome">' +
-      '<span class="spot-eyebrow">' + escapeHtml(who) + ' 엄마 아빠의 그 후 이야기</span>' +
-      '<b class="spot-title">같은 고민, 그 뒤 이렇게 됐어요</b>' +
-      (rows || '<span class="spot-sub">아직 그 후 이야기가 없어요. 고민을 올리면 일주일 뒤 "그 뒤 어떻게 됐어요?"를 여쭤보고, 그 이야기가 여기에 모여요.</span>') +
-      '<button type="button" class="spot-go" data-open-compose>' + (rows ? '내 고민도 물어보기 ' : '첫 고민 물어보기 ') + ic('chevron-right') + '</button></div>';
+    // 한 줄 카드: 그 후 이야기가 있으면 가장 가까운 또래 것을 열고, 없으면 고민 쓰기로
+    var p = list[0];
+    return '<button type="button" class="card hs2-line"' + (p ? ' data-open-comments="' + p.id + '"' : ' data-open-compose') + '>' +
+      '<span class="hs2-t"><b>같은 고민, 그 뒤 이렇게 됐어요</b><small>' +
+        escapeHtml(p ? (p.outcome.length > 34 ? p.outcome.slice(0, 34) + '…' : p.outcome) : who + ' 엄마 아빠의 그 후 이야기') + '</small></span>' +
+      ic('chevron-right') + '</button>';
   }
   function homeAskBackHtml(){
     if(!authUser) return '';
@@ -4010,7 +3988,8 @@
   function renderHomeSpot(){
     var el = document.getElementById('home-spot');
     if(!el) return;
-    el.innerHTML = homeAskBackHtml() + homeContestHtml() + homeOutcomesHtml();
+    el.innerHTML = homeContestHtml() + homeOutcomesHtml();
+    var ask = document.getElementById('home-ask'); if(ask) ask.innerHTML = homeAskBackHtml();   // 내 지난 고민 되묻기는 맨 위에
   }
 
   // ---------- 응원·투표 부탁하기 ----------
@@ -4163,6 +4142,10 @@
     var missionsEl = document.getElementById('home-missions');
     missionsEl.innerHTML = homeMissionsHtml();
     missionsEl.parentElement.hidden = !missionsEl.innerHTML;   // 미션이 하나도 없으면 '오늘의 미션' 칸째 숨김
+    var prizeEl = document.getElementById('home-prize');
+    prizeEl.innerHTML = homePrizeHtml(); prizeEl.hidden = !prizeEl.innerHTML;
+    // 아이 정보 등록 전에는 안내 카드가 길어서 좌우로 나누지 않는다
+    document.getElementById('home-split').classList.toggle('solo', !state.onboarded || (missionsEl.parentElement.hidden && prizeEl.hidden));
     document.getElementById('home-feedbar').innerHTML = homeFeedBarHtml();
     document.getElementById('home-feed').innerHTML = homeFeedHtml();
     renderHomeSpot();

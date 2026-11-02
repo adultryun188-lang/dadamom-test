@@ -100,7 +100,7 @@ const items = [
     <h1 style="margin-top:70px;font-size:80px">정해진 규칙으로<br>공정하게 뽑아요</h1>
     <div class="card" style="margin-top:50px">
       <div class="step"><span class="n">1</span><span>투표를 가장 많이 받은 아이가 1위<small>한 사람이 대회마다 한 달에 한 표</small></span></div>
-      <div class="step"><span class="n">2</span><span>가입 7일이 지나야 투표할 수 있어요<small>가족 공유로 연결된 가족은 바로</small></span></div>
+      <div class="step"><span class="n">2</span><span>카카오·네이버 가입은 바로 투표<small>이메일 가입은 다음 날부터 · 가족은 바로</small></span></div>
       <div class="step"><span class="n">3</span><span>사진은 회원끼리만 봐요<small>당첨 전 원본 사진을 확인해요</small></span></div>
     </div>
     <div class="foot"><span>다다맘 · 우리 아이 자랑 대회</span><span class="cta">지금 참가하기</span></div>` },

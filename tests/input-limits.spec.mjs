@@ -19,8 +19,11 @@ try {
   ok('보통 댓글은 들어감', r.status === 201, 'HTTP ' + r.status); if (r.status === 201) made.push(okId);
   r = await ins('post_comments', { id: randomUUID(), post_id: post.id, content: long(1001), author: '하람이맘' });
   ok('1001자 댓글은 막힘', r.status >= 400, 'HTTP ' + r.status);
-  r = await ins('post_comments', { id: randomUUID(), post_id: post.id, content: '시험', author: long(31) });
-  ok('31자 작성자 이름은 막힘', r.status >= 400, 'HTTP ' + r.status);
+  const lid = randomUUID();
+  r = await ins('post_comments', { id: lid, post_id: post.id, content: '시험', author: long(31) });
+  if (r.status === 201) made.push(lid);
+  const la = (await (await fetch(U + '/rest/v1/post_comments?select=author&id=eq.' + lid, { headers: h(T) })).json())[0];
+  ok('31자 작성자 이름은 들어가지 않음 (막히거나 닉네임으로 바뀜)', r.status >= 400 || (la && la.author.length <= 30), 'HTTP ' + r.status + ' ' + (la ? la.author : ''));
   const prof = (await (await fetch(U + '/rest/v1/profiles?select=nickname,birth_month&id=eq.' + me, { headers: h(T) })).json())[0];
   await fetch(U + '/rest/v1/profiles?id=eq.' + me, { method: 'PATCH', headers: h(T), body: JSON.stringify({ nickname: long(21) }) });
   let now = (await (await fetch(U + '/rest/v1/profiles?select=nickname&id=eq.' + me, { headers: h(T) })).json())[0];
@@ -28,6 +31,14 @@ try {
   await fetch(U + '/rest/v1/profiles?id=eq.' + me, { method: 'PATCH', headers: h(T), body: JSON.stringify({ birth_month: '<script>' }) });
   now = (await (await fetch(U + '/rest/v1/profiles?select=birth_month&id=eq.' + me, { headers: h(T) })).json())[0];
   ok('이상한 생년월은 안 바뀜', now.birth_month === prof.birth_month, String(now.birth_month));
+  await fetch(U + '/rest/v1/profiles?id=eq.' + me, { method: 'PATCH', headers: h(T), body: JSON.stringify({ nickname: '다다맘운영자' }) });
+  now = (await (await fetch(U + '/rest/v1/profiles?select=nickname&id=eq.' + me, { headers: h(T) })).json())[0];
+  ok('닉네임을 운영자로 못 바꿈 (0055)', now.nickname === prof.nickname, now.nickname);
+  const fid = randomUUID();
+  r = await ins('post_comments', { id: fid, post_id: post.id, content: '사칭 시험', author: '운영자' });
+  if (r.status === 201) made.push(fid);
+  const got = (await (await fetch(U + '/rest/v1/post_comments?select=author&id=eq.' + fid, { headers: h(T) })).json())[0];
+  ok('댓글 작성자는 서버가 내 닉네임으로 (0055)', got && got.author === prof.nickname, got && got.author);
   r = await ins('reports', { target_type: 'post', target_id: post.id, reason: '시험', detail: long(1001) });
   ok('1001자 신고 내용은 막힘', r.status >= 400, 'HTTP ' + r.status);
 } catch (e) { failed++; console.log('FAIL 중단: ' + e.message); }

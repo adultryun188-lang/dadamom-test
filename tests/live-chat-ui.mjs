@@ -89,7 +89,8 @@ try {
   const rep = await (await fetch(U + '/rest/v1/reports?select=id,target_type&target_id=eq.' + (msgRow && msgRow.id) + '&reporter_id=eq.' + B.user.id, { headers: h(M.access_token) })).json();
   ok('신고 누름 → DB 에 채팅 신고가 들어감', rep.length === 1 && rep[0].target_type === 'chat', JSON.stringify(rep));
   // 4) 차단 → 화면에서 사라지고 DB 에 기록
-  await bubble.click(); await pb.waitForTimeout(800);
+  await pb.locator('#chat-list .chat-msg', { hasText: msg }).locator('button.chat-meta-btn').first().click(); await pb.waitForTimeout(800);   // 이름 줄을 눌러도 신고·차단 창
+  ok('이름을 눌러도 신고·차단 창', await pb.locator('#report-block').count() === 1);
   await pb.locator('#report-block').click(); await pb.waitForTimeout(2500);
   const stillB = await pb.locator('#chat-list .chat-bubble', { hasText: msg }).count();
   const blk = await (await fetch(U + '/rest/v1/blocks?select=blocked_id&blocked_id=eq.' + A.user.id, { headers: h(B.access_token) })).json();
